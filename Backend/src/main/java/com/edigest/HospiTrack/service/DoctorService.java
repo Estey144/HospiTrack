@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class DoctorService {
@@ -48,10 +49,26 @@ public class DoctorService {
         String sql = "DELETE FROM Doctors WHERE id = ?"; // <-- RAW SQL HERE
         jdbc.update(sql, id);
     }
-    public int count() {
-        String sql = "SELECT COUNT(*) FROM Doctors";  // Adjust table name as per your DB
+    public int countDoctors() {
+        String sql = "SELECT COUNT(*) FROM Users WHERE role = 'doctor'";
         Integer count = jdbc.queryForObject(sql, Integer.class);
         return (count != null) ? count : 0;
     }
+    public List<Map<String, Object>> getAllDoctorsForFrontend() {
+        String sql = """
+            SELECT d.id AS doctorId,
+                   u.name AS doctorName,
+                   d.experience_years AS experienceYears,
+                   d.license_number AS licenseNumber,
+                   d.available_hours AS availableHours,
+                   dep.name AS specialization,
+                   hb.name AS branchName
+            FROM Doctors d
+            JOIN Users u ON d.user_id = u.id
+            JOIN Departments dep ON d.department_id = dep.id
+            JOIN Hospital_Branches hb ON d.branch_id = hb.id
+        """;
 
+        return jdbc.queryForList(sql);
+    }
 }

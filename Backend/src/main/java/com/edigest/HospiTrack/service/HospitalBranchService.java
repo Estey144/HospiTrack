@@ -29,7 +29,7 @@ public class HospitalBranchService {
 
     // 🔸 RAW SQL: Get all branches
     public List<HospitalBranch> getAllBranches() {
-        String sql = "SELECT * FROM Hospital_Branches"; // <-- RAW SQL HERE
+        String sql = "SELECT * FROM Hospital_Branches";
         return jdbc.query(sql, new BeanPropertyRowMapper<>(HospitalBranch.class));
     }
 
@@ -46,8 +46,8 @@ public class HospitalBranchService {
         jdbc.update(sql, id);
     }
 
-    public int count() {
-        String sql = "SELECT COUNT(*) FROM Hospital_Branches"; // Adjust table name if needed
+    public int countBranches() {
+        String sql = "SELECT COUNT(*) FROM Hospital_Branches";
         Integer count = jdbc.queryForObject(sql, Integer.class);
         return (count != null) ? count : 0;
     }

@@ -9,35 +9,35 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/branches")
+@RequestMapping("/api")  // Base path now aligns with frontend: /api/branches
 public class HospitalBranchController {
 
     @Autowired
     private HospitalBranchService hospitalBranchService;
 
-    @PostMapping
-    public ResponseEntity<HospitalBranch> createBranch(@RequestBody HospitalBranch branch) {
-        HospitalBranch savedBranch = hospitalBranchService.saveBranch(branch);
-        return ResponseEntity.status(201).body(savedBranch);
-    }
+//    // POST /api/branches — Create a new branch
+//    @PostMapping
+//    public ResponseEntity<HospitalBranch> createBranch(@RequestBody HospitalBranch branch) {
+//        HospitalBranch savedBranch = hospitalBranchService.saveBranch(branch);
+//        return ResponseEntity.status(201).body(savedBranch);
+//    }
 
-    @GetMapping
+    // GET /api/branches — Get all branches
+    @GetMapping("/branches")
     public ResponseEntity<List<HospitalBranch>> getAllBranches() {
         List<HospitalBranch> branches = hospitalBranchService.getAllBranches();
         return ResponseEntity.ok(branches);
     }
 
-    @GetMapping("/{id}")
+    // GET /api/branches/{id} — Get branch by ID
+    @GetMapping("/id")
     public ResponseEntity<HospitalBranch> getBranchById(@PathVariable String id) {
         HospitalBranch branch = hospitalBranchService.getBranchById(id);
-        if (branch != null) {
-            return ResponseEntity.ok(branch);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return (branch != null) ? ResponseEntity.ok(branch) : ResponseEntity.notFound().build();
     }
 
-    @DeleteMapping("/{id}")
+    // DELETE /api/branches/{id} — Delete branch by ID
+    @DeleteMapping("/id")
     public ResponseEntity<Void> deleteBranch(@PathVariable String id) {
         hospitalBranchService.deleteBranch(id);
         return ResponseEntity.noContent().build();

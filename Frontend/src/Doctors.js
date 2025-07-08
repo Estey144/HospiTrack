@@ -7,15 +7,27 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:808
 const Doctors = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     axios.get(`${API_BASE_URL}/api/doctors`)
-      .then(res => setDoctors(res.data))
-      .catch(() => alert('Failed to load doctors'))
+      .then(res => {
+        // Normalize keys to lowercase ones expected by JSX
+        const normalized = res.data.map(doc => ({
+          id: doc.DOCTORID,
+          name: doc.DOCTORNAME,
+          specialization: doc.SPECIALIZATION,
+          experienceYears: doc.EXPERIENCEYEARS,
+          branchName: doc.BRANCHNAME,
+        }));
+        setDoctors(normalized);
+      })
+      .catch(() => setError('Failed to load doctors'))
       .finally(() => setLoading(false));
   }, []);
 
   if (loading) return <p>Loading doctors...</p>;
+  if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
   return (
     <div className="doctors-page">

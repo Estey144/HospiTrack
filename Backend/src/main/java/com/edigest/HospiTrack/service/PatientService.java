@@ -49,9 +49,11 @@ public class PatientService {
         String sql = "DELETE FROM Patients WHERE id = ?"; // <-- RAW SQL HERE
         jdbc.update(sql, id);
     }
-    public int count() {
-        String sql = "SELECT COUNT(*) FROM Patients"; // Adjust table name if needed
+    public int countPatients() {
+        String sql = "SELECT COUNT(*) FROM Users WHERE role = 'patient'";
         Integer count = jdbc.queryForObject(sql, Integer.class);
         return (count != null) ? count : 0;
     }
+
+
 }
