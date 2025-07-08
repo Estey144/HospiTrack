@@ -21,15 +21,22 @@ import MedicalHistory from './MedicalHistory';
 import BranchDirectory from './BranchDirectory';
 import StaffDirectory from './StaffDirectory';
 import Rooms from './Rooms';
+import Doctors from './Doctors';
 
 function App() {
   return (
     <Router>
       <Routes>
+        {/* Public Pages */}
         <Route path="/" element={<Homepage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/doctors" element={<Doctors />} />
+        <Route path="/branches" element={<BranchDirectory />} />
+        <Route path="/staff" element={<StaffDirectory />} />
+        <Route path="/rooms" element={<Rooms />} />
 
+        {/* Dashboards */}
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
         <Route path="/patient-dashboard" element={<PatientDashboard />} />
@@ -43,11 +50,6 @@ function App() {
         <Route path="/video-sessions" element={<VideoSessions />} />
         <Route path="/lab-tests" element={<LabTests />} />
         <Route path="/medical-history" element={<MedicalHistory />} />
-
-        {/* Public/Utility Pages */}
-        <Route path="/branches" element={<BranchDirectory />} />
-        <Route path="/staff" element={<StaffDirectory />} />
-        <Route path="/rooms" element={<Rooms />} />
       </Routes>
     </Router>
   );
