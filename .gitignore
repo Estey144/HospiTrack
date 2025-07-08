@@ -1,0 +1,26 @@
+# ====================
+# React Frontend
+# ====================
+Frontend/node_modules/
+Frontend/build/
+Frontend/.env
+Frontend/.DS_Store
+
+# ====================
+# Spring Boot Backend
+# ====================
+Backend/target/
+Backend/.classpath
+Backend/.project
+Backend/.settings/
+Backend/.idea/
+Backend/*.iml
+Backend/out/
+Backend/logs/
+Backend/*.log
+
+# ====================
+# OS files
+# ====================
+*.DS_Store
+Thumbs.db
