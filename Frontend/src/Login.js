@@ -25,9 +25,7 @@ const Login = () => {
         return res.json();
       })
       .then(data => {
-        console.log('Logged in user role:', data.user.role);  // Debug here
-
-        const role = data.user.role.trim().toLowerCase(); // Normalize
+        const role = data.user.role.trim().toLowerCase(); 
         localStorage.setItem('user', JSON.stringify(data.user));
 
         if (role === 'patient') navigate('/patient-dashboard');
@@ -35,7 +33,6 @@ const Login = () => {
         else if (role === 'admin') navigate('/admin-dashboard');
         else alert('Unknown user role');
       })
-
       .catch(err => {
         setError(err.message);
       });

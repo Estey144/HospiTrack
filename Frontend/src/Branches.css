@@ -1,0 +1,25 @@
+.branches-page {
+  max-width: 800px;
+  margin: 30px auto;
+  padding: 0 15px;
+  font-family: Arial, sans-serif;
+}
+
+.branches-page h2 {
+  color: #007bff;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.branches-page ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.branches-page li {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 0 8px rgb(0 0 0 / 0.1);
+  padding: 18px 25px;
+  margin-bottom: 15px;
+}

@@ -1,0 +1,44 @@
+.patient-dashboard {
+  max-width: 800px;
+  margin: 30px auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #f4f9ff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  color: #222;
+}
+
+.patient-dashboard h2 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.patient-dashboard p {
+  text-align: center;
+  font-size: 16px;
+  margin-bottom: 30px;
+}
+
+.patient-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+}
+
+.patient-actions button {
+  padding: 12px 20px;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  min-width: 180px;
+  transition: background-color 0.2s;
+}
+
+.patient-actions button:hover {
+  background-color: #125ea3;
+}

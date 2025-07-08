@@ -1,0 +1,29 @@
+.doctors-page {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 0 15px;
+  font-family: Arial, sans-serif;
+}
+
+.doctors-page h2 {
+  color: #007bff;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+th {
+  background-color: #007bff;
+  color: white;
+}
