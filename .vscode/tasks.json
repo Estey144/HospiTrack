@@ -1,0 +1,47 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start Spring Boot Backend",
+      "type": "shell",
+      "command": "./mvnw",
+      "args": ["spring-boot:run"],
+      "options": {
+        "cwd": "${workspaceFolder}/Backend"
+      },
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "detail": "Runs the Spring Boot application using Maven Wrapper"
+    },
+    {
+      "label": "Start React Frontend",
+      "type": "shell",
+      "command": "npm",
+      "args": ["start"],
+      "options": {
+        "cwd": "${workspaceFolder}/Frontend"
+      },
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+        "detail": "Starts the React frontend application"
+    },
+    {
+      "label": "Start Both (React + Backend)",
+      "dependsOn": [
+        "Start React Frontend",
+        "Start Spring Boot Backend"
+      ],
+      "dependsOrder": "parallel",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}

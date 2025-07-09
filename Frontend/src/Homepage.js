@@ -57,7 +57,9 @@ const Homepage = () => {
       <div className="background-animation" aria-hidden="true" />
 
       <header className="header">
-        <h1 className="logo" onClick={() => navigate('/')}>HospiTrack</h1>
+        <h1 className="logo" onClick={() => navigate('/')}>
+          <span className="logo-first-letter">H</span>ospiTrac<span className="logo-last-letter">k</span>
+        </h1>
         {user ? (
           <div className="user-menu" ref={dropdownRef}>
             <button onClick={() => setDropdownOpen(!dropdownOpen)} className="user-button">
@@ -96,12 +98,12 @@ const Homepage = () => {
         <h3>Quick Access</h3>
         <div className="actions-grid">
           <button className="action-button" onClick={() => navigate('/doctors')}>Find Doctor</button>
-          <button className="action-button" onClick={() => user ? navigate('/patient-dashboard#tests') : navigate('/login')}>See Test List</button>
-          <button className="action-button" onClick={() => user ? navigate('/patient-dashboard#book-appointment') : navigate('/login')}>Book Appointment</button>
-          <button className="action-button" onClick={() => user ? navigate('/patient-dashboard#ambulance-request') : navigate('/login')}>Request Ambulance</button>
-          <button className="action-button" onClick={() => user ? navigate('/patient-dashboard#prescriptions') : navigate('/login')}>View Prescriptions</button>
-          <button className="action-button" onClick={() => user ? navigate('/patient-dashboard#bills') : navigate('/login')}>See Bills</button>
-          <button className="action-button" onClick={() => user ? navigate('/patient-dashboard#video-sessions') : navigate('/login')}>Join Video Session</button>
+          <button className="action-button" onClick={() => user ? navigate('/lab-tests') : navigate('/login')}>See Test List</button>
+          <button className="action-button" onClick={() => user ? navigate('/appointments') : navigate('/login')}>Book Appointment</button>
+          <button className="action-button" onClick={() => user ? navigate('/ambulance') : navigate('/login')}>Request Ambulance</button>
+          <button className="action-button" onClick={() => user ? navigate('/prescriptions') : navigate('/login')}>View Prescriptions</button>
+          <button className="action-button" onClick={() => user ? navigate('/bills') : navigate('/login')}>See Bills</button>
+          <button className="action-button" onClick={() => user ? navigate('/video-sessions') : navigate('/login')}>Join Video Session</button>
         </div>
       </section>
 
