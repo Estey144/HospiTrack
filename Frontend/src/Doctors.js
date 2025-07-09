@@ -195,12 +195,12 @@ const Doctors = () => {
                     <h3 className="doctor-name">{doctor.name}</h3>
                     <p className="doctor-title">{doctor.title || doctor.specialization}</p>
 
-                    <div className="doctor-detail">
+                    {/* <div className="doctor-detail">
                       <svg className="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" />
                       </svg>
                       {doctor.specialization}
-                    </div>
+                    </div> */}
 
                     <div className="doctor-detail">
                       <svg className="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
