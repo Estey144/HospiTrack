@@ -20,31 +20,46 @@ const Signup = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Payload matches backend PatientSignupRequest structure
     const payload = {
-      ...form,
-      role: 'patient'
+      user: {
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        phone: form.phone,
+        role: 'patient'
+      },
+      patient: {
+        dob: form.dob,
+        gender: form.gender,
+        bloodType: form.blood_type,         // camelCase - adjust if backend expects underscore
+        address: form.address,
+        emergencyContact: form.emergency_contact  // camelCase - adjust if backend expects underscore
+      }
     };
 
-    fetch('http://localhost:8080/api/signup/patient', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-      .then(res => {
-        if (res.ok) {
-          alert('Account created successfully!');
-          navigate('/login');
-        } else {
-          alert('Signup failed.');
-        }
-      })
-      .catch(err => {
-        console.error('Error:', err);
-        alert('Server error during signup.');
+    try {
+      const res = await fetch('http://localhost:8080/api/signup/patient', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
+
+      if (res.ok) {
+        alert('Account created successfully!');
+        navigate('/login');
+      } else {
+        const errorText = await res.text();
+        alert(`Signup failed: ${res.status} - ${errorText}`);
+        console.error('Signup failed:', res.status, errorText);
+      }
+    } catch (err) {
+      console.error('Error:', err);
+      alert('Server error during signup.');
+    }
   };
 
   return (
@@ -70,7 +85,9 @@ const Signup = () => {
         </form>
         <p className="login-link">
           Already have an account?{' '}
-          <span onClick={() => navigate('/login')}>Login here</span>
+          <span onClick={() => navigate('/login')} style={{cursor: 'pointer', color: 'blue', textDecoration: 'underline'}}>
+            Login here
+          </span>
         </p>
       </div>
     </div>

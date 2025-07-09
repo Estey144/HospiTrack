@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import Homepage from './Homepage';
@@ -24,12 +24,22 @@ import Rooms from './Rooms';
 import Doctors from './Doctors';
 
 function App() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // Load user from localStorage if exists (on app start)
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
   return (
     <Router>
       <Routes>
         {/* Public Pages */}
-        <Route path="/" element={<Homepage />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Homepage user={user} setUser={setUser} />} />
+        <Route path="/login" element={<Login setUser={setUser} />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/doctors" element={<Doctors />} />
         <Route path="/branches" element={<BranchDirectory />} />
@@ -37,9 +47,9 @@ function App() {
         <Route path="/rooms" element={<Rooms />} />
 
         {/* Dashboards */}
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
-        <Route path="/patient-dashboard" element={<PatientDashboard />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard user={user} />} />
+        <Route path="/doctor-dashboard" element={<DoctorDashboard user={user} />} />
+        <Route path="/patient-dashboard" element={<PatientDashboard user={user} />} />
 
         {/* Patient Functional Pages */}
         <Route path="/appointments" element={<Appointments />} />

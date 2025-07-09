@@ -15,20 +15,20 @@ public class DoctorService {
     @Autowired
     private JdbcTemplate jdbc;
 
-    // 🔸 RAW SQL: Get all doctors
+    //  Get all doctors
     public List<Doctor> getAllDoctors() {
         String sql = "SELECT * FROM Doctors"; // <-- RAW SQL HERE
         return jdbc.query(sql, new BeanPropertyRowMapper<>(Doctor.class));
     }
 
-    // 🔸 RAW SQL: Get doctor by ID
+    //  Get doctor by ID
     public Doctor getDoctorById(String id) {
         String sql = "SELECT * FROM Doctors WHERE id = ?"; // <-- RAW SQL HERE
         List<Doctor> result = jdbc.query(sql, new BeanPropertyRowMapper<>(Doctor.class), id);
         return result.isEmpty() ? null : result.get(0);
     }
 
-    // 🔸 RAW SQL: Insert a new doctor
+    //  Insert a new doctor
     public Doctor saveDoctor(Doctor doctor) {
         String sql = "INSERT INTO Doctors (id, user_id, branch_id, license_number, experience_years, available_hours, department_id) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?)"; // <-- RAW SQL HERE
@@ -44,7 +44,7 @@ public class DoctorService {
         return doctor;
     }
 
-    // 🔸 RAW SQL: Delete doctor by ID
+    //  Delete doctor by ID
     public void deleteDoctor(String id) {
         String sql = "DELETE FROM Doctors WHERE id = ?"; // <-- RAW SQL HERE
         jdbc.update(sql, id);

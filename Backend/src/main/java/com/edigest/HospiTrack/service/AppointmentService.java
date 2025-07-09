@@ -15,7 +15,7 @@ public class AppointmentService {
     @Autowired
     private JdbcTemplate jdbc;
 
-    //  RAW SQL: Insert new appointment
+    // Insert new appointment
     public Appointment save(Appointment appointment) {
         String sql = "INSERT INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?)"; // <-- raw SQL uses "time_slot" as column name
@@ -31,13 +31,13 @@ public class AppointmentService {
         return appointment;
     }
 
-    //  RAW SQL: Select all appointments with proper alias for time_slot
+    //   Select all appointments with proper alias for time_slot
     public List<Appointment> getAll() {
         String sql = "SELECT id, patient_id, doctor_id, appointment_date, time_slot AS timeSlot, type, status FROM Appointments";
         return jdbc.query(sql, new BeanPropertyRowMapper<>(Appointment.class));
     }
 
-    //  RAW SQL: Delete appointment by ID
+    //   Delete appointment by ID
     public void delete(String id) {
         String sql = "DELETE FROM Appointments WHERE id = ?";
         jdbc.update(sql, id);

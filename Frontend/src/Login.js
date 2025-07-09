@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import './Login.css';
 import { useNavigate } from 'react-router-dom';
 
-const Login = () => {
+const Login = ({ setUser }) => {  // Accept setUser here
+  
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
@@ -25,13 +26,20 @@ const Login = () => {
         return res.json();
       })
       .then(data => {
-        const role = data.user.role.trim().toLowerCase(); 
+        const role = data.user.role.trim().toLowerCase();
+
+        // Save user in localStorage
         localStorage.setItem('user', JSON.stringify(data.user));
 
-        if (role === 'patient') navigate('/patient-dashboard');
-        else if (role === 'doctor') navigate('/doctor-dashboard');
-        else if (role === 'admin') navigate('/admin-dashboard');
-        else alert('Unknown user role');
+        // Update user state in App component
+        setUser(data.user);
+
+        // if (role === 'patient') navigate('/patient-dashboard');
+        // else if (role === 'doctor') navigate('/doctor-dashboard');
+        // else if (role === 'admin') navigate('/admin-dashboard');
+        // else alert('Unknown user role');
+        navigate('/');
+
       })
       .catch(err => {
         setError(err.message);

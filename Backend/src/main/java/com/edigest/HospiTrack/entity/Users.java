@@ -1,15 +1,22 @@
 package com.edigest.HospiTrack.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Column;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.Id;
 
 import java.util.Date;
 
 public class Users {
-    @NotBlank(message = "ID is required")
-    private String id;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // or AUTO if using sequences
+    @Column(name = "id")
+    private Long id;
 
     @NotBlank(message = "Name is required")
     private String name;
@@ -30,8 +37,8 @@ public class Users {
     private String role;
 
     // Getters and Setters
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public long getId() { return id; }
+    public void setId(long id) { this.id = id; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }

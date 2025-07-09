@@ -15,7 +15,7 @@ public class HospitalBranchService {
     @Autowired
     private JdbcTemplate jdbc;
 
-    // 🔸 RAW SQL: Insert a hospital branch
+    //  Insert a hospital branch
     public HospitalBranch saveBranch(HospitalBranch branch) {
         String sql = "INSERT INTO Hospital_Branches (id, name, address, established_date) VALUES (?, ?, ?, ?)"; // <-- RAW SQL HERE
         jdbc.update(sql,
@@ -27,20 +27,20 @@ public class HospitalBranchService {
         return branch;
     }
 
-    // 🔸 RAW SQL: Get all branches
+    //  Get all branches
     public List<HospitalBranch> getAllBranches() {
         String sql = "SELECT * FROM Hospital_Branches";
         return jdbc.query(sql, new BeanPropertyRowMapper<>(HospitalBranch.class));
     }
 
-    // 🔸 RAW SQL: Get branch by ID
+    //  Get branch by ID
     public HospitalBranch getBranchById(String id) {
         String sql = "SELECT * FROM Hospital_Branches WHERE id = ?"; // <-- RAW SQL HERE
         List<HospitalBranch> branches = jdbc.query(sql, new BeanPropertyRowMapper<>(HospitalBranch.class), id);
         return branches.isEmpty() ? null : branches.get(0);
     }
 
-    // 🔸 RAW SQL: Delete branch by ID
+    //  Delete branch by ID
     public void deleteBranch(String id) {
         String sql = "DELETE FROM Hospital_Branches WHERE id = ?"; // <-- RAW SQL HERE
         jdbc.update(sql, id);
