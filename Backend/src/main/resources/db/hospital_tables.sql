@@ -45,7 +45,8 @@ CREATE TABLE Doctors (
                          license_number VARCHAR2(100),
                          experience_years INT,
                          available_hours VARCHAR2(100),
-                         department_id VARCHAR2(36)
+                         department_id VARCHAR2(36),
+                         image_url VARCHAR2(255)
 );
 
 CREATE TABLE Patients (

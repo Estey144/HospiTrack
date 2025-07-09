@@ -15,23 +15,20 @@ public class DoctorService {
     @Autowired
     private JdbcTemplate jdbc;
 
-    //  Get all doctors
     public List<Doctor> getAllDoctors() {
-        String sql = "SELECT * FROM Doctors"; // <-- RAW SQL HERE
+        String sql = "SELECT * FROM Doctors";
         return jdbc.query(sql, new BeanPropertyRowMapper<>(Doctor.class));
     }
 
-    //  Get doctor by ID
     public Doctor getDoctorById(String id) {
-        String sql = "SELECT * FROM Doctors WHERE id = ?"; // <-- RAW SQL HERE
+        String sql = "SELECT * FROM Doctors WHERE id = ?";
         List<Doctor> result = jdbc.query(sql, new BeanPropertyRowMapper<>(Doctor.class), id);
         return result.isEmpty() ? null : result.get(0);
     }
 
-    //  Insert a new doctor
     public Doctor saveDoctor(Doctor doctor) {
-        String sql = "INSERT INTO Doctors (id, user_id, branch_id, license_number, experience_years, available_hours, department_id) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?)"; // <-- RAW SQL HERE
+        String sql = "INSERT INTO Doctors (id, user_id, branch_id, license_number, experience_years, available_hours, department_id, image_url) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         jdbc.update(sql,
                 doctor.getId(),
                 doctor.getUserId(),
@@ -39,21 +36,23 @@ public class DoctorService {
                 doctor.getLicenseNumber(),
                 doctor.getExperienceYears(),
                 doctor.getAvailableHours(),
-                doctor.getDepartmentId()
+                doctor.getDepartmentId(),
+                doctor.getImageUrl()  
         );
         return doctor;
     }
 
-    //  Delete doctor by ID
     public void deleteDoctor(String id) {
-        String sql = "DELETE FROM Doctors WHERE id = ?"; // <-- RAW SQL HERE
+        String sql = "DELETE FROM Doctors WHERE id = ?";
         jdbc.update(sql, id);
     }
+
     public int countDoctors() {
         String sql = "SELECT COUNT(*) FROM Users WHERE role = 'doctor'";
         Integer count = jdbc.queryForObject(sql, Integer.class);
         return (count != null) ? count : 0;
     }
+
     public List<Map<String, Object>> getAllDoctorsForFrontend() {
         String sql = """
             SELECT d.id AS doctorId,
@@ -62,7 +61,8 @@ public class DoctorService {
                    d.license_number AS licenseNumber,
                    d.available_hours AS availableHours,
                    dep.name AS specialization,
-                   hb.name AS branchName
+                   hb.name AS branchName,
+                   d.image_url AS imageUrl
             FROM Doctors d
             JOIN Users u ON d.user_id = u.id
             JOIN Departments dep ON d.department_id = dep.id
