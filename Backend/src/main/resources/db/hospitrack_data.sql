@@ -423,3 +423,27 @@ INSERT ALL
   INTO Claims (id, appointment_id, insurance_id, claim_status, claim_amount, submitted_on) VALUES ('cl004', 'app004', 'ip004', 'Rejected', 1500.0, DATE '2024-07-19')
 SELECT * FROM dual;
 
+
+-- more feedbacks
+INSERT ALL
+  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES 
+    ('f001', 'pat001', 'doctor', 'doc101', 5, 'The doctor was very attentive and helpful.', DATE '2025-07-01')
+  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES 
+    ('f002', 'pat002', 'hospital', 'branch001', 4, 'Clean facilities and friendly staff.', DATE '2025-07-02')
+  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES 
+    ('f003', 'pat003', 'doctor', 'doc105', 5, 'Got quick diagnosis and good treatment.', DATE '2025-07-03')
+  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES 
+    ('f004', 'pat004', 'hospital', 'branch002', 5, 'Really impressed with the emergency response.', DATE '2025-07-04')
+  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES 
+    ('f005', 'pat005', 'doctor', 'doc107', 4, 'Doctor explained everything clearly.', DATE '2025-07-05')
+  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES 
+    ('f006', 'pat006', 'hospital', 'branch003', 5, 'Very smooth admission and discharge process.', DATE '2025-07-06')
+  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES 
+    ('f007', 'pat007', 'doctor', 'doc108', 4, 'Professional and polite doctor. Recommended.', DATE '2025-07-07')
+  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES 
+    ('f008', 'pat008', 'hospital', 'branch004', 5, 'Hospital staff were very responsive.', DATE '2025-07-08')
+  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES 
+    ('f009', 'pat009', 'doctor', 'doc110', 5, 'Great experience, the doctor was knowledgeable.', DATE '2025-07-09')
+  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES 
+    ('f010', 'pat010', 'hospital', 'branch005', 4, 'Good environment and quick service.', DATE '2025-07-10')
+SELECT * FROM dual;

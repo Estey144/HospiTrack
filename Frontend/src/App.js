@@ -22,6 +22,7 @@ import BranchDirectory from './BranchDirectory';
 import StaffDirectory from './StaffDirectory';
 import Rooms from './Rooms';
 import Doctors from './Doctors';
+import Feedback from './Feedback';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -45,6 +46,7 @@ function App() {
         <Route path="/branches" element={<BranchDirectory />} />
         <Route path="/staff" element={<StaffDirectory />} />
         <Route path="/rooms" element={<Rooms />} />
+        <Route path="/feedback" element={<Feedback />} />
 
         {/* Dashboards */}
         <Route path="/admin-dashboard" element={<AdminDashboard user={user} />} />
