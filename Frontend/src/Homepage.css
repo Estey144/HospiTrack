@@ -523,7 +523,7 @@ body.homepage-body {
   opacity: 0.9;
 }
 
-/* Stats Section */
+/* Stats Section - Our Impact */
 .stats-section {
   padding: 4rem 2rem;
   max-width: 1200px;
@@ -536,8 +536,9 @@ body.homepage-body {
   gap: 2rem;
 }
 
-.stat-card {
-  background: rgba(255, 255, 255, 0.95);
+.homepage .stats-section .stat-card,
+.stats-section .stat-card {
+  background: white !important;
   padding: 2rem;
   border-radius: 20px;
   text-align: center;
@@ -550,12 +551,15 @@ body.homepage-body {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
-.stat-card:hover {
+.homepage .stats-section .stat-card:hover,
+.stats-section .stat-card:hover {
   transform: translateY(-10px);
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+  background: white !important;
 }
 
-.stat-icon {
+.homepage .stats-section .stat-icon,
+.stats-section .stat-icon {
   font-size: 3rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
@@ -563,28 +567,118 @@ body.homepage-body {
   background-clip: text;
 }
 
-.stat-content {
+.homepage .stats-section .stat-content,
+.stats-section .stat-content {
   flex: 1;
   text-align: left;
 }
 
-.stat-content h4 {
+.homepage .stats-section .stat-content h4,
+.stats-section .stat-content h4 {
   font-size: 1.2rem;
-  color: #333;
+  color: #333 !important;
   margin-bottom: 0.5rem;
 }
 
-.stat-number {
+.homepage .stats-section .stat-number,
+.stats-section .stat-number {
   font-size: 3rem;
   font-weight: bold;
-  color: #c9d2f8;
+  color: #667eea !important;
   margin-bottom: 0.5rem;
 }
 
-.stat-label {
+.homepage .stats-section .stat-label,
+.stats-section .stat-label {
   font-size: 0.9rem;
-  color: #9f9f9f;
+  color: #666 !important;
   font-weight: 500;
+}
+
+/* Specific styles for Our Impact section */
+.homepage .our-impact-section,
+.our-impact-section {
+  background: transparent;
+  position: relative;
+  z-index: 2;
+}
+
+.homepage .our-impact-section .our-impact-grid,
+.our-impact-section .our-impact-grid {
+  position: relative;
+  z-index: 3;
+}
+
+.homepage .our-impact-section .our-impact-card,
+.our-impact-section .our-impact-card,
+.homepage .our-impact-card,
+.our-impact-card {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  border: 2px solid rgba(102, 126, 234, 0.1) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  position: relative;
+  z-index: 4;
+  opacity: 1 !important;
+}
+
+.homepage .our-impact-section .our-impact-card:hover,
+.our-impact-section .our-impact-card:hover,
+.homepage .our-impact-card:hover,
+.our-impact-card:hover {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  transform: translateY(-10px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2) !important;
+}
+
+.homepage .our-impact-section .our-impact-card::after,
+.our-impact-section .our-impact-card::after,
+.homepage .our-impact-card::after,
+.our-impact-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white !important;
+  background-color: white !important;
+  z-index: -1;
+  border-radius: 20px;
+  opacity: 1;
+  pointer-events: none;
+}
+
+/* Ensure content stays above the white background */
+.homepage .our-impact-section .our-impact-card > *,
+.our-impact-section .our-impact-card > *,
+.homepage .our-impact-card > *,
+.our-impact-card > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Ensure content visibility on white background */
+.homepage .our-impact-section .our-impact-card .stat-content h4,
+.our-impact-section .our-impact-card .stat-content h4,
+.homepage .our-impact-card .stat-content h4,
+.our-impact-card .stat-content h4 {
+  color: #2c3e50 !important;
+}
+
+.homepage .our-impact-section .our-impact-card .stat-number,
+.our-impact-section .our-impact-card .stat-number,
+.homepage .our-impact-card .stat-number,
+.our-impact-card .stat-number {
+  color: #667eea !important;
+}
+
+.homepage .our-impact-section .our-impact-card .stat-label,
+.our-impact-section .our-impact-card .stat-label,
+.homepage .our-impact-card .stat-label,
+.our-impact-card .stat-label {
+  color: #7f8c8d !important;
 }
 
 /* Actions Section */
@@ -1113,16 +1207,19 @@ body.homepage-body {
     gap: 2rem;
   }
   
-  .stat-card,
+  .homepage .stats-section .stat-card,
+  .stats-section .stat-card,
   .info-card,
   .engagement-card,
   .covid-card {
     flex-direction: column;
     text-align: center;
     min-height: auto;
+    background: white !important;
   }
   
-  .stat-content,
+  .homepage .stats-section .stat-content,
+  .stats-section .stat-content,
   .info-content,
   .engagement-content,
   .covid-content {
@@ -1176,4 +1273,94 @@ body.homepage-body {
   .testimonials-track {
     animation-duration: 40s;
   }
+}
+
+/* Additional ultra-specific styles for Our Impact cards to override any conflicts */
+body.homepage-body .homepage .our-impact-section .our-impact-card.stat-card,
+body.homepage-body .our-impact-section .our-impact-card.stat-card,
+body.homepage-body .homepage .our-impact_card.stat-card,
+body.homepage-body .our-impact-card.stat-card,
+.homepage .our-impact-section .our-impact-card.stat-card,
+.our-impact-section .our-impact-card.stat-card,
+.homepage .our-impact_card.stat-card,
+.our-impact_card.stat-card {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+  background-blend-mode: normal !important;
+  background-clip: padding-box !important;
+  background-origin: padding-box !important;
+  background-position: 0% 0% !important;
+  background-repeat: repeat !important;
+  background-size: auto !important;
+  color: #333 !important;
+  border: 2px solid rgba(102, 126, 234, 0.1) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  position: relative;
+  z-index: 10;
+  opacity: 1 !important;
+}
+
+body.homepage-body .homepage .our-impact-section .our-impact-card.stat-card:hover,
+body.homepage-body .our-impact-section .our-impact-card.stat-card:hover,
+body.homepage-body .homepage .our-impact_card.stat-card:hover,
+body.homepage-body .our-impact_card.stat-card:hover,
+.homepage .our-impact-section .our-impact-card.stat-card:hover,
+.our-impact-section .our-impact-card.stat-card:hover,
+.homepage .our-impact_card.stat-card:hover,
+.our-impact_card.stat-card:hover {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #333 !important;
+  transform: translateY(-10px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Force white background on stat content within Our Impact cards */
+body.homepage-body .homepage .our-impact-section .our-impact-card .stat-content,
+body.homepage-body .our-impact_section .our-impact-card .stat-content,
+body.homepage-body .homepage .our-impact_card .stat-content,
+body.homepage-body .our-impact_card .stat-content,
+.homepage .our-impact-section .our-impact-card .stat-content,
+.our-impact-section .our-impact-card .stat-content,
+.homepage .our-impact_card .stat-content,
+.our-impact_card .stat-content {
+  color: #333 !important;
+  background: transparent !important;
+}
+
+/* Force correct text colors for stat elements within Our Impact cards */
+body.homepage-body .homepage .our-impact-section .our-impact-card .stat-content h4,
+body.homepage-body .our-impact_section .our-impact-card .stat-content h4,
+body.homepage-body .homepage .our-impact_card .stat-content h4,
+body.homepage-body .our-impact_card .stat-content h4,
+.homepage .our-impact-section .our-impact-card .stat-content h4,
+.our-impact-section .our-impact-card .stat-content h4,
+.homepage .our-impact_card .stat-content h4,
+.our-impact_card .stat-content h4 {
+  color: #333 !important;
+}
+
+body.homepage-body .homepage .our-impact-section .our-impact-card .stat-number,
+body.homepage-body .our-impact_section .our-impact-card .stat-number,
+body.homepage-body .homepage .our-impact_card .stat-number,
+body.homepage-body .our-impact_card .stat-number,
+.homepage .our-impact-section .our-impact-card .stat-number,
+.our-impact-section .our-impact-card .stat-number,
+.homepage .our-impact_card .stat-number,
+.our-impact_card .stat-number {
+  color: #667eea !important;
+}
+
+body.homepage-body .homepage .our-impact-section .our-impact-card .stat-label,
+body.homepage-body .our-impact_section .our-impact-card .stat-label,
+body.homepage-body .homepage .our-impact_card .stat-label,
+body.homepage-body .our-impact_card .stat-label,
+.homepage .our-impact-section .our-impact-card .stat-label,
+.our-impact-section .our-impact-card .stat-label,
+.homepage .our-impact_card .stat-label,
+.our-impact_card .stat-label {
+  color: #9f9f9f !important;
 }
