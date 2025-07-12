@@ -1,39 +1,4 @@
-// import React, { useEffect, useState } from 'react';
-// import axios from 'axios';
-// import './Branches.css';
 
-// const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
-
-// const Branches = () => {
-//   const [branches, setBranches] = useState([]);
-//   const [loading, setLoading] = useState(true);
-
-//   useEffect(() => {
-//     axios.get(`${API_BASE_URL}/api/branches`)
-//       .then(res => setBranches(res.data))
-//       .catch(() => alert('Failed to load branches'))
-//       .finally(() => setLoading(false));
-//   }, []);
-
-//   if (loading) return <p>Loading branches...</p>;
-
-//   return (
-//     <div className="branches-page">
-//       <h2>Hospital Branches</h2>
-//       <ul>
-//         {branches.map(branch => (
-//           <li key={branch.id}>
-//             <h3>{branch.name}</h3>
-//             <p>{branch.address}</p>
-//             <p>Established: {new Date(branch.establishedDate).toLocaleDateString()}</p>
-//           </li>
-//         ))}
-//       </ul>
-//     </div>
-//   );
-// };
-
-// export default Branches;
 
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
@@ -68,7 +33,7 @@ const Branches = () => {
 
   const handleSearch = async (query) => {
     setSearchQuery(query);
-    
+
     if (query.trim() === '') {
       setFilteredBranches(branches);
       return;
@@ -83,10 +48,13 @@ const Branches = () => {
     } catch (error) {
       console.error('Error searching branches:', error);
       // Fallback to client-side filtering
-      const filtered = branches.filter(branch =>
-        branch.name.toLowerCase().includes(query.toLowerCase()) ||
-        branch.address.toLowerCase().includes(query.toLowerCase())
-      );
+      const filtered = branches.filter(branch => {
+        const name = branch.name || '';
+        const address = branch.address || '';
+        return name.toLowerCase().includes(query.toLowerCase()) ||
+          address.toLowerCase().includes(query.toLowerCase());
+      });
+
       setFilteredBranches(filtered);
     } finally {
       setSearching(false);
@@ -162,8 +130,8 @@ const Branches = () => {
           {filteredBranches.length} {filteredBranches.length === 1 ? 'branch' : 'branches'} found
         </span>
         {searchQuery && (
-          <button 
-            className="clear-search" 
+          <button
+            className="clear-search"
             onClick={() => handleSearch('')}
           >
             Clear search
@@ -187,14 +155,14 @@ const Branches = () => {
               <div className="branch-header">
                 <h2 className="branch-name">{branch.name}</h2>
               </div>
-              
+
               <div className="branch-content">
                 <div className="branch-info">
                   <div className="info-item">
                     <span className="info-icon">📍</span>
                     <span className="info-text">{branch.address}</span>
                   </div>
-                  
+
                   <div className="contacts-section">
                     <span className="section-title">Contact Information</span>
                     {branch.contacts && branch.contacts.length > 0 ? (
@@ -212,7 +180,7 @@ const Branches = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="info-item establishment-date">
                     <span className="info-icon">🏥</span>
                     <span className="info-text">Established: {formatDate(branch.establishedDate)}</span>

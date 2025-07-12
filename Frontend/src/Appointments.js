@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useLocation } from 'react-router-dom';
 import './Appointments.css';
 
-const Appointments = () => {
+const Appointments = ({ currentUser }) => {   // <-- Accept currentUser prop here
   const [patientAppointments, setPatientAppointments] = useState([]);
   const [isLoadingAppointments, setIsLoadingAppointments] = useState(true);
   const [appointmentError, setAppointmentError] = useState('');
@@ -21,30 +22,48 @@ const Appointments = () => {
     time: '',
     reason: ''
   });
-  const currentUser = JSON.parse(localStorage.getItem('user'));
+
+  const location = useLocation();
 
   useEffect(() => {
-    if (!currentUser || currentUser.role !== 'Patient') {
-      setAppointmentError('Unauthorized access.');
+    if (!currentUser) return;  // Wait for currentUser from props
+
+   if ((currentUser.role || '').toLowerCase() !== 'patient') {
+  setAppointmentError('Unauthorized access.');
+  setIsLoadingAppointments(false);
+  return;
+}
+
+
+    const fetchAppointmentsAndCheckQuery = async () => {
+      await fetchAppointments();
+
+      const params = new URLSearchParams(location.search);
+      const bookParam = params.get('book');
+      if (bookParam === 'true') {
+        openNewAppointmentModal();
+      }
+    };
+
+    fetchAppointmentsAndCheckQuery();
+  }, [currentUser, location.search]);
+
+  const fetchAppointments = async () => {
+    setIsLoadingAppointments(true);
+    setAppointmentError('');
+    try {
+      console.log('Fetching appointments for user:', currentUser?.id);
+      const response = await axios.get(`/api/appointments/patient/${currentUser.id}`);
+      setPatientAppointments(response.data);
+    } catch (error) {
+      console.error('Fetch appointments error:', error);
+      setAppointmentError('Failed to fetch appointments.');
+    } finally {
       setIsLoadingAppointments(false);
-      return;
     }
+  };
 
-    // Fetch appointments
-    axios.get(`/api/appointments/patient/${currentUser.id}`)
-      .then((response) => {
-        setPatientAppointments(response.data);
-        setIsLoadingAppointments(false);
-      })
-      .catch(() => {
-        setAppointmentError('Failed to fetch appointments.');
-        setIsLoadingAppointments(false);
-      });
-
-    // Fetch doctors and departments for new appointment booking
-    fetchDoctorsAndDepartments();
-  }, [currentUser]);
-
+  // Fetch doctors and departments only when modal opens
   const fetchDoctorsAndDepartments = async () => {
     try {
       const [doctorsRes, departmentsRes] = await Promise.all([
@@ -54,101 +73,104 @@ const Appointments = () => {
       setDoctors(doctorsRes.data);
       setDepartments(departmentsRes.data);
     } catch (error) {
-      console.error('Failed to fetch doctors/departments:', error);
+      console.error('Failed to fetch doctors or departments:', error);
     }
   };
 
+  // Fetch available slots for chosen doctor and date
   const fetchAvailableSlots = async (doctorId, date) => {
     setIsLoadingSlots(true);
+    setFormErrors(prev => ({ ...prev, time: '' }));
     try {
       const response = await axios.get(`/api/appointments/available-slots/${doctorId}/${date}`);
       setAvailableSlots(response.data);
     } catch (error) {
       console.error('Failed to fetch available slots:', error);
       setAvailableSlots([]);
-      setFormErrors(prev => ({ 
-        ...prev, 
-        time: 'Unable to fetch available slots. Please try again.' 
+      setFormErrors(prev => ({
+        ...prev,
+        time: 'Unable to fetch available slots. Please try again.'
       }));
     } finally {
       setIsLoadingSlots(false);
     }
   };
 
+  // Open modal and load doctors & departments if not loaded
+  const openNewAppointmentModal = () => {
+    setSuccessMessage('');
+    setAppointmentError('');
+    setShowNewAppointmentModal(true);
+    if (doctors.length === 0 || departments.length === 0) {
+      fetchDoctorsAndDepartments();
+    }
+  };
+
+  // Handle form input changes, with related side effects
   const handleNewAppointmentChange = (field, value) => {
     setNewAppointment(prev => ({ ...prev, [field]: value }));
-    
-    // Clear field-specific errors
+
     if (formErrors[field]) {
       setFormErrors(prev => ({ ...prev, [field]: '' }));
     }
-    
-    // Clear general error and success messages
     setAppointmentError('');
     setSuccessMessage('');
-    
-    // Fetch available slots when doctor and date are selected
+
     if (field === 'doctorId' || field === 'date') {
       const doctorId = field === 'doctorId' ? value : newAppointment.doctorId;
       const date = field === 'date' ? value : newAppointment.date;
+
       if (doctorId && date) {
-        // Clear time selection when doctor or date changes
         setNewAppointment(prev => ({ ...prev, time: '' }));
         fetchAvailableSlots(doctorId, date);
       } else {
         setAvailableSlots([]);
+        setNewAppointment(prev => ({ ...prev, time: '' }));
       }
     }
-    
-    // Clear doctor selection when department changes
+
     if (field === 'department') {
-      setNewAppointment(prev => ({ 
-        ...prev, 
-        doctorId: '', 
-        time: '' 
-      }));
+      setNewAppointment(prev => ({ ...prev, doctorId: '', time: '' }));
       setAvailableSlots([]);
     }
   };
 
+  // Form submit handler for booking appointment
   const handleBookAppointment = async (e) => {
     e.preventDefault();
-    
-    // Reset errors
+
     setFormErrors({});
     setAppointmentError('');
-    
-    // Validate form
+
+    // Validate form fields
     const errors = {};
     if (!newAppointment.department) errors.department = 'Please select a department';
     if (!newAppointment.doctorId) errors.doctorId = 'Please select a doctor';
     if (!newAppointment.date) errors.date = 'Please select a date';
     if (!newAppointment.time) errors.time = 'Please select a time slot';
     if (!newAppointment.reason.trim()) errors.reason = 'Please provide a reason for the visit';
-    
+
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       return;
     }
-    
+
     setIsBooking(true);
-    
+
     try {
       const appointmentData = {
         ...newAppointment,
         patientId: currentUser.id
       };
-      
+
       await axios.post('/api/appointments', appointmentData);
-      
-      // Show success message
+
       setSuccessMessage('Appointment booked successfully! You will receive a confirmation shortly.');
-      
+
       // Refresh appointments list
-      const response = await axios.get(`/api/appointments/patient/${currentUser.id}`);
-      setPatientAppointments(response.data);
-      
-      // Reset form and close modal after a short delay
+      await fetchAppointments();
+
+      // Reset form and close modal after delay
       setTimeout(() => {
         setNewAppointment({
           doctorId: '',
@@ -161,18 +183,18 @@ const Appointments = () => {
         setAvailableSlots([]);
         setSuccessMessage('');
       }, 2000);
-      
+
     } catch (error) {
       console.error('Failed to book appointment:', error);
       setAppointmentError(
-        error.response?.data?.message || 
-        'Failed to book appointment. Please try again.'
+        error.response?.data?.message || 'Failed to book appointment. Please try again.'
       );
     } finally {
       setIsBooking(false);
     }
   };
 
+  // Helper to get CSS class for status badge
   const getStatusBadgeClass = (status) => {
     switch (status?.toLowerCase()) {
       case 'confirmed':
@@ -188,6 +210,7 @@ const Appointments = () => {
     }
   };
 
+  // Format date string to readable format
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -198,6 +221,7 @@ const Appointments = () => {
     });
   };
 
+  // Format time string to AM/PM format
   const formatTime = (timeString) => {
     const time = new Date(`2000-01-01T${timeString}`);
     return time.toLocaleTimeString('en-US', {
@@ -209,9 +233,9 @@ const Appointments = () => {
 
   if (isLoadingAppointments) {
     return (
-      <div className="patient-appointments-wrapper">
+      <div className="patient-appointments-wrapper" role="status" aria-live="polite">
         <div className="patient-appointments-loading">
-          <div className="patient-appointments-spinner"></div>
+          <div className="patient-appointments-spinner" aria-hidden="true"></div>
           <p>Loading your appointments...</p>
         </div>
       </div>
@@ -220,9 +244,9 @@ const Appointments = () => {
 
   if (appointmentError) {
     return (
-      <div className="patient-appointments-wrapper">
+      <div className="patient-appointments-wrapper" role="alert">
         <div className="patient-appointments-error">
-          <div className="patient-appointments-error-icon">⚠️</div>
+          <div className="patient-appointments-error-icon" aria-hidden="true">⚠️</div>
           <h3>Unable to Load Appointments</h3>
           <p>{appointmentError}</p>
         </div>
@@ -239,35 +263,36 @@ const Appointments = () => {
             View and manage your upcoming medical appointments
           </p>
         </div>
-        <button 
+        <button
           className="patient-appointments-new-btn"
-          onClick={() => setShowNewAppointmentModal(true)}
+          onClick={openNewAppointmentModal}
+          aria-haspopup="dialog"
         >
-          <span className="patient-appointments-new-btn-icon">+</span>
+          <span className="patient-appointments-new-btn-icon" aria-hidden="true">+</span>
           Book New Appointment
         </button>
       </div>
 
       {successMessage && (
-        <div className="patient-appointment-success">
+        <div className="patient-appointment-success" role="alert">
           {successMessage}
         </div>
       )}
 
       {appointmentError && (
-        <div className="patient-appointments-error-banner">
+        <div className="patient-appointments-error-banner" role="alert">
           {appointmentError}
         </div>
       )}
 
       {patientAppointments.length === 0 ? (
         <div className="patient-appointments-empty">
-          <div className="patient-appointments-empty-icon">📅</div>
+          <div className="patient-appointments-empty-icon" aria-hidden="true">📅</div>
           <h3>No Appointments Scheduled</h3>
           <p>You don't have any appointments at the moment.</p>
-          <button 
+          <button
             className="patient-appointments-schedule-btn"
-            onClick={() => setShowNewAppointmentModal(true)}
+            onClick={openNewAppointmentModal}
           >
             Schedule New Appointment
           </button>
@@ -287,7 +312,7 @@ const Appointments = () => {
 
               <div className="patient-appointment-card-body">
                 <div className="patient-appointment-detail">
-                  <div className="patient-appointment-detail-icon">🏥</div>
+                  <div className="patient-appointment-detail-icon" aria-hidden="true">🏥</div>
                   <div className="patient-appointment-detail-content">
                     <span className="patient-appointment-detail-label">Department</span>
                     <span className="patient-appointment-detail-value">{appointment.department}</span>
@@ -295,7 +320,7 @@ const Appointments = () => {
                 </div>
 
                 <div className="patient-appointment-detail">
-                  <div className="patient-appointment-detail-icon">📅</div>
+                  <div className="patient-appointment-detail-icon" aria-hidden="true">📅</div>
                   <div className="patient-appointment-detail-content">
                     <span className="patient-appointment-detail-label">Date</span>
                     <span className="patient-appointment-detail-value">{formatDate(appointment.date)}</span>
@@ -303,7 +328,7 @@ const Appointments = () => {
                 </div>
 
                 <div className="patient-appointment-detail">
-                  <div className="patient-appointment-detail-icon">⏰</div>
+                  <div className="patient-appointment-detail-icon" aria-hidden="true">⏰</div>
                   <div className="patient-appointment-detail-content">
                     <span className="patient-appointment-detail-label">Time</span>
                     <span className="patient-appointment-detail-value">{formatTime(appointment.time)}</span>
@@ -312,10 +337,19 @@ const Appointments = () => {
               </div>
 
               <div className="patient-appointment-card-footer">
-                <button className="patient-appointment-btn patient-appointment-btn-secondary">
+                {/* TODO: Implement actual handlers */}
+                <button
+                  className="patient-appointment-btn patient-appointment-btn-secondary"
+                  aria-label={`Reschedule appointment with Dr. ${appointment.doctorName}`}
+                  disabled
+                >
                   Reschedule
                 </button>
-                <button className="patient-appointment-btn patient-appointment-btn-primary">
+                <button
+                  className="patient-appointment-btn patient-appointment-btn-primary"
+                  aria-label={`View details of appointment with Dr. ${appointment.doctorName}`}
+                  disabled
+                >
                   View Details
                 </button>
               </div>
@@ -326,22 +360,29 @@ const Appointments = () => {
 
       {/* New Appointment Modal */}
       {showNewAppointmentModal && (
-        <div className="patient-appointment-modal-overlay">
+        <div
+          className="patient-appointment-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
+        >
           <div className="patient-appointment-modal">
             <div className="patient-appointment-modal-header">
-              <h2>Book New Appointment</h2>
-              <button 
+              <h2 id="modal-title">Book New Appointment</h2>
+              <button
                 className="patient-appointment-modal-close"
                 onClick={() => setShowNewAppointmentModal(false)}
+                aria-label="Close booking modal"
               >
                 ×
               </button>
             </div>
 
-            <form onSubmit={handleBookAppointment} className="patient-appointment-form">
+            <form onSubmit={handleBookAppointment} className="patient-appointment-form" noValidate>
               <div className={`patient-appointment-form-group ${formErrors.department ? 'error' : ''}`}>
-                <label>Department</label>
+                <label htmlFor="department-select">Department</label>
                 <select
+                  id="department-select"
                   value={newAppointment.department}
                   onChange={(e) => handleNewAppointmentChange('department', e.target.value)}
                   required
@@ -352,13 +393,14 @@ const Appointments = () => {
                   ))}
                 </select>
                 {formErrors.department && (
-                  <span className="patient-appointment-form-error">{formErrors.department}</span>
+                  <span className="patient-appointment-form-error" role="alert">{formErrors.department}</span>
                 )}
               </div>
 
               <div className={`patient-appointment-form-group ${formErrors.doctorId ? 'error' : ''}`}>
-                <label>Doctor</label>
+                <label htmlFor="doctor-select">Doctor</label>
                 <select
+                  id="doctor-select"
                   value={newAppointment.doctorId}
                   onChange={(e) => handleNewAppointmentChange('doctorId', e.target.value)}
                   required
@@ -375,14 +417,15 @@ const Appointments = () => {
                   }
                 </select>
                 {formErrors.doctorId && (
-                  <span className="patient-appointment-form-error">{formErrors.doctorId}</span>
+                  <span className="patient-appointment-form-error" role="alert">{formErrors.doctorId}</span>
                 )}
               </div>
 
               <div className="patient-appointment-form-row">
                 <div className={`patient-appointment-form-group ${formErrors.date ? 'error' : ''}`}>
-                  <label>Preferred Date</label>
+                  <label htmlFor="date-input">Preferred Date</label>
                   <input
+                    id="date-input"
                     type="date"
                     value={newAppointment.date}
                     onChange={(e) => handleNewAppointmentChange('date', e.target.value)}
@@ -390,13 +433,14 @@ const Appointments = () => {
                     required
                   />
                   {formErrors.date && (
-                    <span className="patient-appointment-form-error">{formErrors.date}</span>
+                    <span className="patient-appointment-form-error" role="alert">{formErrors.date}</span>
                   )}
                 </div>
 
                 <div className={`patient-appointment-form-group ${formErrors.time ? 'error' : ''} ${isLoadingSlots ? 'loading' : ''}`}>
-                  <label>Available Time Slots</label>
+                  <label htmlFor="time-select">Available Time Slots</label>
                   <select
+                    id="time-select"
                     value={newAppointment.time}
                     onChange={(e) => handleNewAppointmentChange('time', e.target.value)}
                     required
@@ -410,17 +454,23 @@ const Appointments = () => {
                     ))}
                   </select>
                   {formErrors.time && (
-                    <span className="patient-appointment-form-error">{formErrors.time}</span>
+                    <span className="patient-appointment-form-error" role="alert">{formErrors.time}</span>
+                  )}
+                  {!isLoadingSlots && !availableSlots.length && newAppointment.doctorId && newAppointment.date && (
+                    <span className="patient-appointment-form-error" role="alert">
+                      No available time slots for the selected date.
+                    </span>
                   )}
                   {!newAppointment.doctorId && !newAppointment.date && (
-                    <span className="patient-appointment-form-error">Please select doctor and date first</span>
+                    <span className="patient-appointment-form-error" role="alert">Please select doctor and date first</span>
                   )}
                 </div>
               </div>
 
               <div className={`patient-appointment-form-group ${formErrors.reason ? 'error' : ''}`}>
-                <label>Reason for Visit</label>
+                <label htmlFor="reason-textarea">Reason for Visit</label>
                 <textarea
+                  id="reason-textarea"
                   value={newAppointment.reason}
                   onChange={(e) => handleNewAppointmentChange('reason', e.target.value)}
                   placeholder="Briefly describe your symptoms or reason for the appointment"
@@ -428,20 +478,20 @@ const Appointments = () => {
                   required
                 />
                 {formErrors.reason && (
-                  <span className="patient-appointment-form-error">{formErrors.reason}</span>
+                  <span className="patient-appointment-form-error" role="alert">{formErrors.reason}</span>
                 )}
               </div>
 
               <div className="patient-appointment-form-actions">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="patient-appointment-btn patient-appointment-btn-secondary"
                   onClick={() => setShowNewAppointmentModal(false)}
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="patient-appointment-btn patient-appointment-btn-primary"
                   disabled={isBooking}
                 >

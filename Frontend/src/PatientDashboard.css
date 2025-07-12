@@ -511,3 +511,22 @@
     font-size: 1.5rem;
   }
 }
+
+.patient-dash-home-btn {
+  margin-top: 10px;
+  background-color: #1a202c;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  transition: background 0.2s ease-in-out;
+}
+
+.patient-dash-home-btn:hover {
+  background-color: #2d3748;
+}

@@ -28,7 +28,6 @@ function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Load user from localStorage if exists (on app start)
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
@@ -53,15 +52,15 @@ function App() {
         <Route path="/doctor-dashboard" element={<DoctorDashboard user={user} />} />
         <Route path="/patient-dashboard" element={<PatientDashboard user={user} />} />
 
-        {/* Patient Functional Pages */}
-        <Route path="/appointments" element={<Appointments />} />
-        <Route path="/prescriptions" element={<Prescriptions />} />
-        <Route path="/bills" element={<Bills />} />
-        <Route path="/insurance" element={<Insurance />} />
-        <Route path="/ambulance" element={<AmbulanceRequest />} />
-        <Route path="/video-sessions" element={<VideoSessions />} />
-        <Route path="/lab-tests" element={<LabTests />} />
-        <Route path="/medical-history" element={<MedicalHistory />} />
+        {/* Patient Functional Pages - Pass user prop */}
+        <Route path="/appointments" element={<Appointments currentUser={user} />} />
+        <Route path="/prescriptions" element={<Prescriptions currentUser={user} />} />
+        <Route path="/bills" element={<Bills currentUser={user} />} />
+        <Route path="/insurance" element={<Insurance currentUser={user} />} />
+        <Route path="/ambulance" element={<AmbulanceRequest currentUser={user} />} />
+        <Route path="/video-sessions" element={<VideoSessions currentUser={user} />} />
+        <Route path="/lab-tests" element={<LabTests currentUser={user} />} />
+        <Route path="/medical-history" element={<MedicalHistory currentUser={user} />} />
       </Routes>
     </Router>
   );
