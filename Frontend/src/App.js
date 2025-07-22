@@ -41,7 +41,7 @@ function App() {
         <Route path="/" element={<Homepage user={user} setUser={setUser} />} />
         <Route path="/login" element={<Login setUser={setUser} />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/doctors" element={<Doctors />} />
+        <Route path="/doctors" element={<Doctors user={user} />} />
         <Route path="/branches" element={<BranchDirectory />} />
         <Route path="/staff" element={<StaffDirectory />} />
         <Route path="/rooms" element={<Rooms />} />

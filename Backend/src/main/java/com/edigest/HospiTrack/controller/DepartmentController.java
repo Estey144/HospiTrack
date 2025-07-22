@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/departments")
+@RequestMapping("/api/departments")
 public class DepartmentController {
 
     @Autowired
@@ -20,8 +20,8 @@ public class DepartmentController {
     }
 
     @GetMapping("/{id}")
-    public Department getById(@PathVariable String id) {
-        return service.getById(id);
+    public Department getById(@PathVariable Long id) {
+        return service.getById(String.valueOf(id));
     }
 
     @PostMapping
@@ -30,7 +30,8 @@ public class DepartmentController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable String id) {
-        service.delete(id);
+    public void delete(@PathVariable Long id) {
+        service.delete(String.valueOf(id));
     }
 }
+

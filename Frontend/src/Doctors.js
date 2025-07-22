@@ -5,9 +5,8 @@ import './Doctors.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
-const Doctors = () => {
+const Doctors = ({ user }) => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
   const [doctors, setDoctors] = useState([]);
   const [filteredDoctors, setFilteredDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,10 +15,6 @@ const Doctors = () => {
   const [selectedBranch, setSelectedBranch] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-
-  useEffect(() => {
-    setUser(JSON.parse(localStorage.getItem('user')));
-  }, []);
 
   useEffect(() => {
     axios.get(`${API_BASE_URL}/api/doctors`)
@@ -195,13 +190,6 @@ const Doctors = () => {
                     <h3 className="doctor-name">{doctor.name}</h3>
                     <p className="doctor-title">{doctor.title || doctor.specialization}</p>
 
-                    {/* <div className="doctor-detail">
-                      <svg className="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" />
-                      </svg>
-                      {doctor.specialization}
-                    </div> */}
-
                     <div className="doctor-detail">
                       <svg className="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
@@ -216,7 +204,18 @@ const Doctors = () => {
                       {doctor.branchName}
                     </div>
 
-                    <button className="appointment-btn" onClick={() => user ? navigate('/appointments') : navigate('/login')}>
+                    <button
+                      className="appointment-btn"
+                      onClick={() => {
+                        if (!user) {
+                          navigate('/login');
+                        } else if (user.role?.toLowerCase() === 'doctor') {
+                          alert('Doctors cannot book appointments.');
+                        } else {
+                          navigate('/appointments?book=true');
+                        }
+                      }}
+                    >
                       Book Appointment
                     </button>
                   </div>

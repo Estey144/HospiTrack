@@ -42,4 +42,10 @@ public class AppointmentService {
         String sql = "DELETE FROM Appointments WHERE id = ?";
         jdbc.update(sql, id);
     }
+    public List<Appointment> getByPatientId(String patientId) {
+        String sql = "SELECT id, patient_id, doctor_id, appointment_date, time_slot AS timeSlot, type, status FROM Appointments WHERE patient_id = ?";
+        return jdbc.query(sql, new Object[] { patientId }, new BeanPropertyRowMapper<>(Appointment.class));
+    }
+
+
 }

@@ -3,7 +3,9 @@ import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 import './Appointments.css';
 
-const Appointments = ({ currentUser }) => {   // <-- Accept currentUser prop here
+const Appointments = ({ currentUser }) => {
+  const [user, setUser] = useState(currentUser || JSON.parse(localStorage.getItem('user')));
+  
   const [patientAppointments, setPatientAppointments] = useState([]);
   const [isLoadingAppointments, setIsLoadingAppointments] = useState(true);
   const [appointmentError, setAppointmentError] = useState('');
@@ -17,67 +19,68 @@ const Appointments = ({ currentUser }) => {   // <-- Accept currentUser prop her
   const [formErrors, setFormErrors] = useState({});
   const [newAppointment, setNewAppointment] = useState({
     doctorId: '',
-    department: '',
+    departmentId: '', // store department by id, not name
     date: '',
     time: '',
     reason: ''
   });
 
   const location = useLocation();
+  const showBookingForm = new URLSearchParams(location.search).get('book') === 'true';
 
   useEffect(() => {
-    if (!currentUser) return;  // Wait for currentUser from props
+    if (!user) return;
 
-   if ((currentUser.role || '').toLowerCase() !== 'patient') {
-  setAppointmentError('Unauthorized access.');
-  setIsLoadingAppointments(false);
-  return;
-}
+    if ((user.role || '').toLowerCase() !== 'patient') {
+      setAppointmentError('Unauthorized access.');
+      setIsLoadingAppointments(false);
+      return;
+    }
 
-
-    const fetchAppointmentsAndCheckQuery = async () => {
+    const fetchAppointmentsAndMaybeOpenModal = async () => {
       await fetchAppointments();
 
-      const params = new URLSearchParams(location.search);
-      const bookParam = params.get('book');
-      if (bookParam === 'true') {
+      if (showBookingForm) {
         openNewAppointmentModal();
       }
     };
 
-    fetchAppointmentsAndCheckQuery();
-  }, [currentUser, location.search]);
+    fetchAppointmentsAndMaybeOpenModal();
+  }, [user, location.search]);
 
   const fetchAppointments = async () => {
     setIsLoadingAppointments(true);
     setAppointmentError('');
     try {
-      console.log('Fetching appointments for user:', currentUser?.id);
-      const response = await axios.get(`/api/appointments/patient/${currentUser.id}`);
+      const response = await axios.get(`/api/appointments/patient/${user.id}`);
       setPatientAppointments(response.data);
     } catch (error) {
-      console.error('Fetch appointments error:', error);
+      console.error('Failed to fetch appointments:', error);
       setAppointmentError('Failed to fetch appointments.');
     } finally {
       setIsLoadingAppointments(false);
     }
   };
 
-  // Fetch doctors and departments only when modal opens
-  const fetchDoctorsAndDepartments = async () => {
-    try {
-      const [doctorsRes, departmentsRes] = await Promise.all([
-        axios.get('/api/doctors'),
-        axios.get('/api/departments')
-      ]);
-      setDoctors(doctorsRes.data);
-      setDepartments(departmentsRes.data);
-    } catch (error) {
-      console.error('Failed to fetch doctors or departments:', error);
-    }
-  };
+  // Fetch doctors and departments separately when modal opens
+const fetchDoctorsAndDepartments = async () => {
+  console.log("Fetching doctors and departments...");
+  try {
+    const [doctorsRes, departmentsRes] = await Promise.all([
+      axios.get('/api/doctors'),
+      axios.get('/api/departments')
+    ]);
+    console.log("Doctors response", doctorsRes.data);
+    console.log("Departments response", departmentsRes.data);
+    setDoctors(doctorsRes.data);
+    setDepartments(departmentsRes.data);
+  } catch (error) {
+    console.error('Failed to fetch doctors or departments:', error);
+  }
+};
 
-  // Fetch available slots for chosen doctor and date
+
+
   const fetchAvailableSlots = async (doctorId, date) => {
     setIsLoadingSlots(true);
     setFormErrors(prev => ({ ...prev, time: '' }));
@@ -96,17 +99,16 @@ const Appointments = ({ currentUser }) => {   // <-- Accept currentUser prop her
     }
   };
 
-  // Open modal and load doctors & departments if not loaded
-  const openNewAppointmentModal = () => {
-    setSuccessMessage('');
-    setAppointmentError('');
-    setShowNewAppointmentModal(true);
-    if (doctors.length === 0 || departments.length === 0) {
-      fetchDoctorsAndDepartments();
-    }
-  };
+const openNewAppointmentModal = () => {
+  setSuccessMessage('');
+  setAppointmentError('');
+  setShowNewAppointmentModal(true);
 
-  // Handle form input changes, with related side effects
+  if (doctors.length === 0 || departments.length === 0) {
+    fetchDoctorsAndDepartments();
+  }
+};
+
   const handleNewAppointmentChange = (field, value) => {
     setNewAppointment(prev => ({ ...prev, [field]: value }));
 
@@ -129,22 +131,21 @@ const Appointments = ({ currentUser }) => {   // <-- Accept currentUser prop her
       }
     }
 
-    if (field === 'department') {
+    if (field === 'departmentId') {
+      // Reset doctor and slots if department changes
       setNewAppointment(prev => ({ ...prev, doctorId: '', time: '' }));
       setAvailableSlots([]);
     }
   };
 
-  // Form submit handler for booking appointment
   const handleBookAppointment = async (e) => {
     e.preventDefault();
 
     setFormErrors({});
     setAppointmentError('');
 
-    // Validate form fields
     const errors = {};
-    if (!newAppointment.department) errors.department = 'Please select a department';
+    if (!newAppointment.departmentId) errors.department = 'Please select a department';
     if (!newAppointment.doctorId) errors.doctorId = 'Please select a doctor';
     if (!newAppointment.date) errors.date = 'Please select a date';
     if (!newAppointment.time) errors.time = 'Please select a time slot';
@@ -158,23 +159,20 @@ const Appointments = ({ currentUser }) => {   // <-- Accept currentUser prop her
     setIsBooking(true);
 
     try {
-      const appointmentData = {
+      // Send departmentId, not department name
+      await axios.post('/api/appointments', {
         ...newAppointment,
-        patientId: currentUser.id
-      };
-
-      await axios.post('/api/appointments', appointmentData);
+        departmentId: newAppointment.departmentId,
+        patientId: user.id
+      });
 
       setSuccessMessage('Appointment booked successfully! You will receive a confirmation shortly.');
-
-      // Refresh appointments list
       await fetchAppointments();
 
-      // Reset form and close modal after delay
       setTimeout(() => {
         setNewAppointment({
           doctorId: '',
-          department: '',
+          departmentId: '',
           date: '',
           time: '',
           reason: ''
@@ -194,40 +192,28 @@ const Appointments = ({ currentUser }) => {   // <-- Accept currentUser prop her
     }
   };
 
-  // Helper to get CSS class for status badge
+  // Helpers to display statuses, dates, times...
   const getStatusBadgeClass = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'confirmed':
-        return 'patient-appointment-status-confirmed';
-      case 'pending':
-        return 'patient-appointment-status-pending';
-      case 'cancelled':
-        return 'patient-appointment-status-cancelled';
-      case 'completed':
-        return 'patient-appointment-status-completed';
-      default:
-        return 'patient-appointment-status-default';
+    switch ((status || '').toLowerCase()) {
+      case 'confirmed': return 'patient-appointment-status-confirmed';
+      case 'pending': return 'patient-appointment-status-pending';
+      case 'cancelled': return 'patient-appointment-status-cancelled';
+      case 'completed': return 'patient-appointment-status-completed';
+      default: return 'patient-appointment-status-default';
     }
   };
 
-  // Format date string to readable format
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     });
   };
 
-  // Format time string to AM/PM format
   const formatTime = (timeString) => {
     const time = new Date(`2000-01-01T${timeString}`);
     return time.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
+      hour: 'numeric', minute: '2-digit', hour12: true
     });
   };
 
@@ -337,7 +323,6 @@ const Appointments = ({ currentUser }) => {   // <-- Accept currentUser prop her
               </div>
 
               <div className="patient-appointment-card-footer">
-                {/* TODO: Implement actual handlers */}
                 <button
                   className="patient-appointment-btn patient-appointment-btn-secondary"
                   aria-label={`Reschedule appointment with Dr. ${appointment.doctorName}`}
@@ -358,7 +343,6 @@ const Appointments = ({ currentUser }) => {   // <-- Accept currentUser prop her
         </div>
       )}
 
-      {/* New Appointment Modal */}
       {showNewAppointmentModal && (
         <div
           className="patient-appointment-modal-overlay"
@@ -383,13 +367,13 @@ const Appointments = ({ currentUser }) => {   // <-- Accept currentUser prop her
                 <label htmlFor="department-select">Department</label>
                 <select
                   id="department-select"
-                  value={newAppointment.department}
-                  onChange={(e) => handleNewAppointmentChange('department', e.target.value)}
+                  value={newAppointment.departmentId}
+                  onChange={(e) => handleNewAppointmentChange('departmentId', e.target.value)}
                   required
                 >
                   <option value="">Select Department</option>
                   {departments.map(dept => (
-                    <option key={dept.id} value={dept.name}>{dept.name}</option>
+                    <option key={dept.id} value={dept.id}>{dept.name}</option>
                   ))}
                 </select>
                 {formErrors.department && (
@@ -404,11 +388,11 @@ const Appointments = ({ currentUser }) => {   // <-- Accept currentUser prop her
                   value={newAppointment.doctorId}
                   onChange={(e) => handleNewAppointmentChange('doctorId', e.target.value)}
                   required
-                  disabled={!newAppointment.department}
+                  disabled={!newAppointment.departmentId}
                 >
                   <option value="">Select Doctor</option>
                   {doctors
-                    .filter(doctor => !newAppointment.department || doctor.department === newAppointment.department)
+                    .filter(doctor => !newAppointment.departmentId || doctor.departmentId === newAppointment.departmentId)
                     .map(doctor => (
                       <option key={doctor.id} value={doctor.id}>
                         Dr. {doctor.name} - {doctor.specialization}
@@ -461,7 +445,7 @@ const Appointments = ({ currentUser }) => {   // <-- Accept currentUser prop her
                       No available time slots for the selected date.
                     </span>
                   )}
-                  {!newAppointment.doctorId && !newAppointment.date && (
+                  {(!newAppointment.doctorId || !newAppointment.date) && (
                     <span className="patient-appointment-form-error" role="alert">Please select doctor and date first</span>
                   )}
                 </div>
