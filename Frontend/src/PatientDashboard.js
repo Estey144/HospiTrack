@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, DollarSign, FileText, Shield, Ambulance, Video, TestTube, ChevronRight, AlertCircle, Loader, Home } from 'lucide-react';
+import { Calendar, DollarSign, FileText, Shield, Ambulance, Video, TestTube, ChevronRight, AlertCircle, Loader, Home } from 'lucide-react';
 import './PatientDashboard.css';
 
 const PatientDashboard = () => {
@@ -15,7 +15,7 @@ const PatientDashboard = () => {
   useEffect(() => {
     const fetchUpcomingAppointments = async () => {
       try {
-        const response = await fetch(`/api/appointments/upcoming/${user?.id}`, {
+        const response = await fetch(`http://localhost:8080/api/appointments/patient/${user?.id}`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
             'Content-Type': 'application/json'
@@ -24,6 +24,7 @@ const PatientDashboard = () => {
         if (!response.ok) throw new Error('Failed to fetch appointments');
         const data = await response.json();
         setUpcomingAppointments(data);
+        console.log('Upcoming appointments:', data);
       } catch (err) {
         setError(prev => ({ ...prev, appointments: err.message }));
       } finally {
@@ -36,7 +37,7 @@ const PatientDashboard = () => {
   useEffect(() => {
     const fetchPendingBills = async () => {
       try {
-        const response = await fetch(`/api/bills/pending/${user?.id}`, {
+        const response = await fetch(`http://localhost:8080/api/bills/pending/${user?.id}`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
             'Content-Type': 'application/json'
@@ -57,8 +58,7 @@ const PatientDashboard = () => {
   const goTo = (path) => navigate(path);
 
   const dashboardActions = [
-   { path: '/appointments?book=true', label: 'Book Appointment', icon: Calendar, color: 'bg-blue-500 hover:bg-blue-600' },
-
+    { path: '/appointments?book=true', label: 'Book Appointment', icon: Calendar, color: 'bg-blue-500 hover:bg-blue-600' },
     { path: '/prescriptions', label: 'View Prescriptions', icon: FileText, color: 'bg-green-500 hover:bg-green-600' },
     { path: '/bills', label: 'Billing Info', icon: DollarSign, color: 'bg-orange-500 hover:bg-orange-600' },
     { path: '/medical-history', label: 'Medical History', icon: FileText, color: 'bg-purple-500 hover:bg-purple-600' },
@@ -112,6 +112,7 @@ const PatientDashboard = () => {
       </div>
 
       <div className="patient-dash-content">
+
         {/* Quick Stats */}
         <div className="patient-dash-stats">
           <div className="patient-dash-stat-card">
@@ -147,35 +148,37 @@ const PatientDashboard = () => {
             </button>
           </div>
           <div className="patient-dash-card">
-            {loading.appointments ? <LoadingSpinner /> :
-              error.appointments ? <ErrorMessage message={error.appointments} /> :
-                upcomingAppointments.length === 0 ? (
-                  <div className="patient-dash-empty">
-                    <Calendar size={48} className="patient-dash-empty-icon" />
-                    <p className="patient-dash-empty-text">No upcoming appointments</p>
-                    <button onClick={() => goTo('/appointments')} className="patient-dash-empty-button">
-                      Book Your First Appointment
-                    </button>
+            {loading.appointments ? (
+              <LoadingSpinner />
+            ) : error.appointments ? (
+              <ErrorMessage message={error.appointments} />
+            ) : upcomingAppointments.length === 0 ? (
+              <div className="patient-dash-empty">
+                <Calendar size={48} className="patient-dash-empty-icon" />
+                <p className="patient-dash-empty-text">No upcoming appointments</p>
+                <button onClick={() => goTo('/appointments')} className="patient-dash-empty-button">
+                  Book Your First Appointment
+                </button>
+              </div>
+            ) : (
+              <div className="patient-dash-appointments-list">
+                {upcomingAppointments.slice(0, 3).map((appointment) => (
+                  <div key={appointment.id} className="patient-dash-appointment-item">
+                    <div className="patient-dash-appointment-date">
+                      <div className="patient-dash-date-day">{formatDate(appointment.appointmentDate)}</div>
+                      <div className="patient-dash-date-time">{appointment.appointmentTime}</div>
+                    </div>
+                    <div className="patient-dash-appointment-details">
+                      <h4 className="patient-dash-appointment-doctor">{appointment.doctorName || 'Unknown Doctor'}</h4>
+                      <p className="patient-dash-appointment-specialty">{appointment.specialty || 'Unknown Specialty'}</p>
+                    </div>
+                    <div className={`patient-dash-appointment-status patient-dash-status-${appointment.status}`}>
+                      {appointment.status}
+                    </div>
                   </div>
-                ) : (
-                  <div className="patient-dash-appointments-list">
-                    {upcomingAppointments.slice(0, 3).map((appointment) => (
-                      <div key={appointment.id} className="patient-dash-appointment-item">
-                        <div className="patient-dash-appointment-date">
-                          <div className="patient-dash-date-day">{formatDate(appointment.appointmentDate)}</div>
-                          <div className="patient-dash-date-time">{appointment.appointmentTime}</div>
-                        </div>
-                        <div className="patient-dash-appointment-details">
-                          <h4 className="patient-dash-appointment-doctor">{appointment.doctorName}</h4>
-                          <p className="patient-dash-appointment-specialty">{appointment.specialty}</p>
-                        </div>
-                        <div className={`patient-dash-appointment-status patient-dash-status-${appointment.status}`}>
-                          {appointment.status}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -188,35 +191,37 @@ const PatientDashboard = () => {
             </button>
           </div>
           <div className="patient-dash-card">
-            {loading.bills ? <LoadingSpinner /> :
-              error.bills ? <ErrorMessage message={error.bills} /> :
-                pendingBills.length === 0 ? (
-                  <div className="patient-dash-empty">
-                    <DollarSign size={48} className="patient-dash-empty-icon" />
-                    <p className="patient-dash-empty-text">No pending bills</p>
-                    <p className="patient-dash-empty-subtext">You're all caught up!</p>
+            {loading.bills ? (
+              <LoadingSpinner />
+            ) : error.bills ? (
+              <ErrorMessage message={error.bills} />
+            ) : pendingBills.length === 0 ? (
+              <div className="patient-dash-empty">
+                <DollarSign size={48} className="patient-dash-empty-icon" />
+                <p className="patient-dash-empty-text">No pending bills</p>
+                <p className="patient-dash-empty-subtext">You're all caught up!</p>
+              </div>
+            ) : (
+              <div className="patient-dash-bills-list">
+                {pendingBills.slice(0, 3).map((bill) => (
+                  <div key={bill.id} className="patient-dash-bill-item">
+                    <div className="patient-dash-bill-info">
+                      <h4 className="patient-dash-bill-service">{bill.serviceName}</h4>
+                      <p className="patient-dash-bill-date">Service Date: {formatDate(bill.serviceDate)}</p>
+                      <p className="patient-dash-bill-due">Due: {formatDate(bill.dueDate)}</p>
+                    </div>
+                    <div className="patient-dash-bill-amount">
+                      <span className="patient-dash-amount">${bill.amount.toFixed(2)}</span>
+                    </div>
                   </div>
-                ) : (
-                  <div className="patient-dash-bills-list">
-                    {pendingBills.slice(0, 3).map((bill) => (
-                      <div key={bill.id} className="patient-dash-bill-item">
-                        <div className="patient-dash-bill-info">
-                          <h4 className="patient-dash-bill-service">{bill.serviceName}</h4>
-                          <p className="patient-dash-bill-date">Service Date: {formatDate(bill.serviceDate)}</p>
-                          <p className="patient-dash-bill-due">Due: {formatDate(bill.dueDate)}</p>
-                        </div>
-                        <div className="patient-dash-bill-amount">
-                          <span className="patient-dash-amount">${bill.amount.toFixed(2)}</span>
-                        </div>
-                      </div>
-                    ))}
-                    {pendingBills.length > 3 && (
-                      <div className="patient-dash-bills-more">
-                        +{pendingBills.length - 3} more bills
-                      </div>
-                    )}
+                ))}
+                {pendingBills.length > 3 && (
+                  <div className="patient-dash-bills-more">
+                    +{pendingBills.length - 3} more bills
                   </div>
                 )}
+              </div>
+            )}
           </div>
         </div>
 
