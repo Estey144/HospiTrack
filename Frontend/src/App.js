@@ -46,6 +46,7 @@ function App() {
         <Route path="/staff" element={<StaffDirectory />} />
         <Route path="/rooms" element={<Rooms />} />
         <Route path="/feedback" element={<Feedback />} />
+        
 
         {/* Dashboards */}
         <Route path="/admin-dashboard" element={<AdminDashboard user={user} />} />
@@ -59,6 +60,7 @@ function App() {
         <Route path="/insurance" element={<Insurance currentUser={user} />} />
         <Route path="/ambulance" element={<AmbulanceRequest currentUser={user} />} />
         <Route path="/video-sessions" element={<VideoSessions currentUser={user} />} />
+    
         <Route path="/lab-tests" element={<LabTests currentUser={user} />} />
         <Route path="/medical-history" element={<MedicalHistory currentUser={user} />} />
       </Routes>
