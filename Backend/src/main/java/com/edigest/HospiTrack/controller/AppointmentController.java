@@ -4,13 +4,13 @@ import com.edigest.HospiTrack.entity.Appointment;
 import com.edigest.HospiTrack.entity.Department;
 import com.edigest.HospiTrack.entity.Doctor;
 import com.edigest.HospiTrack.entity.Users;
-import com.edigest.HospiTrack.entity.Users;
+import com.edigest.HospiTrack.payload.AppointmentResponseDTO;
 import com.edigest.HospiTrack.service.AppointmentService;
 import com.edigest.HospiTrack.service.DepartmentService;
 import com.edigest.HospiTrack.service.DoctorService;
 import com.edigest.HospiTrack.service.UsersService;
-import com.edigest.HospiTrack.service.UsersService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -32,7 +32,7 @@ public class AppointmentController {
     private DoctorService doctorService;
 
     @Autowired
-    private UsersService userService;  // To get doctor name
+    private UsersService userService;
 
     @PostMapping
     public Appointment create(@RequestBody Appointment a) {
@@ -54,7 +54,12 @@ public class AppointmentController {
         List<Appointment> appointments = service.getByPatientId(patientId);
         List<Doctor> allDoctors = doctorService.getAllDoctors();
         List<Department> allDepartments = departmentService.getAll();
-        List<Users> allUsers = userService.getAll();  // To get doctor name
+        List<Users> allUsers = userService.getAll();
+
+        if (appointments.isEmpty()) {
+            System.out.println("No appointments found for patient ID: " + patientId);
+            return List.of();
+        }
 
         return appointments.stream().map(a -> {
             Map<String, Object> map = new HashMap<>();
@@ -68,9 +73,8 @@ public class AppointmentController {
                     .findFirst().orElse(null);
 
             if (doctor != null) {
-
                 Users doctorUser = allUsers.stream()
-                        .filter(u -> Long.valueOf(u.getId()).equals(doctor.getUserId()))
+                        .filter(u -> u.getId().equals(doctor.getUserId()))
                         .findFirst().orElse(null);
 
                 map.put("doctorName", doctorUser != null ? doctorUser.getName() : "Unknown Doctor");

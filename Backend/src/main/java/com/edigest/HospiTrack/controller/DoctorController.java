@@ -23,8 +23,15 @@ public class DoctorController {
         return service.getAllDoctors();
     }
 
-    @GetMapping("/doctors")  // <-- fix here
+    @GetMapping("/doctors")
     public List<Map<String, Object>> getAllDoctors() {
+        for(Map<String, Object> doctor : service.getAllDoctorsForFrontend()) {
+            System.out.println("Doctor ID: " + doctor.get("doctorId"));
+            System.out.println("Doctor Name: " + doctor.get("doctorName"));
+            System.out.println("Experience Years: " + doctor.get("experienceYears"));
+            System.out.println("Branch Name: " + doctor.get("branchName"));
+            System.out.println("Department Name: " + doctor.get("departmentName"));
+        }
         return service.getAllDoctorsForFrontend();
     }
 
@@ -42,4 +49,5 @@ public class DoctorController {
     public void delete(@PathVariable String id) {
         service.deleteDoctor(id);
     }
+
 }

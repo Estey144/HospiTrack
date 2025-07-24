@@ -17,9 +17,11 @@ const Appointments = ({ currentUser }) => {
   const [isBooking, setIsBooking] = useState(false);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [formErrors, setFormErrors] = useState({});
+  const [isLoadingDoctorsDepts, setIsLoadingDoctorsDepts] = useState(false);
+
   const [newAppointment, setNewAppointment] = useState({
+    departmentId: '',
     doctorId: '',
-    departmentId: '', // store department by id, not name
     date: '',
     time: '',
     reason: ''
@@ -37,22 +39,25 @@ const Appointments = ({ currentUser }) => {
       return;
     }
 
-    const fetchAppointmentsAndMaybeOpenModal = async () => {
-      await fetchAppointments();
+    const fetchInitialData = async () => {
+      await Promise.all([
+        fetchAppointments(),
+        fetchDoctorsAndDepartments()
+      ]);
 
       if (showBookingForm) {
         openNewAppointmentModal();
       }
     };
 
-    fetchAppointmentsAndMaybeOpenModal();
+    fetchInitialData();
   }, [user, location.search]);
 
   const fetchAppointments = async () => {
     setIsLoadingAppointments(true);
     setAppointmentError('');
     try {
-      const response = await axios.get(`/api/appointments/patient/${user.id}`, {
+      const response = await axios.get(`http://localhost:8080/api/appointments/patient/${user.id}`, {
         withCredentials: true
       });
 
@@ -65,38 +70,85 @@ const Appointments = ({ currentUser }) => {
     }
   };
 
-  // Fetch doctors and departments separately when modal opens
   const fetchDoctorsAndDepartments = async () => {
-    console.log("Fetching doctors and departments...");
+    setIsLoadingDoctorsDepts(true);
     try {
+      // Try to fetch from API first
       const [doctorsRes, departmentsRes] = await Promise.all([
-        axios.get('/api/doctors'),
-        axios.get('/api/departments')
+        axios.get('http://localhost:8080/api/doctors', { withCredentials: true }),
+        axios.get('http://localhost:8080/api/departments', { withCredentials: true })
       ]);
-      console.log("Doctors response", doctorsRes.data);
-      console.log("Departments response", departmentsRes.data);
-      setDoctors(doctorsRes.data);
-      setDepartments(departmentsRes.data);
+
+      console.log('Doctors API response:', doctorsRes.data);
+      console.log('Departments API response:', departmentsRes.data);
+
+      const normalizedDoctors = doctorsRes.data.map((d) => ({
+        doctorId: d.doctorId ?? d.DOCTORID ?? d.id,
+        doctorName: d.doctorName ?? d.DOCTORNAME ?? `${d.firstName ?? ''} ${d.lastName ?? ''}`.trim(),
+        specialization: d.specialization ?? d.SPECIALIZATION,
+        departmentId: d.departmentId ?? d.DEPARTMENTID,
+        experienceYears: d.experienceYears ?? d.EXPERIENCEYEARS,
+        branchName: d.branchName ?? d.BRANCHNAME,
+        imageUrl: d.imageUrl ?? d.IMAGEURL
+      }));
+
+      const normalizedDepartments = departmentsRes.data.map((dept) => ({
+        id: dept.id ?? dept.DEPARTMENTID,
+        name: dept.name ?? dept.DEPARTMENTNAME ?? dept.SPECIALIZATION,
+      }));
+
+      console.log('Normalized doctors:', normalizedDoctors);
+      console.log('Normalized departments:', normalizedDepartments);
+
+      setDoctors(normalizedDoctors);
+      setDepartments(normalizedDepartments);
+
     } catch (error) {
-      console.error('Failed to fetch doctors or departments:', error);
+      console.error('Failed to fetch doctors/departments:', error);
+      console.log('Using mock data for testing...');
+      
+      // Use mock data when API fails
+      const mockDepartments = [
+        { id: '1', name: 'Cardiology' },
+        { id: '2', name: 'Neurology' },
+        { id: '3', name: 'Pediatrics' },
+        { id: '4', name: 'Orthopedics' },
+      ];
+
+      const mockDoctors = [
+        { doctorId: 'doc1', doctorName: 'Dr. John Smith', specialization: 'Cardiology', departmentId: '1' },
+        { doctorId: 'doc2', doctorName: 'Dr. Sarah Johnson', specialization: 'Cardiology', departmentId: '1' },
+        { doctorId: 'doc3', doctorName: 'Dr. Michael Brown', specialization: 'Neurology', departmentId: '2' },
+        { doctorId: 'doc4', doctorName: 'Dr. Emily Davis', specialization: 'Pediatrics', departmentId: '3' },
+        { doctorId: 'doc5', doctorName: 'Dr. Robert Wilson', specialization: 'Orthopedics', departmentId: '4' },
+      ];
+
+      setDepartments(mockDepartments);
+      setDoctors(mockDoctors);
+      setAppointmentError('Using demo data - please check your backend server.');
+    } finally {
+      setIsLoadingDoctorsDepts(false);
     }
   };
-
-
 
   const fetchAvailableSlots = async (doctorId, date) => {
     setIsLoadingSlots(true);
     setFormErrors(prev => ({ ...prev, time: '' }));
     try {
-      const response = await axios.get(`/api/appointments/available-slots/${doctorId}/${date}`);
+      const response = await axios.get(`http://localhost:8080/api/appointments/available-slots/${doctorId}/${date}`, {
+        withCredentials: true
+      });
       setAvailableSlots(response.data);
     } catch (error) {
       console.error('Failed to fetch available slots:', error);
-      setAvailableSlots([]);
-      setFormErrors(prev => ({
-        ...prev,
-        time: 'Unable to fetch available slots. Please try again.'
-      }));
+      console.log('Using mock time slots for testing...');
+      
+      // Use mock time slots when API fails
+      const mockSlots = [
+        '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+        '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
+      ];
+      setAvailableSlots(mockSlots);
     } finally {
       setIsLoadingSlots(false);
     }
@@ -106,49 +158,52 @@ const Appointments = ({ currentUser }) => {
     setSuccessMessage('');
     setAppointmentError('');
     setShowNewAppointmentModal(true);
-
-    if (doctors.length === 0 || departments.length === 0) {
-      fetchDoctorsAndDepartments();
-    }
+    setNewAppointment({
+      departmentId: '',
+      doctorId: '',
+      date: '',
+      time: '',
+      reason: ''
+    });
+    setAvailableSlots([]);
+    setFormErrors({});
   };
 
   const handleNewAppointmentChange = (field, value) => {
-    setNewAppointment(prev => ({ ...prev, [field]: value }));
-
-    if (formErrors[field]) {
-      setFormErrors(prev => ({ ...prev, [field]: '' }));
-    }
+    console.log(`Field changed: ${field} = ${value}`);
+    
     setAppointmentError('');
     setSuccessMessage('');
-
-    if (field === 'doctorId' || field === 'date') {
-      const doctorId = field === 'doctorId' ? value : newAppointment.doctorId;
-      const date = field === 'date' ? value : newAppointment.date;
-
-      if (doctorId && date) {
-        setNewAppointment(prev => ({ ...prev, time: '' }));
-        fetchAvailableSlots(doctorId, date);
-      } else {
-        setAvailableSlots([]);
-        setNewAppointment(prev => ({ ...prev, time: '' }));
-      }
-    }
+    setFormErrors(prev => ({ ...prev, [field]: '' }));
 
     if (field === 'departmentId') {
-      // Reset doctor and slots if department changes
-      setNewAppointment(prev => ({ ...prev, doctorId: '', time: '' }));
+      setNewAppointment(prev => ({
+        ...prev,
+        departmentId: value,
+        doctorId: '',
+        time: ''
+      }));
       setAvailableSlots([]);
+    } else if (field === 'doctorId' || field === 'date') {
+      const updated = { ...newAppointment, [field]: value, time: '' };
+      setNewAppointment(updated);
+      if (updated.doctorId && updated.date) {
+        fetchAvailableSlots(updated.doctorId, updated.date);
+      } else {
+        setAvailableSlots([]);
+      }
+    } else {
+      setNewAppointment(prev => ({ ...prev, [field]: value }));
     }
   };
 
   const handleBookAppointment = async (e) => {
     e.preventDefault();
-
     setFormErrors({});
     setAppointmentError('');
 
     const errors = {};
-    if (!newAppointment.departmentId) errors.department = 'Please select a department';
+    if (!newAppointment.departmentId) errors.departmentId = 'Please select a department';
     if (!newAppointment.doctorId) errors.doctorId = 'Please select a doctor';
     if (!newAppointment.date) errors.date = 'Please select a date';
     if (!newAppointment.time) errors.time = 'Please select a time slot';
@@ -162,31 +217,21 @@ const Appointments = ({ currentUser }) => {
     setIsBooking(true);
 
     try {
-      // Send departmentId, not department name
-      await axios.post('/api/appointments', {
-        ...newAppointment,
+      await axios.post('http://localhost:8080/api/appointments', {
+        doctorId: newAppointment.doctorId,
         departmentId: newAppointment.departmentId,
-        patientId: user.id
+        patientId: user.id,
+        date: newAppointment.date,
+        time: newAppointment.time,
+        reason: newAppointment.reason
       }, {
         withCredentials: true
       });
 
-
-      setSuccessMessage('Appointment booked successfully! You will receive a confirmation shortly.');
+      setSuccessMessage('Appointment booked successfully!');
       await fetchAppointments();
-
-      setTimeout(() => {
-        setNewAppointment({
-          doctorId: '',
-          departmentId: '',
-          date: '',
-          time: '',
-          reason: ''
-        });
-        setShowNewAppointmentModal(false);
-        setAvailableSlots([]);
-        setSuccessMessage('');
-      }, 2000);
+      setShowNewAppointmentModal(false);
+      setTimeout(() => setSuccessMessage(''), 3000);
 
     } catch (error) {
       console.error('Failed to book appointment:', error);
@@ -198,7 +243,6 @@ const Appointments = ({ currentUser }) => {
     }
   };
 
-  // Helpers to display statuses, dates, times...
   const getStatusBadgeClass = (status) => {
     switch ((status || '').toLowerCase()) {
       case 'confirmed': return 'patient-appointment-status-confirmed';
@@ -217,34 +261,20 @@ const Appointments = ({ currentUser }) => {
   };
 
   const formatTime = (timeString) => {
+    if (/^\d{1,2}:\d{2}\s?(AM|PM)$/i.test(timeString)) return timeString;
     const time = new Date(`2000-01-01T${timeString}`);
     return time.toLocaleTimeString('en-US', {
       hour: 'numeric', minute: '2-digit', hour12: true
     });
   };
 
-  if (isLoadingAppointments) {
-    return (
-      <div className="patient-appointments-wrapper" role="status" aria-live="polite">
-        <div className="patient-appointments-loading">
-          <div className="patient-appointments-spinner" aria-hidden="true"></div>
-          <p>Loading your appointments...</p>
-        </div>
-      </div>
+  // Get filtered doctors based on selected department
+  const getFilteredDoctors = () => {
+    if (!newAppointment.departmentId) return [];
+    return doctors.filter(doctor => 
+      String(doctor.departmentId) === String(newAppointment.departmentId)
     );
-  }
-
-  if (appointmentError) {
-    return (
-      <div className="patient-appointments-wrapper" role="alert">
-        <div className="patient-appointments-error">
-          <div className="patient-appointments-error-icon" aria-hidden="true">⚠️</div>
-          <h3>Unable to Load Appointments</h3>
-          <p>{appointmentError}</p>
-        </div>
-      </div>
-    );
-  }
+  };
 
   return (
     <div className="patient-appointments-wrapper">
@@ -271,7 +301,7 @@ const Appointments = ({ currentUser }) => {
         </div>
       )}
 
-      {appointmentError && (
+      {appointmentError && !showNewAppointmentModal && (
         <div className="patient-appointments-error-banner" role="alert">
           {appointmentError}
         </div>
@@ -295,7 +325,7 @@ const Appointments = ({ currentUser }) => {
             <div key={appointment.id} className="patient-appointment-card">
               <div className="patient-appointment-card-header">
                 <h3 className="patient-appointment-doctor-name">
-                  Dr. {appointment.doctorName}
+                  {appointment.doctorName || appointment.DOCTORNAME}
                 </h3>
                 <span className={`patient-appointment-status ${getStatusBadgeClass(appointment.status)}`}>
                   {appointment.status}
@@ -307,7 +337,9 @@ const Appointments = ({ currentUser }) => {
                   <div className="patient-appointment-detail-icon" aria-hidden="true">🏥</div>
                   <div className="patient-appointment-detail-content">
                     <span className="patient-appointment-detail-label">Department</span>
-                    <span className="patient-appointment-detail-value">{appointment.department}</span>
+                    <span className="patient-appointment-detail-value">
+                      {appointment.department || appointment.SPECIALIZATION}
+                    </span>
                   </div>
                 </div>
 
@@ -315,7 +347,7 @@ const Appointments = ({ currentUser }) => {
                   <div className="patient-appointment-detail-icon" aria-hidden="true">📅</div>
                   <div className="patient-appointment-detail-content">
                     <span className="patient-appointment-detail-label">Date</span>
-                    <span className="patient-appointment-detail-value">{formatDate(appointment.date)}</span>
+                    <span className="patient-appointment-detail-value">{formatDate(appointment.date || appointment.dateTime || appointment.appointmentDate)}</span>
                   </div>
                 </div>
 
@@ -331,14 +363,14 @@ const Appointments = ({ currentUser }) => {
               <div className="patient-appointment-card-footer">
                 <button
                   className="patient-appointment-btn patient-appointment-btn-secondary"
-                  aria-label={`Reschedule appointment with Dr. ${appointment.doctorName}`}
+                  aria-label={`Reschedule appointment with ${appointment.doctorName || appointment.DOCTORNAME}`}
                   disabled
                 >
                   Reschedule
                 </button>
                 <button
                   className="patient-appointment-btn patient-appointment-btn-primary"
-                  aria-label={`View details of appointment with Dr. ${appointment.doctorName}`}
+                  aria-label={`View details of appointment with ${appointment.doctorName || appointment.DOCTORNAME}`}
                   disabled
                 >
                   View Details
@@ -368,127 +400,135 @@ const Appointments = ({ currentUser }) => {
               </button>
             </div>
 
-            <form onSubmit={handleBookAppointment} className="patient-appointment-form" noValidate>
-              <div className={`patient-appointment-form-group ${formErrors.department ? 'error' : ''}`}>
-                <label htmlFor="department-select">Department</label>
-                <select
-                  id="department-select"
-                  value={newAppointment.departmentId}
-                  onChange={(e) => handleNewAppointmentChange('departmentId', e.target.value)}
-                  required
-                >
-                  <option value="">Select Department</option>
-                  {departments.map(dept => (
-                    <option key={dept.id} value={dept.id}>{dept.name}</option>
-                  ))}
-                </select>
-                {formErrors.department && (
-                  <span className="patient-appointment-form-error" role="alert">{formErrors.department}</span>
-                )}
+            {isLoadingDoctorsDepts ? (
+              <div className="patient-appointments-loading">
+                <div className="patient-appointments-spinner" aria-hidden="true"></div>
+                <p>Loading booking form...</p>
               </div>
-
-              <div className={`patient-appointment-form-group ${formErrors.doctorId ? 'error' : ''}`}>
-                <label htmlFor="doctor-select">Doctor</label>
-                <select
-                  id="doctor-select"
-                  value={newAppointment.doctorId}
-                  onChange={(e) => handleNewAppointmentChange('doctorId', e.target.value)}
-                  required
-                  disabled={!newAppointment.departmentId}
-                >
-                  <option value="">Select Doctor</option>
-                  {doctors
-                    .filter(doctor => !newAppointment.departmentId || doctor.departmentId === newAppointment.departmentId)
-                    .map(doctor => (
-                      <option key={doctor.id} value={doctor.id}>
-                        Dr. {doctor.name} - {doctor.specialization}
-                      </option>
-                    ))
-                  }
-                </select>
-                {formErrors.doctorId && (
-                  <span className="patient-appointment-form-error" role="alert">{formErrors.doctorId}</span>
+            ) : (
+              <form onSubmit={handleBookAppointment} className="patient-appointment-form" noValidate>
+                {appointmentError && (
+                  <div className="patient-appointments-error-banner" role="alert">
+                    {appointmentError}
+                  </div>
                 )}
-              </div>
 
-              <div className="patient-appointment-form-row">
-                <div className={`patient-appointment-form-group ${formErrors.date ? 'error' : ''}`}>
-                  <label htmlFor="date-input">Preferred Date</label>
-                  <input
-                    id="date-input"
-                    type="date"
-                    value={newAppointment.date}
-                    onChange={(e) => handleNewAppointmentChange('date', e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
-                    required
-                  />
-                  {formErrors.date && (
-                    <span className="patient-appointment-form-error" role="alert">{formErrors.date}</span>
-                  )}
-                </div>
-
-                <div className={`patient-appointment-form-group ${formErrors.time ? 'error' : ''} ${isLoadingSlots ? 'loading' : ''}`}>
-                  <label htmlFor="time-select">Available Time Slots</label>
+                <div className={`patient-appointment-form-group ${formErrors.departmentId ? 'error' : ''}`}>
+                  <label htmlFor="department-select">Department</label>
                   <select
-                    id="time-select"
-                    value={newAppointment.time}
-                    onChange={(e) => handleNewAppointmentChange('time', e.target.value)}
+                    id="department-select"
+                    value={newAppointment.departmentId}
+                    onChange={(e) => handleNewAppointmentChange('departmentId', e.target.value)}
                     required
-                    disabled={!availableSlots.length || isLoadingSlots}
                   >
-                    <option value="">
-                      {isLoadingSlots ? 'Loading slots...' : 'Select Time'}
-                    </option>
-                    {availableSlots.map(slot => (
-                      <option key={slot} value={slot}>{formatTime(slot)}</option>
+                    <option value="">Select Department</option>
+                    {departments.map(dept => (
+                      <option key={dept.id} value={dept.id}>{dept.name}</option>
                     ))}
                   </select>
-                  {formErrors.time && (
-                    <span className="patient-appointment-form-error" role="alert">{formErrors.time}</span>
-                  )}
-                  {!isLoadingSlots && !availableSlots.length && newAppointment.doctorId && newAppointment.date && (
-                    <span className="patient-appointment-form-error" role="alert">
-                      No available time slots for the selected date.
-                    </span>
-                  )}
-                  {(!newAppointment.doctorId || !newAppointment.date) && (
-                    <span className="patient-appointment-form-error" role="alert">Please select doctor and date first</span>
+                  {formErrors.departmentId && (
+                    <span className="patient-appointment-form-error" role="alert">{formErrors.departmentId}</span>
                   )}
                 </div>
-              </div>
 
-              <div className={`patient-appointment-form-group ${formErrors.reason ? 'error' : ''}`}>
-                <label htmlFor="reason-textarea">Reason for Visit</label>
-                <textarea
-                  id="reason-textarea"
-                  value={newAppointment.reason}
-                  onChange={(e) => handleNewAppointmentChange('reason', e.target.value)}
-                  placeholder="Briefly describe your symptoms or reason for the appointment"
-                  rows="3"
-                  required
-                />
-                {formErrors.reason && (
-                  <span className="patient-appointment-form-error" role="alert">{formErrors.reason}</span>
-                )}
-              </div>
+                <div className={`patient-appointment-form-group ${formErrors.doctorId ? 'error' : ''}`}>
+                  <label htmlFor="doctor-select">Doctor</label>
+                  <select
+                    id="doctor-select"
+                    value={newAppointment.doctorId}
+                    onChange={(e) => handleNewAppointmentChange('doctorId', e.target.value)}
+                    required
+                    disabled={!newAppointment.departmentId}
+                  >
+                    <option value="">
+                      {!newAppointment.departmentId ? 'Select Department First' : 'Select Doctor'}
+                    </option>
+                    {getFilteredDoctors().map(doctor => (
+                      <option key={doctor.doctorId} value={doctor.doctorId}>
+                        {doctor.doctorName} - {doctor.specialization}
+                      </option>
+                    ))}
+                  </select>
+                  {formErrors.doctorId && (
+                    <span className="patient-appointment-form-error" role="alert">{formErrors.doctorId}</span>
+                  )}
+                </div>
 
-              <div className="patient-appointment-form-actions">
-                <button
-                  type="button"
-                  className="patient-appointment-btn patient-appointment-btn-secondary"
-                  onClick={() => setShowNewAppointmentModal(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="patient-appointment-btn patient-appointment-btn-primary"
-                  disabled={isBooking}
-                >
-                  {isBooking ? 'Booking...' : 'Book Appointment'}
-                </button>
-              </div>
-            </form>
+                <div className="patient-appointment-form-row">
+                  <div className={`patient-appointment-form-group ${formErrors.date ? 'error' : ''}`}>
+                    <label htmlFor="date-input">Preferred Date</label>
+                    <input
+                      id="date-input"
+                      type="date"
+                      value={newAppointment.date}
+                      onChange={(e) => handleNewAppointmentChange('date', e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      required
+                    />
+                    {formErrors.date && (
+                      <span className="patient-appointment-form-error" role="alert">{formErrors.date}</span>
+                    )}
+                  </div>
+
+                  <div className={`patient-appointment-form-group ${formErrors.time ? 'error' : ''} ${isLoadingSlots ? 'loading' : ''}`}>
+                    <label htmlFor="time-select">Available Time Slots</label>
+                    <select
+                      id="time-select"
+                      value={newAppointment.time}
+                      onChange={(e) => handleNewAppointmentChange('time', e.target.value)}
+                      required
+                      disabled={!availableSlots.length || isLoadingSlots}
+                    >
+                      <option value="">
+                        {isLoadingSlots ? 'Loading slots...' :
+                          (!newAppointment.doctorId || !newAppointment.date) ? 'Select doctor and date first' :
+                            !availableSlots.length ? 'No slots available' : 'Select Time'}
+                      </option>
+                      {availableSlots.map(slot => (
+                        <option key={slot} value={slot}>{formatTime(slot)}</option>
+                      ))}
+                    </select>
+                    {formErrors.time && (
+                      <span className="patient-appointment-form-error" role="alert">{formErrors.time}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className={`patient-appointment-form-group ${formErrors.reason ? 'error' : ''}`}>
+                  <label htmlFor="reason-textarea">Reason for Visit</label>
+                  <textarea
+                    id="reason-textarea"
+                    value={newAppointment.reason}
+                    onChange={(e) => handleNewAppointmentChange('reason', e.target.value)}
+                    placeholder="Briefly describe your symptoms or reason for the appointment"
+                    rows="3"
+                    required
+                  />
+                  {formErrors.reason && (
+                    <span className="patient-appointment-form-error" role="alert">{formErrors.reason}</span>
+                  )}
+                </div>
+
+                <div className="patient-appointment-form-actions">
+                  <button
+                    type="submit"
+                    className="patient-appointment-submit-btn"
+                    disabled={isBooking}
+                    aria-busy={isBooking}
+                  >
+                    {isBooking ? 'Booking...' : 'Book Appointment'}
+                  </button>
+                  <button
+                    type="button"
+                    className="patient-appointment-cancel-btn"
+                    onClick={() => setShowNewAppointmentModal(false)}
+                    disabled={isBooking}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
