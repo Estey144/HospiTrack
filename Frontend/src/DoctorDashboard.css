@@ -1,96 +1,3 @@
-/* .doctor-dashboard {
-  padding: 40px;
-  font-family: Arial, sans-serif;
-}
-
-.section {
-  margin-bottom: 40px;
-  border: 1px solid #ddd;
-  padding: 20px;
-  border-radius: 10px;
-  background: #fdfdfd;
-}
-
-h2 {
-  color: #1976d2;
-}
-
-h3 {
-  color: #125ea3;
-  margin-bottom: 20px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 15px;
-}
-
-table, th, td {
-  border: 1px solid #ccc;
-}
-
-th, td {
-  padding: 10px;
-  text-align: left;
-}
-
-.doctor-dashboard button {
-  background-color: #1976d2;
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.doctor-dashboard button:hover {
-  background-color: #125ea3;
-}
-
-textarea, select, input[type="text"] {
-  width: 100%;
-  padding: 8px;
-  margin: 8px 0;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-}
-
-.doctor-dashboard form button {
-  margin-top: 10px;
-}
-
-.loading {
-  font-size: 20px;
-  font-weight: bold;
-  text-align: center;
-}
-
-.error {
-  color: red;
-  font-weight: bold;
-  margin-top: 10px;
-}
-
-.patient-history {
-  background: #f1f8ff;
-  padding: 15px;
-  border-radius: 6px;
-  border: 1px solid #b3d7ff;
-  margin-top: 10px;
-}
-
-.patient-history ul {
-  margin: 8px 0;
-  padding-left: 20px;
-}
-
-.patient-history strong {
-  display: block;
-  margin-top: 10px;
-} */
-
 * {
   margin: 0;
   padding: 0;
@@ -112,6 +19,47 @@ textarea, select, input[type="text"] {
   margin-bottom: 30px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.home-button {
+  background-color: #667eea;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+}
+
+.home-button:hover {
+  background-color: #5a67d8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.home-button:active {
+  transform: translateY(0);
 }
 
 .welcome-section h1 {
@@ -695,6 +643,22 @@ textarea, select, input[type="text"] {
   
   .dashboard-header {
     padding: 20px;
+  }
+  
+  .header-top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .header-actions {
+    justify-content: center;
+  }
+  
+  .home-button {
+    width: 100%;
+    justify-content: center;
   }
   
   .welcome-section h1 {

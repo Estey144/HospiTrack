@@ -96,17 +96,19 @@ const PatientDashboard = () => {
           <h1 className="patient-dash-title">Patient Dashboard</h1>
           <p className="patient-dash-greeting">Welcome back, <span className="patient-dash-name">{user?.name}</span></p>
         </div>
-        <div className="patient-dash-id">
-          <span className="patient-dash-id-label">Patient ID:</span>
-          <span className="patient-dash-id-value">{user?.id}</span>
+        <div className="patient-dash-header-actions">
+          <div className="patient-dash-id">
+            <span className="patient-dash-id-label">Patient ID:</span>
+            <span className="patient-dash-id-value">{user?.id}</span>
+          </div>
+          <button 
+            onClick={() => goTo('/')} 
+            className="patient-dash-home-btn"
+          >
+            <Home size={16} style={{ marginRight: 5 }} />
+            Go to Homepage
+          </button>
         </div>
-        <button 
-          onClick={() => goTo('/')} 
-          className="patient-dash-home-btn"
-        >
-          <Home size={16} style={{ marginRight: 5 }} />
-          Go to Homepage
-        </button>
       </div>
 
       <div className="patient-dash-content">

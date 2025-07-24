@@ -19,6 +19,12 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+.patient-dash-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
 .patient-dash-welcome {
   color: white;
 }
@@ -42,11 +48,13 @@
 }
 
 .patient-dash-id {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 10px 16px;
   border-radius: 8px;
   color: white;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(5px);
 }
 
 .patient-dash-id-label {
@@ -450,6 +458,17 @@
     text-align: center;
   }
 
+  .patient-dash-header-actions {
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .patient-dash-home-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
   .patient-dash-title {
     font-size: 2rem;
   }
@@ -513,20 +532,27 @@
 }
 
 .patient-dash-home-btn {
-  margin-top: 10px;
-  background-color: #1a202c;
+  background-color: #667eea;
   color: #fff;
-  padding: 6px 12px;
-  border-radius: 5px;
+  padding: 10px 18px;
+  border-radius: 8px;
   border: none;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: 14px;
-  transition: background 0.2s ease-in-out;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
 }
 
 .patient-dash-home-btn:hover {
-  background-color: #2d3748;
+  background-color: #5a67d8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.patient-dash-home-btn:active {
+  transform: translateY(0);
 }

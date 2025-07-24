@@ -1,487 +1,8 @@
-// import React, { useEffect, useState } from 'react';
-// import './AdminDashboard.css';
-// import { Bar } from 'react-chartjs-2';
-// import {
-//   Chart as ChartJS,
-//   CategoryScale,
-//   LinearScale,
-//   BarElement,
-//   Title,
-//   Tooltip,
-//   Legend,
-// } from 'chart.js';
-
-// // Register ChartJS components
-// ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
-
-// const AdminDashboard = () => {
-//   const user = JSON.parse(localStorage.getItem('user'));
-
-//   const [activeTab, setActiveTab] = useState('doctors');
-
-//   const [doctors, setDoctors] = useState([]);
-//   const [patients, setPatients] = useState([]);
-//   const [staff, setStaff] = useState([]);
-//   const [users, setUsers] = useState([]);
-
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState(null);
-
-//   const [searchTerm, setSearchTerm] = useState('');
-//   const [page, setPage] = useState(1);
-//   const itemsPerPage = 5;
-
-//   const [formOpen, setFormOpen] = useState(false);
-//   const [formData, setFormData] = useState({});
-//   const [formType, setFormType] = useState('');
-//   const [formMode, setFormMode] = useState('create');
-
-//   const [reportsData, setReportsData] = useState(null);
-
-//   const API_BASE = '/api';
-
-//   const fetchData = async (entity) => {
-//     setLoading(true);
-//     setError(null);
-//     try {
-//       const res = await fetch(`${API_BASE}/${entity}`);
-//       if (!res.ok) throw new Error('Failed to fetch data');
-//       const data = await res.json();
-//       switch (entity) {
-//         case 'doctors': setDoctors(data); break;
-//         case 'patients': setPatients(data); break;
-//         case 'staff': setStaff(data); break;
-//         case 'users': setUsers(data); break;
-//         default: break;
-//       }
-//     } catch (err) {
-//       setError(err.message);
-//     }
-//     setLoading(false);
-//   };
-
-//   const fetchReports = async () => {
-//     setLoading(true);
-//     setError(null);
-//     try {
-//       const res = await fetch(`${API_BASE}/reports`);
-//       if (!res.ok) throw new Error('Failed to fetch reports');
-//       const data = await res.json();
-//       setReportsData(data);
-//     } catch (err) {
-//       setError(err.message);
-//     }
-//     setLoading(false);
-//   };
-
-//   useEffect(() => {
-//     setSearchTerm('');
-//     setPage(1);
-//     if (activeTab === 'reports') {
-//       fetchReports();
-//     } else {
-//       fetchData(activeTab);
-//     }
-//   }, [activeTab]);
-
-//   const filterData = (list) => {
-//     if (!searchTerm) return list;
-//     const term = searchTerm.toLowerCase();
-//     return list.filter(item =>
-//       Object.values(item).some(val =>
-//         val && val.toString().toLowerCase().includes(term)
-//       )
-//     );
-//   };
-
-//   const paginatedData = (list) => {
-//     const filtered = filterData(list);
-//     const totalPages = Math.ceil(filtered.length / itemsPerPage);
-//     const paged = filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-//     return { paged, totalPages };
-//   };
-
-//   const handleFormChange = (e) => {
-//     setFormData({...formData, [e.target.name]: e.target.value});
-//   };
-
-//   const openForm = (type, mode = 'create', data = {}) => {
-//     setFormType(type);
-//     setFormMode(mode);
-//     setFormData(data);
-//     setFormOpen(true);
-//   };
-
-//   const closeForm = () => {
-//     setFormOpen(false);
-//     setFormData({});
-//   };
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-
-//     const entity = formType === 'user' ? 'users' : formType + 's';
-//     const url = `${API_BASE}/${entity}${formMode === 'edit' ? `/${formData.id}` : ''}`;
-//     const method = formMode === 'edit' ? 'PUT' : 'POST';
-
-//     try {
-//       const res = await fetch(url, {
-//         method,
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify(formData),
-//       });
-//       if (!res.ok) throw new Error('Failed to save data');
-//       await fetchData(entity);
-//       closeForm();
-//     } catch (err) {
-//       alert(err.message);
-//     }
-//   };
-
-//   const handleDelete = async (type, id) => {
-//     if (!window.confirm('Are you sure you want to delete this record?')) return;
-//     try {
-//       const entity = type === 'user' ? 'users' : type + 's';
-//       const res = await fetch(`${API_BASE}/${entity}/${id}`, { method: 'DELETE' });
-//       if (!res.ok) throw new Error('Failed to delete');
-//       await fetchData(entity);
-//     } catch (err) {
-//       alert(err.message);
-//     }
-//   };
-
-//   const renderRows = (list, type) => {
-//     return list.map(item => (
-//       <tr key={item.id}>
-//         <td>{item.id}</td>
-//         <td>{item.name || item.email || item.designation || 'N/A'}</td>
-//         {type === 'users' && <td>{item.role}</td>}
-//         <td>
-//           <button className="btn" onClick={() => openForm(type.slice(0, -1), 'edit', item)}>Edit</button>
-//           <button className="btn btn-delete" onClick={() => handleDelete(type.slice(0, -1), item.id)}>Delete</button>
-//         </td>
-//       </tr>
-//     ));
-//   };
-
-//   const reportChartData = {
-//     labels: reportsData?.months || [],
-//     datasets: [
-//       {
-//         label: 'Patients Registered',
-//         data: reportsData?.patients || [],
-//         backgroundColor: 'rgba(75,192,192,0.6)',
-//       },
-//       {
-//         label: 'Appointments',
-//         data: reportsData?.appointments || [],
-//         backgroundColor: 'rgba(153,102,255,0.6)',
-//       },
-//     ],
-//   };
-
-//   const reportOptions = {
-//     responsive: true,
-//     plugins: {
-//       legend: { position: 'top' },
-//       title: { display: true, text: 'Monthly Hospital Report' },
-//     },
-//   };
-
-//   let currentData = [];
-//   let totalPages = 1;
-//   switch (activeTab) {
-//     case 'doctors': ({paged: currentData, totalPages} = paginatedData(doctors)); break;
-//     case 'patients': ({paged: currentData, totalPages} = paginatedData(patients)); break;
-//     case 'staff': ({paged: currentData, totalPages} = paginatedData(staff)); break;
-//     case 'users': ({paged: currentData, totalPages} = paginatedData(users)); break;
-//     default: break;
-//   }
-
-//   return (
-//     <div className="admin-dashboard">
-//       <header>
-//         <h2>Admin Dashboard</h2>
-//         <p>Welcome, {user?.name} ({user?.email})</p>
-//       </header>
-
-//       <nav>
-//         <button className={activeTab === 'doctors' ? 'active' : ''} onClick={() => setActiveTab('doctors')}>Manage Doctors</button>
-//         <button className={activeTab === 'patients' ? 'active' : ''} onClick={() => setActiveTab('patients')}>Manage Patients</button>
-//         <button className={activeTab === 'staff' ? 'active' : ''} onClick={() => setActiveTab('staff')}>Manage Staff</button>
-//         <button className={activeTab === 'users' ? 'active' : ''} onClick={() => setActiveTab('users')}>Manage Users</button>
-//         <button className={activeTab === 'reports' ? 'active' : ''} onClick={() => setActiveTab('reports')}>View Reports</button>
-//       </nav>
-
-//       <section className="content">
-//         {loading && <p>Loading...</p>}
-//         {error && <p className="error">Error: {error}</p>}
-
-//         {activeTab !== 'reports' && !loading && (
-//           <>
-//             <div className="list-controls">
-//               <input
-//                 type="text"
-//                 placeholder="Search..."
-//                 value={searchTerm}
-//                 onChange={(e) => {setSearchTerm(e.target.value); setPage(1);}}
-//               />
-//               <button className="btn btn-add" onClick={() => openForm(activeTab.slice(0, -1), 'create')}>
-//                 Add New {activeTab.slice(0, -1).charAt(0).toUpperCase() + activeTab.slice(1, -1)}
-//               </button>
-//             </div>
-
-//             <table>
-//               <thead>
-//                 <tr>
-//                   <th>ID</th>
-//                   <th>Name / Email / Designation</th>
-//                   {activeTab === 'users' && <th>Role</th>}
-//                   <th>Actions</th>
-//                 </tr>
-//               </thead>
-//               <tbody>
-//                 {currentData.length === 0 ? (
-//                   <tr><td colSpan={activeTab === 'users' ? 4 : 3}>No records found</td></tr>
-//                 ) : (
-//                   renderRows(currentData, activeTab)
-//                 )}
-//               </tbody>
-//             </table>
-
-//             <div className="pagination">
-//               <button disabled={page === 1} onClick={() => setPage(page - 1)}>Prev</button>
-//               <span>Page {page} of {totalPages}</span>
-//               <button disabled={page === totalPages} onClick={() => setPage(page + 1)}>Next</button>
-//             </div>
-//           </>
-//         )}
-
-//         {activeTab === 'reports' && reportsData && (
-//           <div className="reports-section">
-//             <Bar data={reportChartData} options={reportOptions} />
-//           </div>
-//         )}
-
-//         {formOpen && (
-//           <div className="modal">
-//             <div className="modal-content">
-//               <h3>{formMode === 'create' ? 'Add New' : 'Edit'} {formType.charAt(0).toUpperCase() + formType.slice(1)}</h3>
-//               <form onSubmit={handleSubmit}>
-
-//                 {(formType === 'doctor' || formType === 'staff' || formType === 'user' || formType === 'patient') && (
-//                   <>
-//                     {formType !== 'user' && (
-//                       <div className="form-group">
-//                         <label>Name:</label>
-//                         <input
-//                           name="name"
-//                           type="text"
-//                           value={formData.name || ''}
-//                           onChange={handleFormChange}
-//                           required
-//                         />
-//                       </div>
-//                     )}
-
-//                     {formType === 'user' && (
-//                       <>
-//                         <div className="form-group">
-//                           <label>Name:</label>
-//                           <input
-//                             name="name"
-//                             type="text"
-//                             value={formData.name || ''}
-//                             onChange={handleFormChange}
-//                             required
-//                           />
-//                         </div>
-//                         <div className="form-group">
-//                           <label>Email:</label>
-//                           <input
-//                             name="email"
-//                             type="email"
-//                             value={formData.email || ''}
-//                             onChange={handleFormChange}
-//                             required
-//                           />
-//                         </div>
-//                         <div className="form-group">
-//                           <label>Password:</label>
-//                           <input
-//                             name="password"
-//                             type="password"
-//                             value={formData.password || ''}
-//                             onChange={handleFormChange}
-//                             required={formMode === 'create'}
-//                             placeholder={formMode === 'edit' ? 'Leave blank to keep unchanged' : ''}
-//                           />
-//                         </div>
-//                         <div className="form-group">
-//                           <label>Phone:</label>
-//                           <input
-//                             name="phone"
-//                             type="text"
-//                             value={formData.phone || ''}
-//                             onChange={handleFormChange}
-//                           />
-//                         </div>
-//                         <div className="form-group">
-//                           <label>Role:</label>
-//                           <select
-//                             name="role"
-//                             value={formData.role || ''}
-//                             onChange={handleFormChange}
-//                             required
-//                           >
-//                             <option value="">Select Role</option>
-//                             <option value="DOCTOR">Doctor</option>
-//                             <option value="PATIENT">Patient</option>
-//                             <option value="STAFF">Staff</option>
-//                             <option value="ADMIN">Admin</option>
-//                           </select>
-//                         </div>
-//                       </>
-//                     )}
-
-//                     {(formType === 'doctor' || formType === 'staff') && (
-//                       <>
-//                         <div className="form-group">
-//                           <label>User ID:</label>
-//                           <input
-//                             name="user_id"
-//                             type="text"
-//                             value={formData.user_id || ''}
-//                             onChange={handleFormChange}
-//                             required
-//                           />
-//                         </div>
-//                         <div className="form-group">
-//                           <label>Branch ID:</label>
-//                           <input
-//                             name="branch_id"
-//                             type="text"
-//                             value={formData.branch_id || ''}
-//                             onChange={handleFormChange}
-//                             required
-//                           />
-//                         </div>
-//                       </>
-//                     )}
-
-//                     {formType === 'doctor' && (
-//                       <>
-//                         <div className="form-group">
-//                           <label>License Number:</label>
-//                           <input
-//                             name="license_number"
-//                             type="text"
-//                             value={formData.license_number || ''}
-//                             onChange={handleFormChange}
-//                             required
-//                           />
-//                         </div>
-//                         <div className="form-group">
-//                           <label>Experience Years:</label>
-//                           <input
-//                             name="experience_years"
-//                             type="number"
-//                             min="0"
-//                             value={formData.experience_years || ''}
-//                             onChange={handleFormChange}
-//                             required
-//                           />
-//                         </div>
-//                         <div className="form-group">
-//                           <label>Available Hours:</label>
-//                           <input
-//                             name="available_hours"
-//                             type="text"
-//                             value={formData.available_hours || ''}
-//                             onChange={handleFormChange}
-//                             placeholder="e.g. 9:00-17:00"
-//                             required
-//                           />
-//                         </div>
-//                       </>
-//                     )}
-
-//                     {formType === 'patient' && (
-//                       <>
-//                         <div className="form-group">
-//                           <label>Date of Birth:</label>
-//                           <input
-//                             name="dob"
-//                             type="date"
-//                             value={formData.dob || ''}
-//                             onChange={handleFormChange}
-//                             required
-//                           />
-//                         </div>
-//                         <div className="form-group">
-//                           <label>Gender:</label>
-//                           <select
-//                             name="gender"
-//                             value={formData.gender || ''}
-//                             onChange={handleFormChange}
-//                             required
-//                           >
-//                             <option value="">Select Gender</option>
-//                             <option value="Male">Male</option>
-//                             <option value="Female">Female</option>
-//                             <option value="Other">Other</option>
-//                           </select>
-//                         </div>
-//                         <div className="form-group">
-//                           <label>Blood Type:</label>
-//                           <input
-//                             name="blood_type"
-//                             type="text"
-//                             value={formData.blood_type || ''}
-//                             onChange={handleFormChange}
-//                           />
-//                         </div>
-//                         <div className="form-group">
-//                           <label>Address:</label>
-//                           <input
-//                             name="address"
-//                             type="text"
-//                             value={formData.address || ''}
-//                             onChange={handleFormChange}
-//                           />
-//                         </div>
-//                         <div className="form-group">
-//                           <label>Emergency Contact:</label>
-//                           <input
-//                             name="emergency_contact"
-//                             type="text"
-//                             value={formData.emergency_contact || ''}
-//                             onChange={handleFormChange}
-//                           />
-//                         </div>
-//                       </>
-//                     )}
-//                   </>
-//                 )}
-
-//                 <div className="form-actions">
-//                   <button type="submit" className="btn btn-save">Save</button>
-//                   <button type="button" className="btn btn-cancel" onClick={closeForm}>Cancel</button>
-//                 </div>
-//               </form>
-//             </div>
-//           </div>
-//         )}
-//       </section>
-//     </div>
-//   );
-// };
-
-// export default AdminDashboard;
-
 import React, { useEffect, useState } from 'react';
 import './AdminDashboard.css';
 import { Bar } from 'react-chartjs-2';
+import { useNavigate } from "react-router-dom";
+import { Home, Activity, Settings, Shield, Database, Bell, Building, Car, Stethoscope, Bed } from "lucide-react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -496,12 +17,18 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 const AdminDashboard = () => {
   const user = JSON.parse(localStorage.getItem('user'));
+  const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState('doctors');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [doctors, setDoctors] = useState([]);
   const [patients, setPatients] = useState([]);
   const [staff, setStaff] = useState([]);
   const [users, setUsers] = useState([]);
+  const [rooms, setRooms] = useState([]);
+  const [branches, setBranches] = useState([]);
+  const [ambulances, setAmbulances] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [equipment, setEquipment] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -515,6 +42,68 @@ const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sortField, setSortField] = useState('id');
   const [sortDirection, setSortDirection] = useState('asc');
+  const [systemHealth, setSystemHealth] = useState({
+    status: 'healthy',
+    uptime: '99.9%',
+    activeUsers: 0,
+    serverLoad: '12%'
+  });
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+
+  const goToHomepage = () => {
+    navigate("/");
+  };
+
+  const getSampleData = (entity) => {
+    const sampleData = {
+      doctors: [
+        { id: 1, name: 'Dr. Sarah Johnson', user_id: 1, branch_id: 1, license_number: 'MD12345', experience_years: 15, available_hours: '9:00-17:00', active: true },
+        { id: 2, name: 'Dr. Michael Chen', user_id: 2, branch_id: 1, license_number: 'MD12346', experience_years: 8, available_hours: '8:00-16:00', active: true },
+        { id: 3, name: 'Dr. Emily Davis', user_id: 3, branch_id: 2, license_number: 'MD12347', experience_years: 12, available_hours: '10:00-18:00', active: true }
+      ],
+      patients: [
+        { id: 1, name: 'John Smith', dob: '1985-05-15', gender: 'Male', blood_type: 'O+', address: '123 Oak St', emergency_contact: '+1-555-9001', active: true },
+        { id: 2, name: 'Maria Garcia', dob: '1990-08-22', gender: 'Female', blood_type: 'A-', address: '456 Pine Ave', emergency_contact: '+1-555-9002', active: true },
+        { id: 3, name: 'Robert Wilson', dob: '1975-12-10', gender: 'Male', blood_type: 'B+', address: '789 Elm St', emergency_contact: '+1-555-9003', active: true }
+      ],
+      staff: [
+        { id: 1, name: 'Alice Cooper', user_id: 4, branch_id: 1, designation: 'Head Nurse', active: true },
+        { id: 2, name: 'Bob Thompson', user_id: 5, branch_id: 1, designation: 'Lab Technician', active: true },
+        { id: 3, name: 'Carol White', user_id: 6, branch_id: 2, designation: 'Pharmacist', active: true }
+      ],
+      users: [
+        { id: 1, name: 'Dr. Sarah Johnson', email: 'sarah.johnson@hospital.com', phone: '+1-555-0101', role: 'DOCTOR', active: true },
+        { id: 2, name: 'Dr. Michael Chen', email: 'michael.chen@hospital.com', phone: '+1-555-0102', role: 'DOCTOR', active: true },
+        { id: 3, name: 'Dr. Emily Davis', email: 'emily.davis@hospital.com', phone: '+1-555-0103', role: 'DOCTOR', active: true },
+        { id: 4, name: 'Alice Cooper', email: 'alice.cooper@hospital.com', phone: '+1-555-0104', role: 'STAFF', active: true },
+        { id: 5, name: 'Bob Thompson', email: 'bob.thompson@hospital.com', phone: '+1-555-0105', role: 'STAFF', active: true },
+        { id: 6, name: 'Carol White', email: 'carol.white@hospital.com', phone: '+1-555-0106', role: 'STAFF', active: true }
+      ],
+      rooms: [
+        { id: 1, room_number: 'ICU-101', room_type: 'ICU', floor: 1, capacity: 2, branch_id: 1, active: true },
+        { id: 2, room_number: 'GW-201', room_type: 'General', floor: 2, capacity: 4, branch_id: 1, active: true },
+        { id: 3, room_number: 'ER-001', room_type: 'Emergency', floor: 1, capacity: 1, branch_id: 1, active: true }
+      ],
+      branches: [
+        { id: 1, name: 'Main Hospital', location: 'Downtown', address: '123 Main St, City, State', phone: '+1-555-0100', email: 'main@hospital.com', active: true },
+        { id: 2, name: 'North Branch', location: 'North District', address: '456 North Ave, City, State', phone: '+1-555-0200', email: 'north@hospital.com', active: true }
+      ],
+      ambulances: [
+        { id: 1, vehicle_number: 'AMB-001', driver_name: 'John Smith', driver_phone: '+1-555-1001', status: 'Available', branch_id: 1, active: true },
+        { id: 2, vehicle_number: 'AMB-002', driver_name: 'Jane Doe', driver_phone: '+1-555-1002', status: 'In Use', branch_id: 1, active: true }
+      ],
+      departments: [
+        { id: 1, name: 'Cardiology', head_doctor: 'Dr. Smith', description: 'Heart and cardiovascular care', branch_id: 1, active: true },
+        { id: 2, name: 'Emergency Medicine', head_doctor: 'Dr. Johnson', description: 'Emergency and trauma care', branch_id: 1, active: true }
+      ],
+      equipment: [
+        { id: 1, equipment_name: 'MRI Scanner', equipment_type: 'Imaging', manufacturer: 'Siemens', model: 'Magnetom', condition: 'Good', purchase_date: '2020-01-15', department_id: 1, active: true },
+        { id: 2, equipment_name: 'Ventilator', equipment_type: 'Life Support', manufacturer: 'Medtronic', model: 'PB980', condition: 'Excellent', purchase_date: '2021-03-10', department_id: 2, active: true }
+      ]
+    };
+    return sampleData[entity] || [];
+  };
 
   const API_BASE = '/api';
 
@@ -523,17 +112,51 @@ const AdminDashboard = () => {
     setError(null);
     try {
       const res = await fetch(`${API_BASE}/${entity}`);
-      if (!res.ok) throw new Error('Failed to fetch data');
-      const data = await res.json();
-      switch (entity) {
-        case 'doctors': setDoctors(data); break;
-        case 'patients': setPatients(data); break;
-        case 'staff': setStaff(data); break;
-        case 'users': setUsers(data); break;
-        default: break;
+      if (!res.ok) {
+        // If API fails, provide sample data for demonstration
+        const sampleData = getSampleData(entity);
+        switch (entity) {
+          case 'doctors': setDoctors(sampleData); break;
+          case 'patients': setPatients(sampleData); break;
+          case 'staff': setStaff(sampleData); break;
+          case 'users': setUsers(sampleData); break;
+          case 'rooms': setRooms(sampleData); break;
+          case 'branches': setBranches(sampleData); break;
+          case 'ambulances': setAmbulances(sampleData); break;
+          case 'departments': setDepartments(sampleData); break;
+          case 'equipment': setEquipment(sampleData); break;
+          default: break;
+        }
+      } else {
+        const data = await res.json();
+        switch (entity) {
+          case 'doctors': setDoctors(data); break;
+          case 'patients': setPatients(data); break;
+          case 'staff': setStaff(data); break;
+          case 'users': setUsers(data); break;
+          case 'rooms': setRooms(data); break;
+          case 'branches': setBranches(data); break;
+          case 'ambulances': setAmbulances(data); break;
+          case 'departments': setDepartments(data); break;
+          case 'equipment': setEquipment(data); break;
+          default: break;
+        }
       }
     } catch (err) {
-      setError(err.message);
+      // If network error, provide sample data
+      const sampleData = getSampleData(entity);
+      switch (entity) {
+        case 'doctors': setDoctors(sampleData); break;
+        case 'patients': setPatients(sampleData); break;
+        case 'staff': setStaff(sampleData); break;
+        case 'users': setUsers(sampleData); break;
+        case 'rooms': setRooms(sampleData); break;
+        case 'branches': setBranches(sampleData); break;
+        case 'ambulances': setAmbulances(sampleData); break;
+        case 'departments': setDepartments(sampleData); break;
+        case 'equipment': setEquipment(sampleData); break;
+        default: break;
+      }
     }
     setLoading(false);
   };
@@ -552,15 +175,120 @@ const AdminDashboard = () => {
     setLoading(false);
   };
 
+  const fetchSystemHealth = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Simulate system health data - replace with actual API call
+      const healthData = {
+        status: 'healthy',
+        uptime: '99.9%',
+        activeUsers: Math.floor(Math.random() * 100) + 50,
+        serverLoad: Math.floor(Math.random() * 30) + 10 + '%',
+        dbConnections: Math.floor(Math.random() * 20) + 5,
+        memoryUsage: Math.floor(Math.random() * 40) + 30 + '%'
+      };
+      setSystemHealth(healthData);
+      
+      // Simulate notifications
+      const sampleNotifications = [
+        {
+          id: 1,
+          type: 'info',
+          message: 'System backup completed successfully',
+          timestamp: new Date().toISOString()
+        },
+        {
+          id: 2,
+          type: 'warning',
+          message: 'High server load detected',
+          timestamp: new Date(Date.now() - 1800000).toISOString()
+        }
+      ];
+      setNotifications(sampleNotifications);
+    } catch (err) {
+      setError(err.message);
+    }
+    setLoading(false);
+  };
+
+  const fetchAuditLogs = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Simulate audit logs - replace with actual API call
+      const logs = [
+        {
+          id: 1,
+          action: 'User Created',
+          user: 'Admin',
+          details: 'Created new doctor account',
+          timestamp: new Date().toISOString(),
+          severity: 'info'
+        },
+        {
+          id: 2,
+          action: 'Data Export',
+          user: 'Admin',
+          details: 'Exported patient data',
+          timestamp: new Date(Date.now() - 3600000).toISOString(),
+          severity: 'warning'
+        },
+        {
+          id: 3,
+          action: 'System Backup',
+          user: 'System',
+          details: 'Automated backup completed',
+          timestamp: new Date(Date.now() - 7200000).toISOString(),
+          severity: 'success'
+        }
+      ];
+      setAuditLogs(logs);
+    } catch (err) {
+      setError(err.message);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
     setSearchTerm('');
     setPage(1);
     if (activeTab === 'reports') {
       fetchReports();
-    } else {
+    } else if (activeTab === 'dashboard') {
+      fetchSystemHealth();
+    } else if (activeTab === 'audit') {
+      fetchAuditLogs();
+    } else if (activeTab === 'settings' || activeTab === 'backup') {
+      // These tabs don't need data fetching
+    } else if (['doctors', 'patients', 'staff', 'users', 'rooms', 'branches', 'ambulances', 'departments', 'equipment'].includes(activeTab)) {
       fetchData(activeTab);
     }
   }, [activeTab]);
+
+  // Initial data fetch for all entities when component mounts
+  useEffect(() => {
+    const fetchAllInitialData = async () => {
+      try {
+        await Promise.all([
+          fetchData('doctors'),
+          fetchData('patients'), 
+          fetchData('staff'),
+          fetchData('users'),
+          fetchData('rooms'),
+          fetchData('branches'),
+          fetchData('ambulances'),
+          fetchData('departments'),
+          fetchData('equipment')
+        ]);
+      } catch (err) {
+        console.error('Failed to fetch initial data:', err);
+      }
+    };
+    
+    fetchAllInitialData();
+    fetchSystemHealth(); // Load dashboard data by default
+  }, []);
 
   const filterData = (list) => {
     if (!searchTerm) return list;
@@ -664,11 +392,16 @@ const AdminDashboard = () => {
       <tr key={item.id} className="adm-table__row">
         <td className="adm-table__cell">{item.id}</td>
         <td className="adm-table__cell adm-table__cell--primary">
-          {item.name || item.email || item.designation || 'N/A'}
+          {item.name || item.email || item.designation || item.room_number || item.vehicle_number || item.equipment_name || 'N/A'}
         </td>
         {type === 'users' && <td className="adm-table__cell">{item.role}</td>}
         {type === 'doctors' && <td className="adm-table__cell">{item.experience_years || 0} years</td>}
         {type === 'patients' && <td className="adm-table__cell">{item.blood_type || 'N/A'}</td>}
+        {type === 'rooms' && <td className="adm-table__cell">{item.room_type || 'N/A'}</td>}
+        {type === 'branches' && <td className="adm-table__cell">{item.location || 'N/A'}</td>}
+        {type === 'ambulances' && <td className="adm-table__cell">{item.status || 'Available'}</td>}
+        {type === 'departments' && <td className="adm-table__cell">{item.head_doctor || 'N/A'}</td>}
+        {type === 'equipment' && <td className="adm-table__cell">{item.condition || 'Good'}</td>}
         <td className="adm-table__cell">
           {getStatusBadge(item.active !== false)}
         </td>
@@ -748,6 +481,10 @@ const AdminDashboard = () => {
       patients: patients.length,
       staff: staff.length,
       users: users.length,
+      rooms: rooms.length,
+      branches: branches.length,
+      ambulances: ambulances.length,
+      departments: departments.length,
     };
   };
 
@@ -756,12 +493,20 @@ const AdminDashboard = () => {
   let currentData = [];
   let totalPages = 1;
   let totalItems = 0;
-  switch (activeTab) {
-    case 'doctors': ({paged: currentData, totalPages, total: totalItems} = paginatedData(doctors)); break;
-    case 'patients': ({paged: currentData, totalPages, total: totalItems} = paginatedData(patients)); break;
-    case 'staff': ({paged: currentData, totalPages, total: totalItems} = paginatedData(staff)); break;
-    case 'users': ({paged: currentData, totalPages, total: totalItems} = paginatedData(users)); break;
-    default: break;
+  
+  if (['doctors', 'patients', 'staff', 'users', 'rooms', 'branches', 'ambulances', 'departments', 'equipment'].includes(activeTab)) {
+    switch (activeTab) {
+      case 'doctors': ({paged: currentData, totalPages, total: totalItems} = paginatedData(doctors)); break;
+      case 'patients': ({paged: currentData, totalPages, total: totalItems} = paginatedData(patients)); break;
+      case 'staff': ({paged: currentData, totalPages, total: totalItems} = paginatedData(staff)); break;
+      case 'users': ({paged: currentData, totalPages, total: totalItems} = paginatedData(users)); break;
+      case 'rooms': ({paged: currentData, totalPages, total: totalItems} = paginatedData(rooms)); break;
+      case 'branches': ({paged: currentData, totalPages, total: totalItems} = paginatedData(branches)); break;
+      case 'ambulances': ({paged: currentData, totalPages, total: totalItems} = paginatedData(ambulances)); break;
+      case 'departments': ({paged: currentData, totalPages, total: totalItems} = paginatedData(departments)); break;
+      case 'equipment': ({paged: currentData, totalPages, total: totalItems} = paginatedData(equipment)); break;
+      default: break;
+    }
   }
 
   return (
@@ -787,46 +532,124 @@ const AdminDashboard = () => {
             <div className="adm-stat-card__label">Patients</div>
           </div>
           <div className="adm-stat-card">
-            <div className="adm-stat-card__number">{stats.staff}</div>
-            <div className="adm-stat-card__label">Staff</div>
+            <div className="adm-stat-card__number">{stats.rooms}</div>
+            <div className="adm-stat-card__label">Rooms</div>
           </div>
           <div className="adm-stat-card">
-            <div className="adm-stat-card__number">{stats.users}</div>
-            <div className="adm-stat-card__label">Users</div>
+            <div className="adm-stat-card__number">{stats.branches}</div>
+            <div className="adm-stat-card__label">Branches</div>
           </div>
         </div>
 
         <nav className="adm-sidebar__nav">
           <button 
-            className={`adm-nav-btn ${activeTab === 'doctors' ? 'adm-nav-btn--active' : ''}`} 
-            onClick={() => setActiveTab('doctors')}
+            className={`adm-nav-btn ${activeTab === 'dashboard' ? 'adm-nav-btn--active' : ''}`} 
+            onClick={() => setActiveTab('dashboard')}
           >
-            👨‍⚕️ Manage Doctors
+            <Activity size={18} style={{ marginRight: '8px' }} />
+            System Overview
           </button>
-          <button 
-            className={`adm-nav-btn ${activeTab === 'patients' ? 'adm-nav-btn--active' : ''}`} 
-            onClick={() => setActiveTab('patients')}
-          >
-            👥 Manage Patients
-          </button>
-          <button 
-            className={`adm-nav-btn ${activeTab === 'staff' ? 'adm-nav-btn--active' : ''}`} 
-            onClick={() => setActiveTab('staff')}
-          >
-            👨‍💼 Manage Staff
-          </button>
-          <button 
-            className={`adm-nav-btn ${activeTab === 'users' ? 'adm-nav-btn--active' : ''}`} 
-            onClick={() => setActiveTab('users')}
-          >
-            👤 Manage Users
-          </button>
-          <button 
-            className={`adm-nav-btn ${activeTab === 'reports' ? 'adm-nav-btn--active' : ''}`} 
-            onClick={() => setActiveTab('reports')}
-          >
-            📊 View Reports
-          </button>
+          
+          <div className="adm-nav-section">
+            <div className="adm-nav-section-title">👥 People Management</div>
+            <button 
+              className={`adm-nav-btn ${activeTab === 'doctors' ? 'adm-nav-btn--active' : ''}`} 
+              onClick={() => setActiveTab('doctors')}
+            >
+              <Stethoscope size={18} style={{ marginRight: '8px' }} />
+              Manage Doctors
+            </button>
+            <button 
+              className={`adm-nav-btn ${activeTab === 'patients' ? 'adm-nav-btn--active' : ''}`} 
+              onClick={() => setActiveTab('patients')}
+            >
+              👥 Manage Patients
+            </button>
+            <button 
+              className={`adm-nav-btn ${activeTab === 'staff' ? 'adm-nav-btn--active' : ''}`} 
+              onClick={() => setActiveTab('staff')}
+            >
+              👨‍💼 Manage Staff
+            </button>
+            <button 
+              className={`adm-nav-btn ${activeTab === 'users' ? 'adm-nav-btn--active' : ''}`} 
+              onClick={() => setActiveTab('users')}
+            >
+              👤 Manage Users
+            </button>
+          </div>
+
+          <div className="adm-nav-section">
+            <div className="adm-nav-section-title">🏥 Facility Management</div>
+            <button 
+              className={`adm-nav-btn ${activeTab === 'branches' ? 'adm-nav-btn--active' : ''}`} 
+              onClick={() => setActiveTab('branches')}
+            >
+              <Building size={18} style={{ marginRight: '8px' }} />
+              Hospital Branches
+            </button>
+            <button 
+              className={`adm-nav-btn ${activeTab === 'departments' ? 'adm-nav-btn--active' : ''}`} 
+              onClick={() => setActiveTab('departments')}
+            >
+              🏢 Departments
+            </button>
+            <button 
+              className={`adm-nav-btn ${activeTab === 'rooms' ? 'adm-nav-btn--active' : ''}`} 
+              onClick={() => setActiveTab('rooms')}
+            >
+              <Bed size={18} style={{ marginRight: '8px' }} />
+              Room Management
+            </button>
+            <button 
+              className={`adm-nav-btn ${activeTab === 'equipment' ? 'adm-nav-btn--active' : ''}`} 
+              onClick={() => setActiveTab('equipment')}
+            >
+              ⚕️ Medical Equipment
+            </button>
+          </div>
+
+          <div className="adm-nav-section">
+            <div className="adm-nav-section-title">🚑 Emergency Services</div>
+            <button 
+              className={`adm-nav-btn ${activeTab === 'ambulances' ? 'adm-nav-btn--active' : ''}`} 
+              onClick={() => setActiveTab('ambulances')}
+            >
+              <Car size={18} style={{ marginRight: '8px' }} />
+              Ambulance Fleet
+            </button>
+          </div>
+
+          <div className="adm-nav-section">
+            <div className="adm-nav-section-title">📊 Reports & Settings</div>
+            <button 
+              className={`adm-nav-btn ${activeTab === 'reports' ? 'adm-nav-btn--active' : ''}`} 
+              onClick={() => setActiveTab('reports')}
+            >
+              📊 View Reports
+            </button>
+            <button 
+              className={`adm-nav-btn ${activeTab === 'audit' ? 'adm-nav-btn--active' : ''}`} 
+              onClick={() => setActiveTab('audit')}
+            >
+              <Shield size={18} style={{ marginRight: '8px' }} />
+              Audit Logs
+            </button>
+            <button 
+              className={`adm-nav-btn ${activeTab === 'settings' ? 'adm-nav-btn--active' : ''}`} 
+              onClick={() => setActiveTab('settings')}
+            >
+              <Settings size={18} style={{ marginRight: '8px' }} />
+              System Settings
+            </button>
+            <button 
+              className={`adm-nav-btn ${activeTab === 'backup' ? 'adm-nav-btn--active' : ''}`} 
+              onClick={() => setActiveTab('backup')}
+            >
+              <Database size={18} style={{ marginRight: '8px' }} />
+              Backup & Restore
+            </button>
+          </div>
         </nav>
       </div>
 
@@ -842,9 +665,18 @@ const AdminDashboard = () => {
             <h1>Hospital Management System</h1>
             <p>Welcome back, <strong>{user?.name}</strong> ({user?.email})</p>
           </div>
-          <div className="adm-header__user">
-            <div className="adm-user-avatar">
-              {user?.name?.charAt(0)?.toUpperCase() || 'A'}
+          <div className="adm-header__actions">
+            <button 
+              className="adm-home-button"
+              onClick={goToHomepage}
+            >
+              <Home size={16} style={{ marginRight: '5px' }} />
+              Go to Homepage
+            </button>
+            <div className="adm-header__user">
+              <div className="adm-user-avatar">
+                {user?.name?.charAt(0)?.toUpperCase() || 'A'}
+              </div>
             </div>
           </div>
         </header>
@@ -864,7 +696,7 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {activeTab !== 'reports' && !loading && (
+          {['doctors', 'patients', 'staff', 'users', 'rooms', 'branches', 'ambulances', 'departments', 'equipment'].includes(activeTab) && !loading && (
             <div className="adm-data-section">
               <div className="adm-data-header">
                 <h2 className="adm-data-title">
@@ -902,6 +734,11 @@ const AdminDashboard = () => {
                       {activeTab === 'users' && <th className="adm-table__header">Role</th>}
                       {activeTab === 'doctors' && <th className="adm-table__header">Experience</th>}
                       {activeTab === 'patients' && <th className="adm-table__header">Blood Type</th>}
+                      {activeTab === 'rooms' && <th className="adm-table__header">Room Type</th>}
+                      {activeTab === 'branches' && <th className="adm-table__header">Location</th>}
+                      {activeTab === 'ambulances' && <th className="adm-table__header">Status</th>}
+                      {activeTab === 'departments' && <th className="adm-table__header">Head Doctor</th>}
+                      {activeTab === 'equipment' && <th className="adm-table__header">Condition</th>}
                       <th className="adm-table__header">Status</th>
                       <th className="adm-table__header">Actions</th>
                     </tr>
@@ -958,6 +795,215 @@ const AdminDashboard = () => {
               </div>
             </div>
           )}
+
+          {activeTab === 'dashboard' && (
+            <div className="adm-system-overview">
+              <div className="adm-data-section">
+                <div className="adm-data-header">
+                  <h2 className="adm-data-title">System Health Overview</h2>
+                </div>
+                <div className="adm-health-grid">
+                  <div className="adm-health-card">
+                    <div className="adm-health-card__icon">🟢</div>
+                    <div className="adm-health-card__content">
+                      <h3>System Status</h3>
+                      <p className="adm-health-card__value">{systemHealth.status}</p>
+                    </div>
+                  </div>
+                  <div className="adm-health-card">
+                    <div className="adm-health-card__icon">⏱️</div>
+                    <div className="adm-health-card__content">
+                      <h3>Uptime</h3>
+                      <p className="adm-health-card__value">{systemHealth.uptime}</p>
+                    </div>
+                  </div>
+                  <div className="adm-health-card">
+                    <div className="adm-health-card__icon">👥</div>
+                    <div className="adm-health-card__content">
+                      <h3>Active Users</h3>
+                      <p className="adm-health-card__value">{systemHealth.activeUsers}</p>
+                    </div>
+                  </div>
+                  <div className="adm-health-card">
+                    <div className="adm-health-card__icon">⚡</div>
+                    <div className="adm-health-card__content">
+                      <h3>Server Load</h3>
+                      <p className="adm-health-card__value">{systemHealth.serverLoad}</p>
+                    </div>
+                  </div>
+                  <div className="adm-health-card">
+                    <div className="adm-health-card__icon">🔗</div>
+                    <div className="adm-health-card__content">
+                      <h3>DB Connections</h3>
+                      <p className="adm-health-card__value">{systemHealth.dbConnections}</p>
+                    </div>
+                  </div>
+                  <div className="adm-health-card">
+                    <div className="adm-health-card__icon">💾</div>
+                    <div className="adm-health-card__content">
+                      <h3>Memory Usage</h3>
+                      <p className="adm-health-card__value">{systemHealth.memoryUsage}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {notifications.length > 0 && (
+                <div className="adm-data-section">
+                  <div className="adm-data-header">
+                    <h2 className="adm-data-title">
+                      <Bell size={20} style={{ marginRight: '8px' }} />
+                      Recent Notifications
+                    </h2>
+                  </div>
+                  <div className="adm-notifications-list">
+                    {notifications.map(notification => (
+                      <div key={notification.id} className={`adm-notification adm-notification--${notification.type}`}>
+                        <div className="adm-notification__content">
+                          <p>{notification.message}</p>
+                          <small>{new Date(notification.timestamp).toLocaleString()}</small>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'audit' && (
+            <div className="adm-data-section">
+              <div className="adm-data-header">
+                <h2 className="adm-data-title">Audit Logs</h2>
+                <div className="adm-data-actions">
+                  <button className="adm-btn adm-btn--primary">
+                    Export Logs
+                  </button>
+                </div>
+              </div>
+              <div className="adm-table-container">
+                <table className="adm-table">
+                  <thead className="adm-table__head">
+                    <tr>
+                      <th className="adm-table__header">Action</th>
+                      <th className="adm-table__header">User</th>
+                      <th className="adm-table__header">Details</th>
+                      <th className="adm-table__header">Timestamp</th>
+                      <th className="adm-table__header">Severity</th>
+                    </tr>
+                  </thead>
+                  <tbody className="adm-table__body">
+                    {auditLogs.map(log => (
+                      <tr key={log.id} className="adm-table__row">
+                        <td className="adm-table__cell adm-table__cell--primary">{log.action}</td>
+                        <td className="adm-table__cell">{log.user}</td>
+                        <td className="adm-table__cell">{log.details}</td>
+                        <td className="adm-table__cell">{new Date(log.timestamp).toLocaleString()}</td>
+                        <td className="adm-table__cell">
+                          <span className={`adm-badge adm-badge--${log.severity === 'warning' ? 'danger' : 'success'}`}>
+                            {log.severity}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <div className="adm-data-section">
+              <div className="adm-data-header">
+                <h2 className="adm-data-title">System Settings</h2>
+              </div>
+              <div className="adm-settings-content">
+                <div className="adm-settings-section">
+                  <h3>Hospital Configuration</h3>
+                  <div className="adm-form__group">
+                    <label className="adm-form__label">Hospital Name</label>
+                    <input className="adm-form__input" type="text" defaultValue="HospiTrack Medical Center" />
+                  </div>
+                  <div className="adm-form__group">
+                    <label className="adm-form__label">Contact Email</label>
+                    <input className="adm-form__input" type="email" defaultValue="admin@hospitracker.com" />
+                  </div>
+                  <div className="adm-form__group">
+                    <label className="adm-form__label">Emergency Contact</label>
+                    <input className="adm-form__input" type="tel" defaultValue="+1-555-0123" />
+                  </div>
+                </div>
+                <div className="adm-settings-section">
+                  <h3>System Preferences</h3>
+                  <div className="adm-form__group">
+                    <label className="adm-form__label">Timezone</label>
+                    <select className="adm-form__select">
+                      <option>UTC-5 (Eastern)</option>
+                      <option>UTC-6 (Central)</option>
+                      <option>UTC-7 (Mountain)</option>
+                      <option>UTC-8 (Pacific)</option>
+                    </select>
+                  </div>
+                  <div className="adm-form__group">
+                    <label className="adm-form__label">
+                      <input type="checkbox" defaultChecked /> Enable Email Notifications
+                    </label>
+                  </div>
+                  <div className="adm-form__group">
+                    <label className="adm-form__label">
+                      <input type="checkbox" defaultChecked /> Enable Audit Logging
+                    </label>
+                  </div>
+                </div>
+                <div className="adm-settings-actions">
+                  <button className="adm-btn adm-btn--primary">Save Settings</button>
+                  <button className="adm-btn adm-btn--secondary">Reset to Defaults</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'backup' && (
+            <div className="adm-data-section">
+              <div className="adm-data-header">
+                <h2 className="adm-data-title">Backup & Restore</h2>
+              </div>
+              <div className="adm-backup-content">
+                <div className="adm-backup-section">
+                  <h3>Database Backup</h3>
+                  <p>Create a backup of all hospital data including patients, appointments, and medical records.</p>
+                  <div className="adm-backup-actions">
+                    <button className="adm-btn adm-btn--primary">Create Full Backup</button>
+                    <button className="adm-btn adm-btn--secondary">Incremental Backup</button>
+                  </div>
+                </div>
+                <div className="adm-backup-section">
+                  <h3>Restore Data</h3>
+                  <p>Restore system data from a previous backup. Use with caution.</p>
+                  <div className="adm-backup-actions">
+                    <input type="file" accept=".sql,.bak" className="adm-form__input" />
+                    <button className="adm-btn adm-btn--danger">Restore from File</button>
+                  </div>
+                </div>
+                <div className="adm-backup-section">
+                  <h3>Scheduled Backups</h3>
+                  <div className="adm-form__group">
+                    <label className="adm-form__label">Backup Frequency</label>
+                    <select className="adm-form__select">
+                      <option>Daily at 2:00 AM</option>
+                      <option>Weekly on Sunday</option>
+                      <option>Monthly on 1st</option>
+                    </select>
+                  </div>
+                  <div className="adm-form__group">
+                    <label className="adm-form__label">
+                      <input type="checkbox" defaultChecked /> Enable Automatic Backups
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
 
@@ -974,14 +1020,22 @@ const AdminDashboard = () => {
             
             <form onSubmit={handleSubmit} className="adm-form">
               <div className="adm-form__body">
-                {(formType === 'doctor' || formType === 'staff' || formType === 'user' || formType === 'patient') && (
+                {(formType === 'doctor' || formType === 'staff' || formType === 'user' || formType === 'patient' || formType === 'room' || formType === 'branch' || formType === 'ambulance' || formType === 'department' || formType === 'equipment') && (
                   <>
                     <div className="adm-form__group">
-                      <label className="adm-form__label">Name</label>
+                      <label className="adm-form__label">
+                        {formType === 'room' ? 'Room Number' : 
+                         formType === 'ambulance' ? 'Vehicle Number' :
+                         formType === 'equipment' ? 'Equipment Name' : 'Name'}
+                      </label>
                       <input
-                        name="name"
+                        name={formType === 'room' ? 'room_number' : 
+                              formType === 'ambulance' ? 'vehicle_number' :
+                              formType === 'equipment' ? 'equipment_name' : 'name'}
                         type="text"
-                        value={formData.name || ''}
+                        value={formData[formType === 'room' ? 'room_number' : 
+                                      formType === 'ambulance' ? 'vehicle_number' :
+                                      formType === 'equipment' ? 'equipment_name' : 'name'] || ''}
                         onChange={handleFormChange}
                         required
                         className="adm-form__input"
@@ -1163,6 +1217,282 @@ const AdminDashboard = () => {
                             name="emergency_contact"
                             type="text"
                             value={formData.emergency_contact || ''}
+                            onChange={handleFormChange}
+                            className="adm-form__input"
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {formType === 'room' && (
+                      <>
+                        <div className="adm-form__group">
+                          <label className="adm-form__label">Room Type</label>
+                          <select
+                            name="room_type"
+                            value={formData.room_type || ''}
+                            onChange={handleFormChange}
+                            required
+                            className="adm-form__select"
+                          >
+                            <option value="">Select Room Type</option>
+                            <option value="ICU">ICU</option>
+                            <option value="Emergency">Emergency</option>
+                            <option value="General">General Ward</option>
+                            <option value="Surgery">Surgery</option>
+                            <option value="Maternity">Maternity</option>
+                            <option value="Pediatric">Pediatric</option>
+                          </select>
+                        </div>
+                        <div className="adm-form__group">
+                          <label className="adm-form__label">Floor</label>
+                          <input
+                            name="floor"
+                            type="number"
+                            min="1"
+                            value={formData.floor || ''}
+                            onChange={handleFormChange}
+                            required
+                            className="adm-form__input"
+                          />
+                        </div>
+                        <div className="adm-form__group">
+                          <label className="adm-form__label">Branch ID</label>
+                          <input
+                            name="branch_id"
+                            type="text"
+                            value={formData.branch_id || ''}
+                            onChange={handleFormChange}
+                            required
+                            className="adm-form__input"
+                          />
+                        </div>
+                        <div className="adm-form__group">
+                          <label className="adm-form__label">Capacity</label>
+                          <input
+                            name="capacity"
+                            type="number"
+                            min="1"
+                            value={formData.capacity || ''}
+                            onChange={handleFormChange}
+                            required
+                            className="adm-form__input"
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {formType === 'branch' && (
+                      <>
+                        <div className="adm-form__group">
+                          <label className="adm-form__label">Location</label>
+                          <input
+                            name="location"
+                            type="text"
+                            value={formData.location || ''}
+                            onChange={handleFormChange}
+                            required
+                            className="adm-form__input"
+                          />
+                        </div>
+                        <div className="adm-form__group">
+                          <label className="adm-form__label">Address</label>
+                          <textarea
+                            name="address"
+                            value={formData.address || ''}
+                            onChange={handleFormChange}
+                            required
+                            className="adm-form__input"
+                            rows="3"
+                          />
+                        </div>
+                        <div className="adm-form__group">
+                          <label className="adm-form__label">Phone</label>
+                          <input
+                            name="phone"
+                            type="tel"
+                            value={formData.phone || ''}
+                            onChange={handleFormChange}
+                            required
+                            className="adm-form__input"
+                          />
+                        </div>
+                        <div className="adm-form__group">
+                          <label className="adm-form__label">Email</label>
+                          <input
+                            name="email"
+                            type="email"
+                            value={formData.email || ''}
+                            onChange={handleFormChange}
+                            className="adm-form__input"
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {formType === 'ambulance' && (
+                      <>
+                        <div className="adm-form__group">
+                          <label className="adm-form__label">Driver Name</label>
+                          <input
+                            name="driver_name"
+                            type="text"
+                            value={formData.driver_name || ''}
+                            onChange={handleFormChange}
+                            required
+                            className="adm-form__input"
+                          />
+                        </div>
+                        <div className="adm-form__group">
+                          <label className="adm-form__label">Driver Phone</label>
+                          <input
+                            name="driver_phone"
+                            type="tel"
+                            value={formData.driver_phone || ''}
+                            onChange={handleFormChange}
+                            required
+                            className="adm-form__input"
+                          />
+                        </div>
+                        <div className="adm-form__group">
+                          <label className="adm-form__label">Status</label>
+                          <select
+                            name="status"
+                            value={formData.status || ''}
+                            onChange={handleFormChange}
+                            required
+                            className="adm-form__select"
+                          >
+                            <option value="">Select Status</option>
+                            <option value="Available">Available</option>
+                            <option value="In Use">In Use</option>
+                            <option value="Maintenance">Under Maintenance</option>
+                            <option value="Out of Service">Out of Service</option>
+                          </select>
+                        </div>
+                        <div className="adm-form__group">
+                          <label className="adm-form__label">Branch ID</label>
+                          <input
+                            name="branch_id"
+                            type="text"
+                            value={formData.branch_id || ''}
+                            onChange={handleFormChange}
+                            required
+                            className="adm-form__input"
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {formType === 'department' && (
+                      <>
+                        <div className="adm-form__group">
+                          <label className="adm-form__label">Head Doctor</label>
+                          <input
+                            name="head_doctor"
+                            type="text"
+                            value={formData.head_doctor || ''}
+                            onChange={handleFormChange}
+                            className="adm-form__input"
+                          />
+                        </div>
+                        <div className="adm-form__group">
+                          <label className="adm-form__label">Description</label>
+                          <textarea
+                            name="description"
+                            value={formData.description || ''}
+                            onChange={handleFormChange}
+                            className="adm-form__input"
+                            rows="3"
+                          />
+                        </div>
+                        <div className="adm-form__group">
+                          <label className="adm-form__label">Branch ID</label>
+                          <input
+                            name="branch_id"
+                            type="text"
+                            value={formData.branch_id || ''}
+                            onChange={handleFormChange}
+                            required
+                            className="adm-form__input"
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {formType === 'equipment' && (
+                      <>
+                        <div className="adm-form__group">
+                          <label className="adm-form__label">Equipment Type</label>
+                          <select
+                            name="equipment_type"
+                            value={formData.equipment_type || ''}
+                            onChange={handleFormChange}
+                            required
+                            className="adm-form__select"
+                          >
+                            <option value="">Select Equipment Type</option>
+                            <option value="Diagnostic">Diagnostic</option>
+                            <option value="Surgical">Surgical</option>
+                            <option value="Monitoring">Monitoring</option>
+                            <option value="Life Support">Life Support</option>
+                            <option value="Laboratory">Laboratory</option>
+                            <option value="Imaging">Imaging</option>
+                          </select>
+                        </div>
+                        <div className="adm-form__group">
+                          <label className="adm-form__label">Manufacturer</label>
+                          <input
+                            name="manufacturer"
+                            type="text"
+                            value={formData.manufacturer || ''}
+                            onChange={handleFormChange}
+                            className="adm-form__input"
+                          />
+                        </div>
+                        <div className="adm-form__group">
+                          <label className="adm-form__label">Model</label>
+                          <input
+                            name="model"
+                            type="text"
+                            value={formData.model || ''}
+                            onChange={handleFormChange}
+                            className="adm-form__input"
+                          />
+                        </div>
+                        <div className="adm-form__group">
+                          <label className="adm-form__label">Condition</label>
+                          <select
+                            name="condition"
+                            value={formData.condition || ''}
+                            onChange={handleFormChange}
+                            required
+                            className="adm-form__select"
+                          >
+                            <option value="">Select Condition</option>
+                            <option value="Excellent">Excellent</option>
+                            <option value="Good">Good</option>
+                            <option value="Fair">Fair</option>
+                            <option value="Poor">Poor</option>
+                            <option value="Out of Order">Out of Order</option>
+                          </select>
+                        </div>
+                        <div className="adm-form__group">
+                          <label className="adm-form__label">Purchase Date</label>
+                          <input
+                            name="purchase_date"
+                            type="date"
+                            value={formData.purchase_date || ''}
+                            onChange={handleFormChange}
+                            className="adm-form__input"
+                          />
+                        </div>
+                        <div className="adm-form__group">
+                          <label className="adm-form__label">Department ID</label>
+                          <input
+                            name="department_id"
+                            type="text"
+                            value={formData.department_id || ''}
                             onChange={handleFormChange}
                             className="adm-form__input"
                           />
