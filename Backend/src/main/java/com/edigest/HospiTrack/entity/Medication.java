@@ -21,7 +21,28 @@ public class Medication {
 
     private String medicine_name;
     private String dosage;
-    //T
 
+    public @NotBlank String getId() {
+        return id;
+    }
 
+    public void setId(@NotBlank String id) {
+        this.id = id;
+    }
+
+    public String getDosage() {
+        return dosage;
+    }
+
+    public void setDosage(String dosage) {
+        this.dosage = dosage;
+    }
+
+    public String getMedicine_name() {
+        return medicine_name;
+    }
+
+    public void setMedicine_name(String medicine_name) {
+        this.medicine_name = medicine_name;
+    }
 }

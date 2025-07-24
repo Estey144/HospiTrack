@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Home, 
-  Search, 
-  Filter, 
+import {
+  Home,
+  Search,
+  Filter,
   Eye,
   Pill,
   User,
@@ -20,7 +22,7 @@ import './Prescriptions.css';
 const Prescriptions = () => {
   const navigate = useNavigate();
 
-  // State management
+  // State
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -30,152 +32,55 @@ const Prescriptions = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [selectedPrescription, setSelectedPrescription] = useState(null);
-
   const itemsPerPage = 10;
 
-  // Sample data based on backend structure
-  const getSamplePrescriptions = () => [
-    {
-      id: 'pr001',
-      prescriptionNumber: 'PR001',
-      appointmentId: 'a002',
-      doctorId: 'doc002',
-      patientId: 'p002',
-      doctorName: 'Dr. Sarah Johnson',
-      patientName: 'Maria Garcia',
-      patientAge: 32,
-      diagnosis: 'Hypertension Management',
-      medications: [
-        { name: 'Lisinopril', dosage: '10mg', frequency: 'Once daily', duration: '30 days', instructions: 'Take with food' }
-      ],
-      instructions: 'Take medication after meals. Follow up in 1 week.',
-      issueDate: '2024-01-16',
-      expiryDate: '2024-02-15',
-      status: 'active',
-      refillsRemaining: 2,
-      totalRefills: 3
-    },
-    {
-      id: 'pr002',
-      prescriptionNumber: 'PR002',
-      appointmentId: 'a005',
-      doctorId: 'doc005',
-      patientId: 'p005',
-      doctorName: 'Dr. Michael Chen',
-      patientName: 'David Wilson',
-      patientAge: 28,
-      diagnosis: 'Skin Condition',
-      medications: [
-        { name: 'Hydrocortisone Cream', dosage: '1%', frequency: 'Twice daily', duration: '14 days', instructions: 'Apply thin layer' }
-      ],
-      instructions: 'Apply cream twice daily. Avoid sun exposure.',
-      issueDate: '2024-01-19',
-      expiryDate: '2024-02-02',
-      status: 'active',
-      refillsRemaining: 1,
-      totalRefills: 2
-    },
-    {
-      id: 'pr003',
-      prescriptionNumber: 'PR003',
-      appointmentId: 'a007',
-      doctorId: 'doc007',
-      patientId: 'p007',
-      doctorName: 'Dr. Lisa Wang',
-      patientName: 'Jennifer Brown',
-      patientAge: 35,
-      diagnosis: 'Bacterial Infection',
-      medications: [
-        { name: 'Amoxicillin', dosage: '500mg', frequency: 'Three times daily', duration: '7 days', instructions: 'Complete full course' }
-      ],
-      instructions: 'Complete antibiotic course. Rest for 3 days.',
-      issueDate: '2024-01-21',
-      expiryDate: '2024-01-28',
-      status: 'completed',
-      refillsRemaining: 0,
-      totalRefills: 0
-    },
-    {
-      id: 'pr004',
-      prescriptionNumber: 'PR004',
-      appointmentId: 'a010',
-      doctorId: 'doc010',
-      patientId: 'p010',
-      doctorName: 'Dr. Emily Davis',
-      patientName: 'Robert Taylor',
-      patientAge: 67,
-      diagnosis: 'Hypertension',
-      medications: [
-        { name: 'Amlodipine', dosage: '5mg', frequency: 'Once daily', duration: '30 days', instructions: 'Take before breakfast' }
-      ],
-      instructions: 'Take before breakfast. Monitor blood pressure.',
-      issueDate: '2024-01-24',
-      expiryDate: '2024-02-23',
-      status: 'active',
-      refillsRemaining: 2,
-      totalRefills: 3
-    },
-    {
-      id: 'pr005',
-      prescriptionNumber: 'PR005',
-      appointmentId: 'a001',
-      doctorId: 'doc001',
-      patientId: 'p001',
-      doctorName: 'Dr. John Smith',
-      patientName: 'Lisa Anderson',
-      patientAge: 29,
-      diagnosis: 'Anxiety Management',
-      medications: [
-        { name: 'Sertraline', dosage: '50mg', frequency: 'Once daily', duration: '30 days', instructions: 'Take with water' }
-      ],
-      instructions: 'Take with water. No alcohol consumption.',
-      issueDate: '2024-01-15',
-      expiryDate: '2024-02-14',
-      status: 'expired',
-      refillsRemaining: 0,
-      totalRefills: 2
-    }
-  ];
-
-  // Initialize data
+  // Fetch data
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setPrescriptions(getSamplePrescriptions());
-      } catch (err) {
-        setError('Failed to fetch prescriptions');
-      }
-      setLoading(false);
-    };
-    
-    fetchData();
+    fetchPrescriptions();
   }, []);
 
   const fetchPrescriptions = async () => {
     setLoading(true);
+    setError(null);
+
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setPrescriptions(getSamplePrescriptions());
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user?.id) throw new Error("User not found in localStorage");
+
+      // Step 1: Get patientId from userId
+      const patientIdResponse = await fetch(`http://localhost:8080/patients/by-user/${user.id}`);
+      if (!patientIdResponse.ok) throw new Error("Failed to fetch patient ID");
+      const patientId = await patientIdResponse.text();
+
+      // Step 2: Use patientId to fetch prescriptions
+      const response = await fetch(`http://localhost:8080/api/prescriptions/patient/${patientId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch prescriptions');
+      const data = await response.json();
+      setPrescriptions(data);
+
     } catch (err) {
-      setError('Failed to fetch prescriptions');
+      setError(err.message || 'Failed to fetch prescriptions');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  // Filter and search logic
-  const filteredPrescriptions = prescriptions.filter(prescription => {
-    const matchesSearch = 
-      prescription.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      prescription.doctorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      prescription.prescriptionNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      prescription.diagnosis.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = filterStatus === 'all' || prescription.status === filterStatus;
-    const matchesDoctor = filterDoctor === 'all' || prescription.doctorName === filterDoctor;
+  // Filter + search
+  const filteredPrescriptions = prescriptions.filter(p => {
+    const matchesSearch =
+      (p.patientName || p.patientId || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.doctorName || p.doctorId || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.prescriptionNumber || p.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.diagnosis || p.notes || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus = filterStatus === 'all' || p.status === filterStatus;
+    const matchesDoctor = filterDoctor === 'all' || (p.doctorName || p.doctorId) === filterDoctor;
 
     return matchesSearch && matchesStatus && matchesDoctor;
   });
@@ -185,10 +90,10 @@ const Prescriptions = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedPrescriptions = filteredPrescriptions.slice(startIndex, startIndex + itemsPerPage);
 
-  // Get unique doctors for filter
-  const uniqueDoctors = [...new Set(prescriptions.map(p => p.doctorName))];
+  // Unique doctors (by doctorName or doctorId)
+  const uniqueDoctors = [...new Set(prescriptions.map(p => p.doctorName || p.doctorId))];
 
-  // Open prescription details modal
+  // Modal handlers
   const openModal = (prescription) => {
     setSelectedPrescription(prescription);
     setShowModal(true);
@@ -199,6 +104,7 @@ const Prescriptions = () => {
     setSelectedPrescription(null);
   };
 
+  // Status badge helper
   const getStatusBadge = (status) => {
     const statusConfig = {
       active: { color: 'success', icon: CheckCircle, text: 'Active' },
@@ -206,7 +112,6 @@ const Prescriptions = () => {
       expired: { color: 'danger', icon: XCircle, text: 'Expired' },
       cancelled: { color: 'warning', icon: AlertCircle, text: 'Cancelled' }
     };
-
     const config = statusConfig[status] || statusConfig.active;
     const Icon = config.icon;
 
@@ -218,45 +123,53 @@ const Prescriptions = () => {
     );
   };
 
+  // Export to PDF function
   const exportToPDF = () => {
-    // Implementation for PDF export
-    alert('Export to PDF functionality would be implemented here');
+    const input = document.querySelector('.prescriptions-table-container');
+
+    if (!input) {
+      alert('Table not found!');
+      return;
+    }
+
+    html2canvas(input, { scale: 2 }).then(canvas => {
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save('prescriptions.pdf');
+    }).catch(err => {
+      console.error('Error exporting PDF:', err);
+      alert('Failed to export PDF');
+    });
   };
 
+  // --- JSX Return ---
   return (
     <div className="prescriptions-page">
       {/* Header */}
       <div className="prescriptions-header">
         <div className="prescriptions-header-left">
           <div className="navigation-buttons">
-            <button 
-              className="nav-button nav-button--secondary"
-              onClick={() => navigate('/patient-dashboard')}
-            >
+            <button className="nav-button nav-button--secondary" onClick={() => navigate('/patient-dashboard')}>
               <ArrowLeft size={16} />
               Patient Dashboard
             </button>
-            <button 
-              className="nav-button nav-button--outline"
-              onClick={() => navigate('/')}
-            >
+            <button className="nav-button nav-button--outline" onClick={() => navigate('/')}>
               <Home size={16} />
               Home
             </button>
           </div>
           <div className="page-title">
-            <h1>
-              <Pill size={24} />
-              My Prescriptions
-            </h1>
+            <h1><Pill size={24} /> My Prescriptions</h1>
             <p>View and manage your prescription medications</p>
           </div>
         </div>
         <div className="prescriptions-header-right">
-          <button 
-            className="btn btn-secondary"
-            onClick={exportToPDF}
-          >
+          <button className="btn btn-secondary" onClick={exportToPDF}>
             <Download size={16} />
             Export PDF
           </button>
@@ -274,14 +187,10 @@ const Prescriptions = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        
         <div className="filters">
           <div className="filter-group">
             <Filter size={16} />
-            <select 
-              value={filterStatus} 
-              onChange={(e) => setFilterStatus(e.target.value)}
-            >
+            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
               <option value="all">All Status</option>
               <option value="active">Active</option>
               <option value="completed">Completed</option>
@@ -289,13 +198,9 @@ const Prescriptions = () => {
               <option value="cancelled">Cancelled</option>
             </select>
           </div>
-          
           <div className="filter-group">
             <User size={16} />
-            <select 
-              value={filterDoctor} 
-              onChange={(e) => setFilterDoctor(e.target.value)}
-            >
+            <select value={filterDoctor} onChange={(e) => setFilterDoctor(e.target.value)}>
               <option value="all">All Doctors</option>
               {uniqueDoctors.map(doctor => (
                 <option key={doctor} value={doctor}>{doctor}</option>
@@ -305,7 +210,7 @@ const Prescriptions = () => {
         </div>
       </div>
 
-      {/* Error Message */}
+      {/* Error */}
       {error && (
         <div className="error-message">
           <AlertCircle size={16} />
@@ -322,7 +227,7 @@ const Prescriptions = () => {
         </div>
       )}
 
-      {/* Prescriptions Table */}
+      {/* Table */}
       <div className="prescriptions-table-container">
         <table className="prescriptions-table">
           <thead>
@@ -330,7 +235,7 @@ const Prescriptions = () => {
               <th>Prescription #</th>
               <th>Patient</th>
               <th>Doctor</th>
-              <th>Diagnosis</th>
+              <th>Notes</th>
               <th>Medications</th>
               <th>Issue Date</th>
               <th>Status</th>
@@ -348,27 +253,23 @@ const Prescriptions = () => {
             ) : (
               paginatedPrescriptions.map(prescription => (
                 <tr key={prescription.id}>
-                  <td>
-                    <div className="prescription-number">
-                      {prescription.prescriptionNumber}
-                    </div>
-                  </td>
+                  <td>{prescription.prescriptionNumber || prescription.id}</td>
                   <td>
                     <div className="patient-info">
-                      <div className="patient-name">{prescription.patientName}</div>
-                      <div className="patient-age">Age: {prescription.patientAge}</div>
+                      <div className="patient-name">{prescription.patientName || prescription.patientId}</div>
+                      {/* Optional age calculation if you have DOB */}
                     </div>
                   </td>
-                  <td>{prescription.doctorName}</td>
-                  <td>{prescription.diagnosis}</td>
+                  <td>{prescription.doctorName || prescription.doctorId}</td>
+                  <td>{prescription.notes || '-'}</td>
                   <td>
                     <div className="medications-list">
-                      {prescription.medications.slice(0, 2).map((med, index) => (
-                        <div key={index} className="medication-item">
-                          {med.name} - {med.dosage}
+                      {prescription.medications?.slice(0, 2).map((med, i) => (
+                        <div key={i} className="medication-item">
+                          {med.medicineName} - {med.dosage} ({med.duration})
                         </div>
                       ))}
-                      {prescription.medications.length > 2 && (
+                      {prescription.medications?.length > 2 && (
                         <div className="medication-more">
                           +{prescription.medications.length - 2} more
                         </div>
@@ -378,17 +279,13 @@ const Prescriptions = () => {
                   <td>
                     <div className="date-info">
                       <Calendar size={14} />
-                      {new Date(prescription.issueDate).toLocaleDateString()}
+                      {prescription.dateIssued ? new Date(prescription.dateIssued).toLocaleDateString() : '-'}
                     </div>
                   </td>
-                  <td>{getStatusBadge(prescription.status)}</td>
+                  <td>{getStatusBadge(prescription.status || 'active')}</td>
                   <td>
                     <div className="action-buttons">
-                      <button 
-                        className="btn-icon btn-view"
-                        onClick={() => openModal(prescription)}
-                        title="View Details"
-                      >
+                      <button className="btn-icon btn-view" onClick={() => openModal(prescription)}>
                         <Eye size={16} />
                       </button>
                     </div>
@@ -407,17 +304,15 @@ const Prescriptions = () => {
             Showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredPrescriptions.length)} of {filteredPrescriptions.length} prescriptions
           </div>
           <div className="pagination-controls">
-            <button 
+            <button
               className="btn btn-outline"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(currentPage - 1)}
             >
               Previous
             </button>
-            <span className="page-info">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button 
+            <span className="page-info">Page {currentPage} of {totalPages}</span>
+            <button
               className="btn btn-outline"
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage(currentPage + 1)}
@@ -429,74 +324,55 @@ const Prescriptions = () => {
       )}
 
       {/* Modal */}
-      {showModal && (
+      {showModal && selectedPrescription && (
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-header">
               <h3>Prescription Details</h3>
               <button className="modal-close" onClick={closeModal}>×</button>
             </div>
-            
             <div className="modal-body">
               <div className="prescription-details">
-                  <div className="details-header">
-                    <h4>Prescription #{selectedPrescription?.prescriptionNumber}</h4>
-                    {getStatusBadge(selectedPrescription?.status)}
-                  </div>
-                  
-                  <div className="details-grid">
-                    <div className="detail-item">
-                      <label>Patient:</label>
-                      <span>{selectedPrescription?.patientName} (Age: {selectedPrescription?.patientAge})</span>
-                    </div>
-                    <div className="detail-item">
-                      <label>Doctor:</label>
-                      <span>{selectedPrescription?.doctorName}</span>
-                    </div>
-                    <div className="detail-item">
-                      <label>Diagnosis:</label>
-                      <span>{selectedPrescription?.diagnosis}</span>
-                    </div>
-                    <div className="detail-item">
-                      <label>Issue Date:</label>
-                      <span>{new Date(selectedPrescription?.issueDate).toLocaleDateString()}</span>
-                    </div>
-                    <div className="detail-item">
-                      <label>Expiry Date:</label>
-                      <span>{new Date(selectedPrescription?.expiryDate).toLocaleDateString()}</span>
-                    </div>
-                    <div className="detail-item">
-                      <label>Refills:</label>
-                      <span>{selectedPrescription?.refillsRemaining}/{selectedPrescription?.totalRefills}</span>
-                    </div>
-                  </div>
-
-                  <div className="medications-section">
-                    <h5>Medications:</h5>
-                    {selectedPrescription?.medications.map((med, index) => (
-                      <div key={index} className="medication-detail">
-                        <div className="med-name">{med.name}</div>
-                        <div className="med-info">
-                          <span>Dosage: {med.dosage}</span>
-                          <span>Frequency: {med.frequency}</span>
-                          <span>Duration: {med.duration}</span>
-                        </div>
-                        {med.instructions && (
-                          <div className="med-instructions">
-                            Instructions: {med.instructions}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {selectedPrescription?.instructions && (
-                    <div className="notes-section">
-                      <h5>Instructions:</h5>
-                      <p>{selectedPrescription.instructions}</p>
-                    </div>
-                  )}
+                <div className="details-header">
+                  <h4>Prescription #{selectedPrescription.prescriptionNumber || selectedPrescription.id}</h4>
+                  {getStatusBadge(selectedPrescription.status || 'active')}
                 </div>
+                <div className="details-grid">
+                  <div className="detail-item">
+                    <label>Patient:</label> <span>{selectedPrescription.patientName || selectedPrescription.patientId}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Doctor:</label> <span>{selectedPrescription.doctorName || selectedPrescription.doctorId}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Notes:</label> <span>{selectedPrescription.notes || '-'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Issue Date:</label>{' '}
+                    <span>{selectedPrescription.dateIssued ? new Date(selectedPrescription.dateIssued).toLocaleDateString() : '-'}</span>
+                  </div>
+                  {/* You can add expiryDate and refills if you add them later */}
+                </div>
+                <div className="medications-section">
+                  <h5>Medications:</h5>
+                  {selectedPrescription.medications?.map((med, index) => (
+                    <div key={index} className="medication-detail">
+                      <div className="med-name">{med.medicineName}</div>
+                      <div className="med-info">
+                        <span>Dosage: {med.dosage}</span>{' '}
+                        {/* Add frequency or instructions if available */}
+                        <span>Duration: {med.duration}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {selectedPrescription.instructions && (
+                  <div className="notes-section">
+                    <h5>Instructions:</h5>
+                    <p>{selectedPrescription.instructions}</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
