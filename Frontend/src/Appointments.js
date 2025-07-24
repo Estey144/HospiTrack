@@ -5,7 +5,7 @@ import './Appointments.css';
 
 const Appointments = ({ currentUser }) => {
   const [user, setUser] = useState(currentUser || JSON.parse(localStorage.getItem('user')));
-  
+
   const [patientAppointments, setPatientAppointments] = useState([]);
   const [isLoadingAppointments, setIsLoadingAppointments] = useState(true);
   const [appointmentError, setAppointmentError] = useState('');
@@ -52,7 +52,10 @@ const Appointments = ({ currentUser }) => {
     setIsLoadingAppointments(true);
     setAppointmentError('');
     try {
-      const response = await axios.get(`/api/appointments/patient/${user.id}`);
+      const response = await axios.get(`/api/appointments/patient/${user.id}`, {
+        withCredentials: true
+      });
+
       setPatientAppointments(response.data);
     } catch (error) {
       console.error('Failed to fetch appointments:', error);
@@ -63,21 +66,21 @@ const Appointments = ({ currentUser }) => {
   };
 
   // Fetch doctors and departments separately when modal opens
-const fetchDoctorsAndDepartments = async () => {
-  console.log("Fetching doctors and departments...");
-  try {
-    const [doctorsRes, departmentsRes] = await Promise.all([
-      axios.get('/api/doctors'),
-      axios.get('/api/departments')
-    ]);
-    console.log("Doctors response", doctorsRes.data);
-    console.log("Departments response", departmentsRes.data);
-    setDoctors(doctorsRes.data);
-    setDepartments(departmentsRes.data);
-  } catch (error) {
-    console.error('Failed to fetch doctors or departments:', error);
-  }
-};
+  const fetchDoctorsAndDepartments = async () => {
+    console.log("Fetching doctors and departments...");
+    try {
+      const [doctorsRes, departmentsRes] = await Promise.all([
+        axios.get('/api/doctors'),
+        axios.get('/api/departments')
+      ]);
+      console.log("Doctors response", doctorsRes.data);
+      console.log("Departments response", departmentsRes.data);
+      setDoctors(doctorsRes.data);
+      setDepartments(departmentsRes.data);
+    } catch (error) {
+      console.error('Failed to fetch doctors or departments:', error);
+    }
+  };
 
 
 
@@ -99,15 +102,15 @@ const fetchDoctorsAndDepartments = async () => {
     }
   };
 
-const openNewAppointmentModal = () => {
-  setSuccessMessage('');
-  setAppointmentError('');
-  setShowNewAppointmentModal(true);
+  const openNewAppointmentModal = () => {
+    setSuccessMessage('');
+    setAppointmentError('');
+    setShowNewAppointmentModal(true);
 
-  if (doctors.length === 0 || departments.length === 0) {
-    fetchDoctorsAndDepartments();
-  }
-};
+    if (doctors.length === 0 || departments.length === 0) {
+      fetchDoctorsAndDepartments();
+    }
+  };
 
   const handleNewAppointmentChange = (field, value) => {
     setNewAppointment(prev => ({ ...prev, [field]: value }));
@@ -164,7 +167,10 @@ const openNewAppointmentModal = () => {
         ...newAppointment,
         departmentId: newAppointment.departmentId,
         patientId: user.id
+      }, {
+        withCredentials: true
       });
+
 
       setSuccessMessage('Appointment booked successfully! You will receive a confirmation shortly.');
       await fetchAppointments();

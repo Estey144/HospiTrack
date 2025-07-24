@@ -1,449 +1,381 @@
--- HospiTrack Database - Expanded Bangladesh Sample Data
--- Insert data in dependency order to avoid foreign key constraint violations
+-- Hospital Management System Sample Data
+-- Insert data in order to maintain referential integrity
 
--- 1. Users (Expanded with 25 users)
-INSERT ALL
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u001', 'Dr. Mohammad Abdul Karim', 'karim.doctor@gmail.com', 'hashedpass123', '01711234567', DATE '2024-01-15', 'DOCTOR')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u002', 'Dr. Fatema Khatun', 'fatema.doc@yahoo.com', 'hashedpass123', '01812345678', DATE '2024-01-20', 'DOCTOR')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u003', 'Dr. Rahim Uddin Ahmed', 'rahim.ahmed@gmail.com', 'hashedpass123', '01923456789', DATE '2024-02-01', 'DOCTOR')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u004', 'Sakib Hasan', 'sakib.patient@gmail.com', 'hashedpass123', '01534567890', DATE '2024-03-15', 'PATIENT')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u005', 'Rubina Akter', 'rubina.akter@gmail.com', 'hashedpass123', '01645678901', DATE '2024-03-20', 'PATIENT')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u006', 'Al-Amin Hosen', 'alamin.hosen@gmail.com', 'hashedpass123', '01756789012', DATE '2024-04-01', 'PATIENT')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u007', 'Nurul Islam', 'nurul.staff@gmail.com', 'hashedpass123', '01867890123', DATE '2024-01-10', 'STAFF')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u008', 'Shahida Begum', 'shahida.nurse@gmail.com', 'hashedpass123', '01978901234', DATE '2024-01-25', 'STAFF')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u009', 'Md. Rafiqul Islam', 'rafiq.admin@gmail.com', 'hashedpass123', '01589012345', DATE '2024-01-01', 'ADMIN')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u010', 'Salma Khatun', 'salma.patient@gmail.com', 'hashedpass123', '01690123456', DATE '2024-05-10', 'PATIENT')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u011', 'Dr. Nazmul Haque', 'nazmul.cardio@gmail.com', 'hashedpass123', '01701234567', DATE '2024-02-15', 'DOCTOR')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u012', 'Tania Ahmed', 'tania.patient@gmail.com', 'hashedpass123', '01812345679', DATE '2024-06-01', 'PATIENT')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u013', 'Dr. Mahmuda Sultana', 'mahmuda.gynec@gmail.com', 'hashedpass123', '01755667788', DATE '2024-01-30', 'DOCTOR')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u014', 'Dr. Ashikur Rahman', 'ashik.ortho@gmail.com', 'hashedpass123', '01666778899', DATE '2024-02-10', 'DOCTOR')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u015', 'Rashida Begum', 'rashida.patient@gmail.com', 'hashedpass123', '01577889900', DATE '2024-04-15', 'PATIENT')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u016', 'Karim Uddin', 'karim.patient@gmail.com', 'hashedpass123', '01688990011', DATE '2024-05-20', 'PATIENT')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u017', 'Nasreen Akter', 'nasreen.nurse@gmail.com', 'hashedpass123', '01799001122', DATE '2024-02-05', 'STAFF')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u018', 'Md. Aminul Islam', 'aminul.admin@gmail.com', 'hashedpass123', '01600112233', DATE '2024-01-20', 'ADMIN')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u019', 'Dr. Habibur Rahman', 'habib.pediatric@gmail.com', 'hashedpass123', '01711223344', DATE '2024-03-01', 'DOCTOR')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u020', 'Sultana Parvin', 'sultana.patient@gmail.com', 'hashedpass123', '01822334455', DATE '2024-06-10', 'PATIENT')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u021', 'Md. Belal Hossain', 'belal.patient@gmail.com', 'hashedpass123', '01933445566', DATE '2024-07-01', 'PATIENT')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u022', 'Dr. Shireen Akhter', 'shireen.derma@gmail.com', 'hashedpass123', '01644556677', DATE '2024-02-20', 'DOCTOR')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u023', 'Jahanara Begum', 'jahanara.patient@gmail.com', 'hashedpass123', '01755667788', DATE '2024-05-30', 'PATIENT')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u024', 'Md. Rashed Khan', 'rashed.staff@gmail.com', 'hashedpass123', '01866778899', DATE '2024-01-12', 'STAFF')
-  INTO Users (id, name, email, password, phone, created_at, role) VALUES ('u025', 'Fatima Khatun', 'fatima.patient@gmail.com', 'hashedpass123', '01977889900', DATE '2024-06-15', 'PATIENT')
-SELECT * FROM dual;
+-- 1. Users Table (Foundation table)
+INSERT INTO Users VALUES ('u001', 'Dr. John Smith', 'john.smith@hospital.com', 'password123', '+1234567890', DATE '2023-01-15', 'doctor');
+INSERT INTO Users VALUES ('u002', 'Dr. Sarah Johnson', 'sarah.johnson@hospital.com', 'password123', '+1234567891', DATE '2023-01-20', 'doctor');
+INSERT INTO Users VALUES ('u003', 'Dr. Michael Brown', 'michael.brown@hospital.com', 'password123', '+1234567892', DATE '2023-02-01', 'doctor');
+INSERT INTO Users VALUES ('u004', 'Dr. Emily Davis', 'emily.davis@hospital.com', 'password123', '+1234567893', DATE '2023-02-15', 'doctor');
+INSERT INTO Users VALUES ('u005', 'Dr. Robert Wilson', 'robert.wilson@hospital.com', 'password123', '+1234567894', DATE '2023-03-01', 'doctor');
+INSERT INTO Users VALUES ('u006', 'Dr. Lisa Anderson', 'lisa.anderson@hospital.com', 'password123', '+1234567895', DATE '2023-03-10', 'doctor');
+INSERT INTO Users VALUES ('u007', 'Dr. David Taylor', 'david.taylor@hospital.com', 'password123', '+1234567896', DATE '2023-03-20', 'doctor');
+INSERT INTO Users VALUES ('u008', 'Dr. Jennifer Martinez', 'jennifer.martinez@hospital.com', 'password123', '+1234567897', DATE '2023-04-01', 'doctor');
+INSERT INTO Users VALUES ('u009', 'Dr. Christopher Lee', 'christopher.lee@hospital.com', 'password123', '+1234567898', DATE '2023-04-15', 'doctor');
+INSERT INTO Users VALUES ('u010', 'Dr. Amanda White', 'amanda.white@hospital.com', 'password123', '+1234567899', DATE '2023-05-01', 'doctor');
 
--- 2. Hospital_Branches (Expanded with 8 branches of Ibn Sina Hospital)
-INSERT ALL
-  INTO Hospital_Branches (id, name, address, established_date) VALUES ('hb001', 'Ibn Sina Hospital - Dhanmondi', '1/A, Dhanmondi R/A, Dhaka-1205', DATE '2015-01-01')
-  INTO Hospital_Branches (id, name, address, established_date) VALUES ('hb002', 'Ibn Sina Hospital - Uttara', '45, Sector 7, Uttara, Dhaka-1230', DATE '2017-03-15')
-  INTO Hospital_Branches (id, name, address, established_date) VALUES ('hb003', 'Ibn Sina Hospital - Chattogram', '123, Agrabad C/A, Chattogram-4100', DATE '2018-06-20')
-  INTO Hospital_Branches (id, name, address, established_date) VALUES ('hb004', 'Ibn Sina Hospital - Sylhet', '78, Zindabazar, Sylhet-3100', DATE '2019-09-10')
-  INTO Hospital_Branches (id, name, address, established_date) VALUES ('hb005', 'Ibn Sina Hospital - Mirpur', '56, Mirpur-10, Dhaka-1216', DATE '2020-02-25')
-  INTO Hospital_Branches (id, name, address, established_date) VALUES ('hb006', 'Ibn Sina Hospital - Gulshan', '89, Gulshan-2, Dhaka-1212', DATE '2021-05-15')
-  INTO Hospital_Branches (id, name, address, established_date) VALUES ('hb007', 'Ibn Sina Hospital - Khulna', '34, Sonadanga, Khulna-9100', DATE '2022-08-30')
-  INTO Hospital_Branches (id, name, address, established_date) VALUES ('hb008', 'Ibn Sina Hospital - Rajshahi', '67, Shaheb Bazar, Rajshahi-6000', DATE '2023-01-20')
-SELECT * FROM dual;
+INSERT INTO Users VALUES ('u011', 'Alice Thompson', 'alice.thompson@email.com', 'password123', '+1234567900', DATE '2023-01-10', 'patient');
+INSERT INTO Users VALUES ('u012', 'Bob Rodriguez', 'bob.rodriguez@email.com', 'password123', '+1234567901', DATE '2023-01-12', 'patient');
+INSERT INTO Users VALUES ('u013', 'Carol Williams', 'carol.williams@email.com', 'password123', '+1234567902', DATE '2023-01-14', 'patient');
+INSERT INTO Users VALUES ('u014', 'Daniel Garcia', 'daniel.garcia@email.com', 'password123', '+1234567903', DATE '2023-01-16', 'patient');
+INSERT INTO Users VALUES ('u015', 'Eva Martinez', 'eva.martinez@email.com', 'password123', '+1234567904', DATE '2023-01-18', 'patient');
+INSERT INTO Users VALUES ('u016', 'Frank Johnson', 'frank.johnson@email.com', 'password123', '+1234567905', DATE '2023-01-20', 'patient');
+INSERT INTO Users VALUES ('u017', 'Grace Miller', 'grace.miller@email.com', 'password123', '+1234567906', DATE '2023-01-22', 'patient');
+INSERT INTO Users VALUES ('u018', 'Henry Davis', 'henry.davis@email.com', 'password123', '+1234567907', DATE '2023-01-24', 'patient');
+INSERT INTO Users VALUES ('u019', 'Ivy Wilson', 'ivy.wilson@email.com', 'password123', '+1234567908', DATE '2023-01-26', 'patient');
+INSERT INTO Users VALUES ('u020', 'Jack Brown', 'jack.brown@email.com', 'password123', '+1234567909', DATE '2023-01-28', 'patient');
 
--- 3. Branch_Contacts (Expanded)
-INSERT ALL
-  INTO Branch_Contacts (id, branch_id, contact_number, type) VALUES ('bc001', 'hb001', '02-9876543', 'PHONE')
-  INTO Branch_Contacts (id, branch_id, contact_number, type) VALUES ('bc002', 'hb001', '02-9876544', 'FAX')
-  INTO Branch_Contacts (id, branch_id, contact_number, type) VALUES ('bc003', 'hb001', '02-9876545', 'EMERGENCY')
-  INTO Branch_Contacts (id, branch_id, contact_number, type) VALUES ('bc004', 'hb002', '02-8765432', 'PHONE')
-  INTO Branch_Contacts (id, branch_id, contact_number, type) VALUES ('bc005', 'hb002', '02-8765433', 'FAX')
-  INTO Branch_Contacts (id, branch_id, contact_number, type) VALUES ('bc006', 'hb003', '031-654321', 'PHONE')
-  INTO Branch_Contacts (id, branch_id, contact_number, type) VALUES ('bc007', 'hb003', '031-654322', 'FAX')
-  INTO Branch_Contacts (id, branch_id, contact_number, type) VALUES ('bc008', 'hb004', '0821-123456', 'PHONE')
-  INTO Branch_Contacts (id, branch_id, contact_number, type) VALUES ('bc009', 'hb004', '0821-123457', 'FAX')
-  INTO Branch_Contacts (id, branch_id, contact_number, type) VALUES ('bc010', 'hb005', '02-7654321', 'PHONE')
-  INTO Branch_Contacts (id, branch_id, contact_number, type) VALUES ('bc011', 'hb005', '02-7654322', 'EMERGENCY')
-  INTO Branch_Contacts (id, branch_id, contact_number, type) VALUES ('bc012', 'hb006', '02-6543210', 'PHONE')
-  INTO Branch_Contacts (id, branch_id, contact_number, type) VALUES ('bc013', 'hb006', '02-6543211', 'FAX')
-  INTO Branch_Contacts (id, branch_id, contact_number, type) VALUES ('bc014', 'hb007', '041-543210', 'PHONE')
-  INTO Branch_Contacts (id, branch_id, contact_number, type) VALUES ('bc015', 'hb007', '041-543211', 'FAX')
-  INTO Branch_Contacts (id, branch_id, contact_number, type) VALUES ('bc016', 'hb008', '0721-432109', 'PHONE')
-  INTO Branch_Contacts (id, branch_id, contact_number, type) VALUES ('bc017', 'hb008', '0721-432110', 'FAX')
-SELECT * FROM dual;
+INSERT INTO Users VALUES ('s001', 'Nurse Nancy Green', 'nancy.green@hospital.com', 'password123', '+1234567910', DATE '2023-01-05', 'staff');
+INSERT INTO Users VALUES ('s002', 'Admin Alex Blue', 'alex.blue@hospital.com', 'password123', '+1234567911', DATE '2023-01-07', 'staff');
+INSERT INTO Users VALUES ('s003', 'Tech Tom Red', 'tom.red@hospital.com', 'password123', '+1234567912', DATE '2023-01-09', 'staff');
+INSERT INTO Users VALUES ('s004', 'Nurse Nina Yellow', 'nina.yellow@hospital.com', 'password123', '+1234567913', DATE '2023-01-11', 'staff');
+INSERT INTO Users VALUES ('s005', 'Admin Anna Purple', 'anna.purple@hospital.com', 'password123', '+1234567914', DATE '2023-01-13', 'staff');
 
--- 4. Departments (Expanded)
-INSERT ALL
-  INTO Departments (id, name, description) VALUES ('dept001', 'Cardiology', 'Heart and cardiovascular system related treatments')
-  INTO Departments (id, name, description) VALUES ('dept002', 'Neurology', 'Brain and nervous system disorders')
-  INTO Departments (id, name, description) VALUES ('dept003', 'Orthopedics', 'Bone and joint related treatments')
-  INTO Departments (id, name, description) VALUES ('dept004', 'Pediatrics', 'Child healthcare and treatments')
-  INTO Departments (id, name, description) VALUES ('dept005', 'Gynecology', 'Womens health and reproductive system')
-  INTO Departments (id, name, description) VALUES ('dept006', 'General Medicine', 'General medical consultations and treatments')
-  INTO Departments (id, name, description) VALUES ('dept007', 'Emergency', 'Emergency medical services')
-  INTO Departments (id, name, description) VALUES ('dept008', 'Dermatology', 'Skin and hair related treatments')
-  INTO Departments (id, name, description) VALUES ('dept009', 'Psychiatry', 'Mental health and psychological treatments')
-  INTO Departments (id, name, description) VALUES ('dept010', 'Radiology', 'Medical imaging and diagnostics')
-  INTO Departments (id, name, description) VALUES ('dept011', 'Pathology', 'Laboratory tests and diagnostics')
-  INTO Departments (id, name, description) VALUES ('dept012', 'Oncology', 'Cancer treatment and care')
-  INTO Departments (id, name, description) VALUES ('dept013', 'Urology', 'Urinary system and male reproductive health')
-  INTO Departments (id, name, description) VALUES ('dept014', 'Ophthalmology', 'Eye care and vision treatments')
-  INTO Departments (id, name, description) VALUES ('dept015', 'ENT', 'Ear, Nose, and Throat treatments')
-SELECT * FROM dual;
+-- 2. Hospital Branches
+INSERT INTO Hospital_Branches VALUES ('b001', 'Main Hospital Branch', '123 Medical Center Drive, City A', DATE '2020-01-01');
+INSERT INTO Hospital_Branches VALUES ('b002', 'North Branch', '456 North Street, City B', DATE '2021-03-15');
+INSERT INTO Hospital_Branches VALUES ('b003', 'South Branch', '789 South Avenue, City C', DATE '2021-06-20');
+INSERT INTO Hospital_Branches VALUES ('b004', 'East Branch', '321 East Road, City D', DATE '2022-01-10');
+INSERT INTO Hospital_Branches VALUES ('b005', 'West Branch', '654 West Boulevard, City E', DATE '2022-04-25');
+INSERT INTO Hospital_Branches VALUES ('b006', 'Central Branch', '987 Central Plaza, City F', DATE '2022-07-30');
+INSERT INTO Hospital_Branches VALUES ('b007', 'Downtown Branch', '147 Downtown Square, City G', DATE '2022-10-15');
+INSERT INTO Hospital_Branches VALUES ('b008', 'Suburban Branch', '258 Suburban Lane, City H', DATE '2023-01-20');
+INSERT INTO Hospital_Branches VALUES ('b009', 'Metropolitan Branch', '369 Metro Center, City I', DATE '2023-04-05');
+INSERT INTO Hospital_Branches VALUES ('b010', 'Community Branch', '741 Community Circle, City J', DATE '2023-07-12');
 
--- 5. Specializations (Expanded)
-INSERT ALL
-  INTO Specializations (id, name, description) VALUES ('spec001', 'Interventional Cardiology', 'Cardiac catheterization and angioplasty procedures')
-  INTO Specializations (id, name, description) VALUES ('spec002', 'Pediatric Neurology', 'Neurological disorders in children')
-  INTO Specializations (id, name, description) VALUES ('spec003', 'Orthopedic Surgery', 'Surgical treatment of bone and joint disorders')
-  INTO Specializations (id, name, description) VALUES ('spec004', 'Neonatology', 'Medical care for newborn infants')
-  INTO Specializations (id, name, description) VALUES ('spec005', 'Obstetrics', 'Pregnancy and childbirth care')
-  INTO Specializations (id, name, description) VALUES ('spec006', 'Internal Medicine', 'Diagnosis and treatment of adult diseases')
-  INTO Specializations (id, name, description) VALUES ('spec007', 'Emergency Medicine', 'Acute care and emergency treatments')
-  INTO Specializations (id, name, description) VALUES ('spec008', 'Cosmetic Dermatology', 'Aesthetic skin treatments')
-  INTO Specializations (id, name, description) VALUES ('spec009', 'Child Psychology', 'Mental health care for children')
-  INTO Specializations (id, name, description) VALUES ('spec010', 'Interventional Radiology', 'Minimally invasive procedures using imaging')
-  INTO Specializations (id, name, description) VALUES ('spec011', 'Clinical Pathology', 'Laboratory medicine and diagnostics')
-  INTO Specializations (id, name, description) VALUES ('spec012', 'Medical Oncology', 'Cancer chemotherapy and treatment')
-  INTO Specializations (id, name, description) VALUES ('spec013', 'Laparoscopic Surgery', 'Minimally invasive surgical procedures')
-  INTO Specializations (id, name, description) VALUES ('spec014', 'Retinal Surgery', 'Surgical treatment of retinal disorders')
-  INTO Specializations (id, name, description) VALUES ('spec015', 'Rhinoplasty', 'Nasal surgery and reconstruction')
-SELECT * FROM dual;
+-- 3. Branch Contacts
+INSERT INTO Branch_Contacts VALUES ('bc001', 'b001', '+1234567001', 'main');
+INSERT INTO Branch_Contacts VALUES ('bc002', 'b001', '+1234567002', 'emergency');
+INSERT INTO Branch_Contacts VALUES ('bc003', 'b002', '+1234567003', 'main');
+INSERT INTO Branch_Contacts VALUES ('bc004', 'b002', '+1234567004', 'emergency');
+INSERT INTO Branch_Contacts VALUES ('bc005', 'b003', '+1234567005', 'main');
+INSERT INTO Branch_Contacts VALUES ('bc006', 'b003', '+1234567006', 'emergency');
+INSERT INTO Branch_Contacts VALUES ('bc007', 'b004', '+1234567007', 'main');
+INSERT INTO Branch_Contacts VALUES ('bc008', 'b005', '+1234567008', 'main');
+INSERT INTO Branch_Contacts VALUES ('bc009', 'b006', '+1234567009', 'main');
+INSERT INTO Branch_Contacts VALUES ('bc010', 'b007', '+1234567010', 'main');
 
--- 6. Doctors (Expanded with 12 doctors)
-INSERT ALL
-  INTO Doctors (id, user_id, branch_id, license_number, experience_years, available_hours, department_id) VALUES ('doc001', 'u001', 'hb001', 'BMA-12345', 15, '9:00-17:00', 'dept001')
-  INTO Doctors (id, user_id, branch_id, license_number, experience_years, available_hours, department_id) VALUES ('doc002', 'u002', 'hb001', 'BMA-12346', 12, '10:00-18:00', 'dept005')
-  INTO Doctors (id, user_id, branch_id, license_number, experience_years, available_hours, department_id) VALUES ('doc003', 'u003', 'hb003', 'BMA-12347', 8, '8:00-16:00', 'dept002')
-  INTO Doctors (id, user_id, branch_id, license_number, experience_years, available_hours, department_id) VALUES ('doc004', 'u011', 'hb004', 'BMA-12348', 10, '9:00-17:00', 'dept001')
-  INTO Doctors (id, user_id, branch_id, license_number, experience_years, available_hours, department_id) VALUES ('doc005', 'u013', 'hb002', 'BMA-12349', 18, '8:00-16:00', 'dept005')
-  INTO Doctors (id, user_id, branch_id, license_number, experience_years, available_hours, department_id) VALUES ('doc006', 'u014', 'hb005', 'BMA-12350', 14, '9:00-17:00', 'dept003')
-  INTO Doctors (id, user_id, branch_id, license_number, experience_years, available_hours, department_id) VALUES ('doc007', 'u019', 'hb006', 'BMA-12351', 9, '10:00-18:00', 'dept004')
-  INTO Doctors (id, user_id, branch_id, license_number, experience_years, available_hours, department_id) VALUES ('doc008', 'u022', 'hb007', 'BMA-12352', 11, '9:00-17:00', 'dept008')
-  INTO Doctors (id, user_id, branch_id, license_number, experience_years, available_hours, department_id) VALUES ('doc009', 'u001', 'hb008', 'BMA-12353', 15, '14:00-22:00', 'dept001')
-  INTO Doctors (id, user_id, branch_id, license_number, experience_years, available_hours, department_id) VALUES ('doc010', 'u002', 'hb003', 'BMA-12354', 12, '8:00-16:00', 'dept005')
-  INTO Doctors (id, user_id, branch_id, license_number, experience_years, available_hours, department_id) VALUES ('doc011', 'u003', 'hb001', 'BMA-12355', 8, '18:00-02:00', 'dept007')
-  INTO Doctors (id, user_id, branch_id, license_number, experience_years, available_hours, department_id) VALUES ('doc012', 'u013', 'hb005', 'BMA-12356', 18, '14:00-22:00', 'dept005')
-SELECT * FROM dual;
+-- 4. Departments
+INSERT INTO Departments VALUES ('d001', 'Cardiology', 'Heart and cardiovascular system treatment');
+INSERT INTO Departments VALUES ('d002', 'Neurology', 'Brain and nervous system treatment');
+INSERT INTO Departments VALUES ('d003', 'Orthopedics', 'Bone and joint treatment');
+INSERT INTO Departments VALUES ('d004', 'Pediatrics', 'Children healthcare');
+INSERT INTO Departments VALUES ('d005', 'Dermatology', 'Skin and related conditions');
+INSERT INTO Departments VALUES ('d006', 'Oncology', 'Cancer treatment and care');
+INSERT INTO Departments VALUES ('d007', 'Emergency Medicine', 'Emergency and urgent care');
+INSERT INTO Departments VALUES ('d008', 'Internal Medicine', 'General internal medicine');
+INSERT INTO Departments VALUES ('d009', 'Surgery', 'Surgical procedures');
+INSERT INTO Departments VALUES ('d010', 'Radiology', 'Medical imaging and diagnostics');
 
--- 7. Doctor_Specializations (Expanded)
-INSERT ALL
-  INTO Doctor_Specializations (id, doctor_id, specialization_id) VALUES ('ds001', 'doc001', 'spec001')
-  INTO Doctor_Specializations (id, doctor_id, specialization_id) VALUES ('ds002', 'doc002', 'spec005')
-  INTO Doctor_Specializations (id, doctor_id, specialization_id) VALUES ('ds003', 'doc003', 'spec002')
-  INTO Doctor_Specializations (id, doctor_id, specialization_id) VALUES ('ds004', 'doc004', 'spec001')
-  INTO Doctor_Specializations (id, doctor_id, specialization_id) VALUES ('ds005', 'doc005', 'spec005')
-  INTO Doctor_Specializations (id, doctor_id, specialization_id) VALUES ('ds006', 'doc006', 'spec003')
-  INTO Doctor_Specializations (id, doctor_id, specialization_id) VALUES ('ds007', 'doc007', 'spec004')
-  INTO Doctor_Specializations (id, doctor_id, specialization_id) VALUES ('ds008', 'doc008', 'spec008')
-  INTO Doctor_Specializations (id, doctor_id, specialization_id) VALUES ('ds009', 'doc009', 'spec001')
-  INTO Doctor_Specializations (id, doctor_id, specialization_id) VALUES ('ds010', 'doc010', 'spec005')
-  INTO Doctor_Specializations (id, doctor_id, specialization_id) VALUES ('ds011', 'doc011', 'spec007')
-  INTO Doctor_Specializations (id, doctor_id, specialization_id) VALUES ('ds012', 'doc012', 'spec005')
-  INTO Doctor_Specializations (id, doctor_id, specialization_id) VALUES ('ds013', 'doc001', 'spec006')
-  INTO Doctor_Specializations (id, doctor_id, specialization_id) VALUES ('ds014', 'doc003', 'spec009')
-  INTO Doctor_Specializations (id, doctor_id, specialization_id) VALUES ('ds015', 'doc006', 'spec013')
-SELECT * FROM dual;
+-- 5. Staff
+INSERT INTO Staff VALUES ('st001', 's001', 'd004', 'Senior Nurse', 'b001');
+INSERT INTO Staff VALUES ('st002', 's002', 'd001', 'Administrative Assistant', 'b001');
+INSERT INTO Staff VALUES ('st003', 's003', 'd010', 'Radiology Technician', 'b002');
+INSERT INTO Staff VALUES ('st004', 's004', 'd007', 'Emergency Nurse', 'b003');
+INSERT INTO Staff VALUES ('st005', 's005', 'd008', 'Administrative Coordinator', 'b004');
+INSERT INTO Staff VALUES ('st006', 's001', 'd002', 'Neurology Nurse', 'b005');
+INSERT INTO Staff VALUES ('st007', 's002', 'd003', 'Orthopedic Assistant', 'b006');
+INSERT INTO Staff VALUES ('st008', 's003', 'd005', 'Dermatology Technician', 'b007');
+INSERT INTO Staff VALUES ('st009', 's004', 'd006', 'Oncology Nurse', 'b008');
+INSERT INTO Staff VALUES ('st010', 's005', 'd009', 'Surgery Coordinator', 'b009');
 
--- 8. Patients (Expanded with 20 patients)
-INSERT ALL
-  INTO Patients (id, user_id, dob, gender, blood_type, address, emergency_contact) VALUES ('pat001', 'u004', DATE '1990-05-15', 'Male', 'B+', '25, Mirpur-1, Dhaka-1216', '01711223344')
-  INTO Patients (id, user_id, dob, gender, blood_type, address, emergency_contact) VALUES ('pat002', 'u005', DATE '1985-08-20', 'Female', 'O+', '12, Uttara Sector-7, Dhaka-1230', '01822334455')
-  INTO Patients (id, user_id, dob, gender, blood_type, address, emergency_contact) VALUES ('pat003', 'u006', DATE '1995-12-10', 'Male', 'A+', '78, Nasirabad, Chattogram-4200', '01933445566')
-  INTO Patients (id, user_id, dob, gender, blood_type, address, emergency_contact) VALUES ('pat004', 'u010', DATE '1992-03-25', 'Female', 'AB+', '34, Banani, Dhaka-1213', '01744556677')
-  INTO Patients (id, user_id, dob, gender, blood_type, address, emergency_contact) VALUES ('pat005', 'u012', DATE '1988-09-18', 'Female', 'O-', '56, Lalmatia, Dhaka-1207', '01855667788')
-  INTO Patients (id, user_id, dob, gender, blood_type, address, emergency_contact) VALUES ('pat006', 'u015', DATE '1980-11-30', 'Female', 'A-', '89, Wari, Dhaka-1203', '01766778899')
-  INTO Patients (id, user_id, dob, gender, blood_type, address, emergency_contact) VALUES ('pat007', 'u016', DATE '1993-07-22', 'Male', 'B-', '45, Kazipara, Dhaka-1216', '01877889900')
-  INTO Patients (id, user_id, dob, gender, blood_type, address, emergency_contact) VALUES ('pat008', 'u020', DATE '1987-04-14', 'Female', 'AB-', '67, Mohammadpur, Dhaka-1207', '01688990011')
-  INTO Patients (id, user_id, dob, gender, blood_type, address, emergency_contact) VALUES ('pat009', 'u021', DATE '1991-01-08', 'Male', 'O+', '23, Shantinagar, Dhaka-1217', '01799001122')
-  INTO Patients (id, user_id, dob, gender, blood_type, address, emergency_contact) VALUES ('pat010', 'u023', DATE '1986-06-12', 'Female', 'A+', '12, Elephant Road, Dhaka-1205', '01600112233')
-  INTO Patients (id, user_id, dob, gender, blood_type, address, emergency_contact) VALUES ('pat011', 'u025', DATE '1994-10-25', 'Female', 'B+', '78, New Market, Dhaka-1205', '01711223344')
-  INTO Patients (id, user_id, dob, gender, blood_type, address, emergency_contact) VALUES ('pat012', 'u004', DATE '1989-02-17', 'Male', 'O-', '34, Tejgaon, Dhaka-1208', '01822334455')
-  INTO Patients (id, user_id, dob, gender, blood_type, address, emergency_contact) VALUES ('pat013', 'u005', DATE '1992-12-03', 'Female', 'AB+', '56, Khilgaon, Dhaka-1219', '01933445566')
-  INTO Patients (id, user_id, dob, gender, blood_type, address, emergency_contact) VALUES ('pat014', 'u006', DATE '1984-09-28', 'Male', 'A-', '89, Ramna, Dhaka-1000', '01744556677')
-  INTO Patients (id, user_id, dob, gender, blood_type, address, emergency_contact) VALUES ('pat015', 'u010', DATE '1990-08-15', 'Female', 'B-', '45, Motijheel, Dhaka-1000', '01855667788')
-  INTO Patients (id, user_id, dob, gender, blood_type, address, emergency_contact) VALUES ('pat016', 'u012', DATE '1988-05-20', 'Female', 'O+', '67, Purana Paltan, Dhaka-1000', '01766778899')
-  INTO Patients (id, user_id, dob, gender, blood_type, address, emergency_contact) VALUES ('pat017', 'u015', DATE '1995-03-11', 'Female', 'A+', '23, Maghbazar, Dhaka-1217', '01877889900')
-  INTO Patients (id, user_id, dob, gender, blood_type, address, emergency_contact) VALUES ('pat018', 'u016', DATE '1983-11-07', 'Male', 'AB-', '12, Segunbagicha, Dhaka-1000', '01688990011')
-  INTO Patients (id, user_id, dob, gender, blood_type, address, emergency_contact) VALUES ('pat019', 'u020', DATE '1991-07-19', 'Female', 'B+', '78, Eskaton, Dhaka-1000', '01799001122')
-  INTO Patients (id, user_id, dob, gender, blood_type, address, emergency_contact) VALUES ('pat020', 'u021', DATE '1987-04-23', 'Male', 'O-', '34, Malibagh, Dhaka-1219', '01600112233')
-SELECT * FROM dual;
+-- 6. Doctors
+INSERT INTO Doctors VALUES ('doc001', 'u001', 'b001', 'MD12345', 15, '9:00 AM - 5:00 PM', 'd001', 'https://example.com/doctor1.jpg');
+INSERT INTO Doctors VALUES ('doc002', 'u002', 'b001', 'MD12346', 12, '8:00 AM - 4:00 PM', 'd002', 'https://example.com/doctor2.jpg');
+INSERT INTO Doctors VALUES ('doc003', 'u003', 'b002', 'MD12347', 10, '10:00 AM - 6:00 PM', 'd003', 'https://example.com/doctor3.jpg');
+INSERT INTO Doctors VALUES ('doc004', 'u004', 'b002', 'MD12348', 8, '9:00 AM - 5:00 PM', 'd004', 'https://example.com/doctor4.jpg');
+INSERT INTO Doctors VALUES ('doc005', 'u005', 'b003', 'MD12349', 20, '7:00 AM - 3:00 PM', 'd005', 'https://example.com/doctor5.jpg');
+INSERT INTO Doctors VALUES ('doc006', 'u006', 'b003', 'MD12350', 14, '11:00 AM - 7:00 PM', 'd006', 'https://example.com/doctor6.jpg');
+INSERT INTO Doctors VALUES ('doc007', 'u007', 'b004', 'MD12351', 16, '8:00 AM - 4:00 PM', 'd007', 'https://example.com/doctor7.jpg');
+INSERT INTO Doctors VALUES ('doc008', 'u008', 'b005', 'MD12352', 11, '9:00 AM - 5:00 PM', 'd008', 'https://example.com/doctor8.jpg');
+INSERT INTO Doctors VALUES ('doc009', 'u009', 'b006', 'MD12353', 13, '10:00 AM - 6:00 PM', 'd009', 'https://example.com/doctor9.jpg');
+INSERT INTO Doctors VALUES ('doc010', 'u010', 'b007', 'MD12354', 9, '8:00 AM - 4:00 PM', 'd010', 'https://example.com/doctor10.jpg');
 
--- 9. Staff (Expanded with 15 staff members)
-INSERT ALL
-  INTO Staff (id, user_id, department_id, designation, branch_id) VALUES ('staff001', 'u007', 'dept006', 'Senior Nurse', 'hb001')
-  INTO Staff (id, user_id, department_id, designation, branch_id) VALUES ('staff002', 'u008', 'dept004', 'Head Nurse', 'hb001')
-  INTO Staff (id, user_id, department_id, designation, branch_id) VALUES ('staff003', 'u009', 'dept007', 'Administrator', 'hb001')
-  INTO Staff (id, user_id, department_id, designation, branch_id) VALUES ('staff004', 'u017', 'dept005', 'Nurse', 'hb002')
-  INTO Staff (id, user_id, department_id, designation, branch_id) VALUES ('staff005', 'u018', 'dept001', 'Administrator', 'hb002')
-  INTO Staff (id, user_id, department_id, designation, branch_id) VALUES ('staff006', 'u024', 'dept003', 'Physiotherapist', 'hb003')
-  INTO Staff (id, user_id, department_id, designation, branch_id) VALUES ('staff007', 'u007', 'dept002', 'Nurse', 'hb003')
-  INTO Staff (id, user_id, department_id, designation, branch_id) VALUES ('staff008', 'u008', 'dept008', 'Nurse', 'hb004')
-  INTO Staff (id, user_id, department_id, designation, branch_id) VALUES ('staff009', 'u009', 'dept007', 'Administrator', 'hb004')
-  INTO Staff (id, user_id, department_id, designation, branch_id) VALUES ('staff010', 'u017', 'dept001', 'Technician', 'hb005')
-  INTO Staff (id, user_id, department_id, designation, branch_id) VALUES ('staff011', 'u018', 'dept010', 'Radiologist', 'hb005')
-  INTO Staff (id, user_id, department_id, designation, branch_id) VALUES ('staff012', 'u024', 'dept011', 'Lab Technician', 'hb006')
-  INTO Staff (id, user_id, department_id, designation, branch_id) VALUES ('staff013', 'u007', 'dept012', 'Nurse', 'hb006')
-  INTO Staff (id, user_id, department_id, designation, branch_id) VALUES ('staff014', 'u008', 'dept013', 'Nurse', 'hb007')
-  INTO Staff (id, user_id, department_id, designation, branch_id) VALUES ('staff015', 'u009', 'dept014', 'Administrator', 'hb007')
-SELECT * FROM dual;
+-- 7. Patients
+INSERT INTO Patients VALUES ('p001', 'u011', DATE '1990-05-15', 'Female', 'A+', '123 Oak Street, City A', '+1234567920');
+INSERT INTO Patients VALUES ('p002', 'u012', DATE '1985-08-22', 'Male', 'B+', '456 Pine Avenue, City B', '+1234567921');
+INSERT INTO Patients VALUES ('p003', 'u013', DATE '1992-12-03', 'Female', 'O-', '789 Maple Drive, City C', '+1234567922');
+INSERT INTO Patients VALUES ('p004', 'u014', DATE '1988-03-17', 'Male', 'AB+', '321 Elm Street, City D', '+1234567923');
+INSERT INTO Patients VALUES ('p005', 'u015', DATE '1995-09-08', 'Female', 'A-', '654 Cedar Lane, City E', '+1234567924');
+INSERT INTO Patients VALUES ('p006', 'u016', DATE '1983-06-25', 'Male', 'B-', '987 Birch Road, City F', '+1234567925');
+INSERT INTO Patients VALUES ('p007', 'u017', DATE '1991-11-12', 'Female', 'O+', '147 Walnut Avenue, City G', '+1234567926');
+INSERT INTO Patients VALUES ('p008', 'u018', DATE '1987-04-30', 'Male', 'AB-', '258 Cherry Street, City H', '+1234567927');
+INSERT INTO Patients VALUES ('p009', 'u019', DATE '1993-07-18', 'Female', 'A+', '369 Hickory Drive, City I', '+1234567928');
+INSERT INTO Patients VALUES ('p010', 'u020', DATE '1989-10-05', 'Male', 'B+', '741 Ash Lane, City J', '+1234567929');
 
--- 10. Rooms (Expanded with 30 rooms)
-INSERT ALL
-  INTO Rooms (id, room_number, type, status) VALUES ('room001', '101', 'General Ward', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room002', '102', 'Private Cabin', 'Occupied')
-  INTO Rooms (id, room_number, type, status) VALUES ('room003', '103', 'ICU', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room004', '104', 'Private Cabin', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room005', '105', 'General Ward', 'Maintenance')
-  INTO Rooms (id, room_number, type, status) VALUES ('room006', '201', 'VIP Suite', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room007', '202', 'Private Cabin', 'Occupied')
-  INTO Rooms (id, room_number, type, status) VALUES ('room008', '203', 'General Ward', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room009', '204', 'ICU', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room010', '205', 'Private Cabin', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room011', '301', 'VIP Suite', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room012', '302', 'Private Cabin', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room013', '303', 'General Ward', 'Occupied')
-  INTO Rooms (id, room_number, type, status) VALUES ('room014', '304', 'ICU', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room015', '305', 'Private Cabin', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room016', '401', 'VIP Suite', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room017', '402', 'Private Cabin', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room018', '403', 'General Ward', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room019', '404', 'ICU', 'Maintenance')
-  INTO Rooms (id, room_number, type, status) VALUES ('room020', '405', 'Private Cabin', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room021', '501', 'VIP Suite', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room022', '502', 'Private Cabin', 'Occupied')
-  INTO Rooms (id, room_number, type, status) VALUES ('room023', '503', 'General Ward', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room024', '504', 'ICU', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room025', '505', 'Private Cabin', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room026', '601', 'VIP Suite', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room027', '602', 'Private Cabin', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room028', '603', 'General Ward', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room029', '604', 'ICU', 'Available')
-  INTO Rooms (id, room_number, type, status) VALUES ('room030', '605', 'Private Cabin', 'Available')
-SELECT * FROM dual;
+-- 8. Rooms
+INSERT INTO Rooms VALUES ('r001', '101', 'Standard', 'Available');
+INSERT INTO Rooms VALUES ('r002', '102', 'Deluxe', 'Occupied');
+INSERT INTO Rooms VALUES ('r003', '103', 'ICU', 'Available');
+INSERT INTO Rooms VALUES ('r004', '104', 'Emergency', 'Available');
+INSERT INTO Rooms VALUES ('r005', '105', 'Standard', 'Maintenance');
+INSERT INTO Rooms VALUES ('r006', '201', 'Deluxe', 'Available');
+INSERT INTO Rooms VALUES ('r007', '202', 'Standard', 'Occupied');
+INSERT INTO Rooms VALUES ('r008', '203', 'ICU', 'Available');
+INSERT INTO Rooms VALUES ('r009', '204', 'Emergency', 'Occupied');
+INSERT INTO Rooms VALUES ('r010', '205', 'Standard', 'Available');
 
--- 11. Appointments (Expanded with 25 appointments)
-INSERT ALL
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app001', 'pat001', 'doc001', DATE '2024-07-15', '10:00-10:30', 'Consultation', 'Scheduled')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app002', 'pat002', 'doc002', DATE '2024-07-16', '14:00-14:30', 'Follow-up', 'Completed')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app003', 'pat003', 'doc003', DATE '2024-07-17', '09:00-09:30', 'Consultation', 'Scheduled')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app004', 'pat004', 'doc004', DATE '2024-07-18', '11:00-11:30', 'Emergency', 'Completed')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app005', 'pat005', 'doc001', DATE '2024-07-19', '15:00-15:30', 'Consultation', 'Scheduled')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app006', 'pat006', 'doc005', DATE '2024-07-20', '10:00-10:30', 'Follow-up', 'Scheduled')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app007', 'pat007', 'doc006', DATE '2024-07-21', '11:00-11:30', 'Consultation', 'Scheduled')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app008', 'pat008', 'doc007', DATE '2024-07-22', '14:00-14:30', 'Consultation', 'Scheduled')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app009', 'pat009', 'doc008', DATE '2024-07-23', '09:00-09:30', 'Follow-up', 'Completed')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app010', 'pat010', 'doc009', DATE '2024-07-24', '16:00-16:30', 'Consultation', 'Scheduled')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app011', 'pat011', 'doc010', DATE '2024-07-25', '10:00-10:30', 'Emergency', 'Completed')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app012', 'pat012', 'doc011', DATE '2024-07-26', '20:00-20:30', 'Consultation', 'Scheduled')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app013', 'pat013', 'doc012', DATE '2024-07-27', '15:00-15:30', 'Follow-up', 'Scheduled')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app014', 'pat014', 'doc001', DATE '2024-07-28', '11:00-11:30', 'Consultation', 'Scheduled')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app015', 'pat015', 'doc002', DATE '2024-07-29', '14:00-14:30', 'Consultation', 'Scheduled')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app016', 'pat016', 'doc003', DATE '2024-07-30', '09:00-09:30', 'Follow-up', 'Completed')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app017', 'pat017', 'doc004', DATE '2024-07-31', '10:00-10:30', 'Consultation', 'Scheduled')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app018', 'pat018', 'doc005', DATE '2024-08-01', '11:00-11:30', 'Emergency', 'Completed')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app019', 'pat019', 'doc006', DATE '2024-08-02', '15:00-15:30', 'Consultation', 'Scheduled')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app020', 'pat020', 'doc007', DATE '2024-08-03', '16:00-16:30', 'Follow-up', 'Scheduled')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app021', 'pat001', 'doc008', DATE '2024-08-04', '10:00-10:30', 'Consultation', 'Scheduled')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app022', 'pat002', 'doc009', DATE '2024-08-05', '17:00-17:30', 'Follow-up', 'Scheduled')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app023', 'pat003', 'doc010', DATE '2024-08-06', '09:00-09:30', 'Consultation', 'Scheduled')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app024', 'pat004', 'doc011', DATE '2024-08-07', '21:00-21:30', 'Emergency', 'Completed')
-  INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) VALUES ('app025', 'pat005', 'doc012', DATE '2024-08-08', '16:00-16:30', 'Consultation', 'Scheduled')
-SELECT * FROM dual;
+-- 9. Appointments
+INSERT INTO Appointments VALUES ('a001', 'p001', 'doc001', DATE '2024-01-15', '09:00 AM', 'Consultation', 'Scheduled');
+INSERT INTO Appointments VALUES ('a002', 'p002', 'doc002', DATE '2024-01-16', '10:00 AM', 'Follow-up', 'Completed');
+INSERT INTO Appointments VALUES ('a003', 'p003', 'doc003', DATE '2024-01-17', '11:00 AM', 'Surgery', 'Scheduled');
+INSERT INTO Appointments VALUES ('a004', 'p004', 'doc004', DATE '2024-01-18', '02:00 PM', 'Consultation', 'Cancelled');
+INSERT INTO Appointments VALUES ('a005', 'p005', 'doc005', DATE '2024-01-19', '03:00 PM', 'Screening', 'Completed');
+INSERT INTO Appointments VALUES ('a006', 'p006', 'doc006', DATE '2024-01-20', '09:30 AM', 'Treatment', 'Scheduled');
+INSERT INTO Appointments VALUES ('a007', 'p007', 'doc007', DATE '2024-01-21', '10:30 AM', 'Emergency', 'Completed');
+INSERT INTO Appointments VALUES ('a008', 'p008', 'doc008', DATE '2024-01-22', '11:30 AM', 'Consultation', 'Scheduled');
+INSERT INTO Appointments VALUES ('a009', 'p009', 'doc009', DATE '2024-01-23', '01:00 PM', 'Surgery', 'Scheduled');
+INSERT INTO Appointments VALUES ('a010', 'p010', 'doc010', DATE '2024-01-24', '02:30 PM', 'Consultation', 'Completed');
 
--- 12. Cabin (Expanded)
-INSERT ALL
-  INTO Cabin (id, doctor_id, room_id, appointment_id) VALUES ('cab001', 'doc001', 'room002', 'app001')
-  INTO Cabin (id, doctor_id, room_id, appointment_id) VALUES ('cab002', 'doc002', 'room004', 'app002')
-  INTO Cabin (id, doctor_id, room_id, appointment_id) VALUES ('cab003', 'doc003', 'room006', 'app003')
-  INTO Cabin (id, doctor_id, room_id, appointment_id) VALUES ('cab004', 'doc004', 'room007', 'app004')
-  INTO Cabin (id, doctor_id, room_id, appointment_id) VALUES ('cab005', 'doc005', 'room010', 'app006')
-  INTO Cabin (id, doctor_id, room_id, appointment_id) VALUES ('cab006', 'doc006', 'room012', 'app007')
-  INTO Cabin (id, doctor_id, room_id, appointment_id) VALUES ('cab007', 'doc007', 'room015', 'app008')
-  INTO Cabin (id, doctor_id, room_id, appointment_id) VALUES ('cab008', 'doc008', 'room017', 'app009')
-  INTO Cabin (id, doctor_id, room_id, appointment_id) VALUES ('cab009', 'doc009', 'room020', 'app010')
-  INTO Cabin (id, doctor_id, room_id, appointment_id) VALUES ('cab010', 'doc010', 'room022', 'app011')
-  INTO Cabin (id, doctor_id, room_id, appointment_id) VALUES ('cab011', 'doc011', 'room025', 'app012')
-  INTO Cabin (id, doctor_id, room_id, appointment_id) VALUES ('cab012', 'doc012', 'room027', 'app013')
-SELECT * FROM dual;
+-- 10. Cabin
+INSERT INTO Cabin VALUES ('c001', 'doc001', 'r001', 'a001');
+INSERT INTO Cabin VALUES ('c002', 'doc002', 'r002', 'a002');
+INSERT INTO Cabin VALUES ('c003', 'doc003', 'r003', 'a003');
+INSERT INTO Cabin VALUES ('c004', 'doc004', 'r004', 'a004');
+INSERT INTO Cabin VALUES ('c005', 'doc005', 'r006', 'a005');
+INSERT INTO Cabin VALUES ('c006', 'doc006', 'r007', 'a006');
+INSERT INTO Cabin VALUES ('c007', 'doc007', 'r008', 'a007');
+INSERT INTO Cabin VALUES ('c008', 'doc008', 'r009', 'a008');
+INSERT INTO Cabin VALUES ('c009', 'doc009', 'r010', 'a009');
+INSERT INTO Cabin VALUES ('c010', 'doc010', 'r001', 'a010');
 
--- 13. Room_Assignments (Expanded)
-INSERT ALL
-  INTO Room_Assignments (id, room_id, patient_id, start_time, end_time, status) VALUES ('ra001', 'room002', 'pat001', DATE '2024-07-15', DATE '2024-07-17', 'Active')
-  INTO Room_Assignments (id, room_id, patient_id, start_time, end_time, status) VALUES ('ra002', 'room004', 'pat002', DATE '2024-07-16', DATE '2024-07-16', 'Completed')
-  INTO Room_Assignments (id, room_id, patient_id, start_time, end_time, status) VALUES ('ra003', 'room006', 'pat004', DATE '2024-07-18', DATE '2024-07-20', 'Active')
-  INTO Room_Assignments (id, room_id, patient_id, start_time, end_time, status) VALUES ('ra004', 'room007', 'pat006', DATE '2024-07-20', DATE '2024-07-22', 'Active')
-  INTO Room_Assignments (id, room_id, patient_id, start_time, end_time, status) VALUES ('ra005', 'room010', 'pat008', DATE '2024-07-22', DATE '2024-07-24', 'Active')
-  INTO Room_Assignments (id, room_id, patient_id, start_time, end_time, status) VALUES ('ra006', 'room013', 'pat009', DATE '2024-07-23', DATE '2024-07-23', 'Completed')
-  INTO Room_Assignments (id, room_id, patient_id, start_time, end_time, status) VALUES ('ra007', 'room022', 'pat011', DATE '2024-07-25', DATE '2024-07-25', 'Completed')
-  INTO Room_Assignments (id, room_id, patient_id, start_time, end_time, status) VALUES ('ra008', 'room025', 'pat016', DATE '2024-07-30', DATE '2024-07-30', 'Completed')
-  INTO Room_Assignments (id, room_id, patient_id, start_time, end_time, status) VALUES ('ra009', 'room027', 'pat018', DATE '2024-08-01', DATE '2024-08-01', 'Completed')
-  INTO Room_Assignments (id, room_id, patient_id, start_time, end_time, status) VALUES ('ra010', 'room030', 'pat020', DATE '2024-08-03', DATE '2024-08-05', 'Active')
-SELECT * FROM dual;
+-- 11. Room Assignments
+INSERT INTO Room_Assignments VALUES ('ra001', 'r002', 'p002', DATE '2024-01-16', DATE '2024-01-18', 'Active');
+INSERT INTO Room_Assignments VALUES ('ra002', 'r007', 'p007', DATE '2024-01-21', DATE '2024-01-23', 'Active');
+INSERT INTO Room_Assignments VALUES ('ra003', 'r009', 'p009', DATE '2024-01-23', DATE '2024-01-25', 'Active');
+INSERT INTO Room_Assignments VALUES ('ra004', 'r003', 'p003', DATE '2024-01-17', DATE '2024-01-19', 'Completed');
+INSERT INTO Room_Assignments VALUES ('ra005', 'r008', 'p008', DATE '2024-01-22', DATE '2024-01-24', 'Active');
+INSERT INTO Room_Assignments VALUES ('ra006', 'r001', 'p001', DATE '2024-01-15', DATE '2024-01-16', 'Completed');
+INSERT INTO Room_Assignments VALUES ('ra007', 'r004', 'p004', DATE '2024-01-18', NULL, 'Cancelled');
+INSERT INTO Room_Assignments VALUES ('ra008', 'r006', 'p006', DATE '2024-01-20', DATE '2024-01-22', 'Active');
+INSERT INTO Room_Assignments VALUES ('ra009', 'r010', 'p010', DATE '2024-01-24', DATE '2024-01-26', 'Active');
+INSERT INTO Room_Assignments VALUES ('ra010', 'r005', 'p005', DATE '2024-01-19', DATE '2024-01-20', 'Completed');
 
--- 14. Prescriptions (Expanded)
-INSERT ALL
-  INTO Prescriptions (id, appointment_id, doctor_id, patient_id, notes, date_issued) 
-    VALUES ('pres001', 'app002', 'doc002', 'pat002', 'Take medication after meals. Follow up in 2 weeks.', DATE '2024-07-16')
-  INTO Prescriptions (id, appointment_id, doctor_id, patient_id, notes, date_issued) 
-    VALUES ('pres002', 'app004', 'doc004', 'pat004', 'Complete rest for 3 days. Avoid heavy lifting.', DATE '2024-07-18')
-  INTO Prescriptions (id, appointment_id, doctor_id, patient_id, notes, date_issued) 
-    VALUES ('pres003', 'app009', 'doc008', 'pat009', 'Apply cream twice daily. Avoid sun exposure.', DATE '2024-07-23')
-  INTO Prescriptions (id, appointment_id, doctor_id, patient_id, notes, date_issued) 
-    VALUES ('pres004', 'app011', 'doc010', 'pat011', 'Take during pregnancy as prescribed. Regular checkups needed.', DATE '2024-07-25')
-  INTO Prescriptions (id, appointment_id, doctor_id, patient_id, notes, date_issued) 
-    VALUES ('pres005', 'app016', 'doc003', 'pat016', 'Neurological medication. Take with food.', DATE '2024-07-30')
-  INTO Prescriptions (id, appointment_id, doctor_id, patient_id, notes, date_issued) 
-    VALUES ('pres006', 'app018', 'doc005', 'pat018', 'Post-delivery care. Continue for 6 weeks.', DATE '2024-08-01')
-  INTO Prescriptions (id, appointment_id, doctor_id, patient_id, notes, date_issued) 
-    VALUES ('pres007', 'app024', 'doc011', 'pat004', 'Emergency medication. Take immediately if symptoms occur.', DATE '2024-08-07')
-SELECT * FROM dual;
+-- 12. Medications
+INSERT INTO Medications VALUES ('m001', 'Aspirin', '100mg', '7 days');
+INSERT INTO Medications VALUES ('m002', 'Paracetamol', '500mg', '5 days');
+INSERT INTO Medications VALUES ('m003', 'Amoxicillin', '250mg', '10 days');
+INSERT INTO Medications VALUES ('m004', 'Ibuprofen', '200mg', '7 days');
+INSERT INTO Medications VALUES ('m005', 'Metformin', '500mg', '30 days');
+INSERT INTO Medications VALUES ('m006', 'Lisinopril', '10mg', '30 days');
+INSERT INTO Medications VALUES ('m007', 'Atorvastatin', '20mg', '30 days');
+INSERT INTO Medications VALUES ('m008', 'Omeprazole', '20mg', '14 days');
+INSERT INTO Medications VALUES ('m009', 'Levothyroxine', '50mcg', '30 days');
+INSERT INTO Medications VALUES ('m010', 'Amlodipine', '5mg', '30 days');
 
--- 15. Medications (Completed)
-INSERT ALL
-  INTO Medications (id, medicine_name, dosage, duration) VALUES ('med010', 'Ciprofloxacin', '500mg', '2 times daily')
-  INTO Medications (id, medicine_name, dosage, duration) VALUES ('med011', 'Azithromycin', '250mg', '1 time daily')
-  INTO Medications (id, medicine_name, dosage, duration) VALUES ('med012', 'Cetirizine', '10mg', '1 time daily')
-  INTO Medications (id, medicine_name, dosage, duration) VALUES ('med013', 'Montelukast', '10mg', '1 time daily')
-  INTO Medications (id, medicine_name, dosage, duration) VALUES ('med014', 'Ranitidine', '150mg', '2 times daily')
-  INTO Medications (id, medicine_name, dosage, duration) VALUES ('med015', 'Ibuprofen', '400mg', '3 times daily')
-  INTO Medications (id, medicine_name, dosage, duration) VALUES ('med016', 'Doxycycline', '100mg', '2 times daily')
-  INTO Medications (id, medicine_name, dosage, duration) VALUES ('med017', 'Metronidazole', '400mg', '3 times daily')
-  INTO Medications (id, medicine_name, dosage, duration) VALUES ('med018', 'Insulin', 'Varies', 'As prescribed')
-  INTO Medications (id, medicine_name, dosage, duration) VALUES ('med019', 'Salbutamol', '100mcg', 'As needed')
-  INTO Medications (id, medicine_name, dosage, duration) VALUES ('med020', 'Hydrocortisone', '5mg', '1 time daily')
-  INTO Medications (id, medicine_name, dosage, duration) VALUES ('med021', 'Levothyroxine', '50mcg', '1 time daily')
-  INTO Medications (id, medicine_name, dosage, duration) VALUES ('med022', 'Amlodipine', '5mg', '1 time daily')
-  INTO Medications (id, medicine_name, dosage, duration) VALUES ('med023', 'Prednisolone', '10mg', '1 time daily')
-  INTO Medications (id, medicine_name, dosage, duration) VALUES ('med024', 'Calcium Carbonate', '500mg', '2 times daily')
-  INTO Medications (id, medicine_name, dosage, duration) VALUES ('med025', 'Vitamin D3', '1000 IU', '1 time daily')
-SELECT * FROM dual;
+-- 13. Prescriptions
+INSERT INTO Prescriptions VALUES ('pr001', 'a002', 'doc002', 'p002', 'Take medication after meals. Follow up in 1 week.', DATE '2024-01-16');
+INSERT INTO Prescriptions VALUES ('pr002', 'a005', 'doc005', 'p005', 'Apply cream twice daily. Avoid sun exposure.', DATE '2024-01-19');
+INSERT INTO Prescriptions VALUES ('pr003', 'a007', 'doc007', 'p007', 'Complete antibiotic course. Rest for 3 days.', DATE '2024-01-21');
+INSERT INTO Prescriptions VALUES ('pr004', 'a010', 'doc010', 'p010', 'Take before breakfast. Monitor blood pressure.', DATE '2024-01-24');
+INSERT INTO Prescriptions VALUES ('pr005', 'a001', 'doc001', 'p001', 'Take with water. No alcohol consumption.', DATE '2024-01-15');
+INSERT INTO Prescriptions VALUES ('pr006', 'a003', 'doc003', 'p003', 'Post-surgery medication. Take as prescribed.', DATE '2024-01-17');
+INSERT INTO Prescriptions VALUES ('pr007', 'a006', 'doc006', 'p006', 'Chemotherapy support medication.', DATE '2024-01-20');
+INSERT INTO Prescriptions VALUES ('pr008', 'a008', 'doc008', 'p008', 'Diabetes management. Check blood sugar regularly.', DATE '2024-01-22');
+INSERT INTO Prescriptions VALUES ('pr009', 'a009', 'doc009', 'p009', 'Pre-surgery preparation medication.', DATE '2024-01-23');
+INSERT INTO Prescriptions VALUES ('pr010', 'a004', 'doc004', 'p004', 'Pediatric dosage. Give with food.', DATE '2024-01-18');
 
--- Lab_Tests
-INSERT ALL
-  INTO Lab_Tests (id, patient_id, test_type, test_date, result, doctor_id, file_url) VALUES ('lab001', 'pat001', 'Blood Test', DATE '2024-07-01', 'Normal', 'doc001', 'https://files.lab.com/lab001.pdf')
-  INTO Lab_Tests (id, patient_id, test_type, test_date, result, doctor_id, file_url) VALUES ('lab002', 'pat002', 'MRI Scan', DATE '2024-07-03', 'Abnormal', 'doc002', 'https://files.lab.com/lab002.pdf')
-  INTO Lab_Tests (id, patient_id, test_type, test_date, result, doctor_id, file_url) VALUES ('lab003', 'pat003', 'X-Ray', DATE '2024-07-05', 'Normal', 'doc003', 'https://files.lab.com/lab003.pdf')
-  INTO Lab_Tests (id, patient_id, test_type, test_date, result, doctor_id, file_url) VALUES ('lab004', 'pat004', 'Ultrasound', DATE '2024-07-07', 'Normal', 'doc004', 'https://files.lab.com/lab004.pdf')
-SELECT * FROM dual;
+-- 14. Pres_Med (Prescription-Medication relationship)
+INSERT INTO Pres_Med VALUES ('pm001', 'pr001', 'm002');
+INSERT INTO Pres_Med VALUES ('pm002', 'pr001', 'm003');
+INSERT INTO Pres_Med VALUES ('pm003', 'pr002', 'm004');
+INSERT INTO Pres_Med VALUES ('pm004', 'pr003', 'm003');
+INSERT INTO Pres_Med VALUES ('pm005', 'pr003', 'm001');
+INSERT INTO Pres_Med VALUES ('pm006', 'pr004', 'm005');
+INSERT INTO Pres_Med VALUES ('pm007', 'pr004', 'm006');
+INSERT INTO Pres_Med VALUES ('pm008', 'pr005', 'm001');
+INSERT INTO Pres_Med VALUES ('pm009', 'pr006', 'm002');
+INSERT INTO Pres_Med VALUES ('pm010', 'pr007', 'm008');
 
--- Pres_Med
-INSERT ALL
-  INTO Pres_Med (id, prescription_id, medication_id) VALUES ('pm001', 'pres001', 'med010')
-  INTO Pres_Med (id, prescription_id, medication_id) VALUES ('pm002', 'pres002', 'med013')
-  INTO Pres_Med (id, prescription_id, medication_id) VALUES ('pm003', 'pres003', 'med020')
-  INTO Pres_Med (id, prescription_id, medication_id) VALUES ('pm004', 'pres004', 'med015')
-SELECT * FROM dual;
+-- 15. Lab Tests
+INSERT INTO Lab_Tests VALUES ('lt001', 'p001', 'Blood Test', DATE '2024-01-15', 'Normal', 'doc001', 'https://example.com/lab1.pdf');
+INSERT INTO Lab_Tests VALUES ('lt002', 'p002', 'MRI Scan', DATE '2024-01-16', 'Abnormal', 'doc002', 'https://example.com/lab2.pdf');
+INSERT INTO Lab_Tests VALUES ('lt003', 'p003', 'X-Ray', DATE '2024-01-17', 'Fracture detected', 'doc003', 'https://example.com/lab3.pdf');
+INSERT INTO Lab_Tests VALUES ('lt004', 'p004', 'Urine Test', DATE '2024-01-18', 'Normal', 'doc004', 'https://example.com/lab4.pdf');
+INSERT INTO Lab_Tests VALUES ('lt005', 'p005', 'Skin Biopsy', DATE '2024-01-19', 'Benign', 'doc005', 'https://example.com/lab5.pdf');
+INSERT INTO Lab_Tests VALUES ('lt006', 'p006', 'CT Scan', DATE '2024-01-20', 'Tumor detected', 'doc006', 'https://example.com/lab6.pdf');
+INSERT INTO Lab_Tests VALUES ('lt007', 'p007', 'ECG', DATE '2024-01-21', 'Irregular rhythm', 'doc007', 'https://example.com/lab7.pdf');
+INSERT INTO Lab_Tests VALUES ('lt008', 'p008', 'Blood Sugar', DATE '2024-01-22', 'Elevated', 'doc008', 'https://example.com/lab8.pdf');
+INSERT INTO Lab_Tests VALUES ('lt009', 'p009', 'Ultrasound', DATE '2024-01-23', 'Normal', 'doc009', 'https://example.com/lab9.pdf');
+INSERT INTO Lab_Tests VALUES ('lt010', 'p010', 'Chest X-Ray', DATE '2024-01-24', 'Clear', 'doc010', 'https://example.com/lab10.pdf');
 
--- Bills
-INSERT ALL
-  INTO Bills (id, patient_id, appointment_id, total_amount, status, issue_date) VALUES ('bill001', 'pat001', 'app001', 5000.0, 'Paid', DATE '2024-07-15')
-  INTO Bills (id, patient_id, appointment_id, total_amount, status, issue_date) VALUES ('bill002', 'pat002', 'app002', 3000.0, 'Pending', DATE '2024-07-16')
-  INTO Bills (id, patient_id, appointment_id, total_amount, status, issue_date) VALUES ('bill003', 'pat003', 'app003', 4000.0, 'Paid', DATE '2024-07-17')
-  INTO Bills (id, patient_id, appointment_id, total_amount, status, issue_date) VALUES ('bill004', 'pat004', 'app004', 3500.0, 'Pending', DATE '2024-07-18')
-SELECT * FROM dual;
+-- 16. Bills
+INSERT INTO Bills VALUES ('b001', 'p001', 'a001', 150.00, 'Paid', DATE '2024-01-15');
+INSERT INTO Bills VALUES ('b002', 'p002', 'a002', 250.50, 'Paid', DATE '2024-01-16');
+INSERT INTO Bills VALUES ('b003', 'p003', 'a003', 1500.00, 'Pending', DATE '2024-01-17');
+INSERT INTO Bills VALUES ('b004', 'p004', 'a004', 75.00, 'Cancelled', DATE '2024-01-18');
+INSERT INTO Bills VALUES ('b005', 'p005', 'a005', 300.25, 'Paid', DATE '2024-01-19');
+INSERT INTO Bills VALUES ('b006', 'p006', 'a006', 2000.00, 'Pending', DATE '2024-01-20');
+INSERT INTO Bills VALUES ('b007', 'p007', 'a007', 500.75, 'Paid', DATE '2024-01-21');
+INSERT INTO Bills VALUES ('b008', 'p008', 'a008', 180.00, 'Pending', DATE '2024-01-22');
+INSERT INTO Bills VALUES ('b009', 'p009', 'a009', 3000.00, 'Pending', DATE '2024-01-23');
+INSERT INTO Bills VALUES ('b010', 'p010', 'a010', 125.50, 'Paid', DATE '2024-01-24');
 
--- Bill_Items
-INSERT ALL
-  INTO Bill_Items (id, bill_id, description, amount) VALUES ('bi001', 'bill001', 'Consultation Fee', 2000.0)
-  INTO Bill_Items (id, bill_id, description, amount) VALUES ('bi002', 'bill001', 'Blood Test', 3000.0)
-  INTO Bill_Items (id, bill_id, description, amount) VALUES ('bi003', 'bill002', 'MRI Scan', 3000.0)
-  INTO Bill_Items (id, bill_id, description, amount) VALUES ('bi004', 'bill003', 'X-Ray', 2500.0)
-  INTO Bill_Items (id, bill_id, description, amount) VALUES ('bi005', 'bill004', 'Ultrasound', 3500.0)
-SELECT * FROM dual;
+-- 17. Bill Items
+INSERT INTO Bill_Items VALUES ('bi001', 'b001', 'Consultation Fee', 100.00);
+INSERT INTO Bill_Items VALUES ('bi002', 'b001', 'Lab Test', 50.00);
+INSERT INTO Bill_Items VALUES ('bi003', 'b002', 'MRI Scan', 200.00);
+INSERT INTO Bill_Items VALUES ('bi004', 'b002', 'Consultation Fee', 50.50);
+INSERT INTO Bill_Items VALUES ('bi005', 'b003', 'Surgery Fee', 1200.00);
+INSERT INTO Bill_Items VALUES ('bi006', 'b003', 'Room Charges', 300.00);
+INSERT INTO Bill_Items VALUES ('bi007', 'b005', 'Skin Treatment', 250.25);
+INSERT INTO Bill_Items VALUES ('bi008', 'b005', 'Medication', 50.00);
+INSERT INTO Bill_Items VALUES ('bi009', 'b006', 'Chemotherapy', 1800.00);
+INSERT INTO Bill_Items VALUES ('bi010', 'b006', 'Room Charges', 200.00);
 
--- Ambulances
-INSERT ALL
-  INTO Ambulances (id, vehicle_number, status, location, branch_id) VALUES ('amb001', 'DHK-00123', 'Available', 'Dhanmondi', 'hb001')
-  INTO Ambulances (id, vehicle_number, status, location, branch_id) VALUES ('amb002', 'DHK-00456', 'On Duty', 'Uttara', 'hb002')
-  INTO Ambulances (id, vehicle_number, status, location, branch_id) VALUES ('amb003', 'DHK-00789', 'Available', 'Mirpur', 'hb005')
-  INTO Ambulances (id, vehicle_number, status, location, branch_id) VALUES ('amb004', 'DHK-00234', 'Maintenance', 'Gulshan', 'hb006')
-SELECT * FROM dual;
+-- 18. Specializations
+INSERT INTO Specializations VALUES ('sp001', 'Interventional Cardiology', 'Heart procedures and interventions');
+INSERT INTO Specializations VALUES ('sp002', 'Pediatric Neurology', 'Children brain and nervous system');
+INSERT INTO Specializations VALUES ('sp003', 'Sports Medicine', 'Athletic injuries and performance');
+INSERT INTO Specializations VALUES ('sp004', 'Neonatology', 'Newborn intensive care');
+INSERT INTO Specializations VALUES ('sp005', 'Cosmetic Dermatology', 'Aesthetic skin treatments');
+INSERT INTO Specializations VALUES ('sp006', 'Radiation Oncology', 'Cancer radiation therapy');
+INSERT INTO Specializations VALUES ('sp007', 'Trauma Surgery', 'Emergency surgical procedures');
+INSERT INTO Specializations VALUES ('sp008', 'Gastroenterology', 'Digestive system disorders');
+INSERT INTO Specializations VALUES ('sp009', 'Plastic Surgery', 'Reconstructive and cosmetic surgery');
+INSERT INTO Specializations VALUES ('sp010', 'Interventional Radiology', 'Minimally invasive procedures');
 
--- Ambulance_Requests
-INSERT ALL
-  INTO Ambulance_Requests (id, patient_id, ambulance_id, request_time, pickup_location, drop_location, status) VALUES ('ar001', 'pat001', 'amb001', DATE '2024-07-14', '25, Mirpur-1, Dhaka', 'Ibn Sina Dhanmondi', 'Completed')
-  INTO Ambulance_Requests (id, patient_id, ambulance_id, request_time, pickup_location, drop_location, status) VALUES ('ar002', 'pat002', 'amb002', DATE '2024-07-15', 'Uttara Sector-7', 'Ibn Sina Dhanmondi', 'Pending')
-  INTO Ambulance_Requests (id, patient_id, ambulance_id, request_time, pickup_location, drop_location, status) VALUES ('ar003', 'pat003', 'amb003', DATE '2024-07-16', 'Mirpur-10', 'Ibn Sina Mirpur', 'Completed')
-  INTO Ambulance_Requests (id, patient_id, ambulance_id, request_time, pickup_location, drop_location, status) VALUES ('ar004', 'pat004', 'amb004', DATE '2024-07-17', 'Gulshan-2', 'Ibn Sina Gulshan', 'Pending')
-SELECT * FROM dual;
+-- 19. Doctor Specializations
+INSERT INTO Doctor_Specializations VALUES ('ds001', 'doc001', 'sp001');
+INSERT INTO Doctor_Specializations VALUES ('ds002', 'doc002', 'sp002');
+INSERT INTO Doctor_Specializations VALUES ('ds003', 'doc003', 'sp003');
+INSERT INTO Doctor_Specializations VALUES ('ds004', 'doc004', 'sp004');
+INSERT INTO Doctor_Specializations VALUES ('ds005', 'doc005', 'sp005');
+INSERT INTO Doctor_Specializations VALUES ('ds006', 'doc006', 'sp006');
+INSERT INTO Doctor_Specializations VALUES ('ds007', 'doc007', 'sp007');
+INSERT INTO Doctor_Specializations VALUES ('ds008', 'doc008', 'sp008');
+INSERT INTO Doctor_Specializations VALUES ('ds009', 'doc009', 'sp009');
+INSERT INTO Doctor_Specializations VALUES ('ds010', 'doc010', 'sp010');
 
--- Device_Logs
-INSERT ALL
-  INTO Device_Logs (id, patient_id, device_type, reading_type, reading_value, timestamp) VALUES ('dev001', 'pat001', 'Heart Rate Monitor', 'BPM', '72', DATE '2024-07-15')
-  INTO Device_Logs (id, patient_id, device_type, reading_type, reading_value, timestamp) VALUES ('dev002', 'pat002', 'BP Monitor', 'Blood Pressure', '120/80', DATE '2024-07-15')
-  INTO Device_Logs (id, patient_id, device_type, reading_type, reading_value, timestamp) VALUES ('dev003', 'pat003', 'Glucose Monitor', 'mg/dL', '90', DATE '2024-07-16')
-  INTO Device_Logs (id, patient_id, device_type, reading_type, reading_value, timestamp) VALUES ('dev004', 'pat004', 'Oximeter', 'SpO2', '98%', DATE '2024-07-16')
-SELECT * FROM dual;
+-- 20. Audit Log
+INSERT INTO Audit_Log VALUES ('al001', 'u001', 'CREATE', 'Appointments', DATE '2024-01-15', 'New appointment created for patient p001');
+INSERT INTO Audit_Log VALUES ('al002', 'u002', 'UPDATE', 'Appointments', DATE '2024-01-16', 'Appointment status changed to completed');
+INSERT INTO Audit_Log VALUES ('al003', 's002', 'CREATE', 'Bills', DATE '2024-01-17', 'New bill generated for appointment a003');
+INSERT INTO Audit_Log VALUES ('al004', 'u004', 'CANCEL', 'Appointments', DATE '2024-01-18', 'Appointment cancelled by doctor');
+INSERT INTO Audit_Log VALUES ('al005', 'u005', 'CREATE', 'Prescriptions', DATE '2024-01-19', 'New prescription issued');
+INSERT INTO Audit_Log VALUES ('al006', 's001', 'UPDATE', 'Patients', DATE '2024-01-20', 'Patient information updated');
+INSERT INTO Audit_Log VALUES ('al007', 'u007', 'CREATE', 'Lab_Tests', DATE '2024-01-21', 'New lab test ordered');
+INSERT INTO Audit_Log VALUES ('al008', 'u008', 'UPDATE', 'Bills', DATE '2024-01-22', 'Bill payment status updated');
+INSERT INTO Audit_Log VALUES ('al009', 'u009', 'CREATE', 'Room_Assignments', DATE '2024-01-23', 'Room assigned to patient');
+INSERT INTO Audit_Log VALUES ('al010', 'u010', 'UPDATE', 'Appointments', DATE '2024-01-24', 'Appointment completed successfully');
 
--- VideoSessions
-INSERT ALL
-  INTO VideoSessions (id, appointment_id, video_link, session_status) VALUES ('vid001', 'app001', 'https://video.com/session1', 'Completed')
-  INTO VideoSessions (id, appointment_id, video_link, session_status) VALUES ('vid002', 'app002', 'https://video.com/session2', 'Scheduled')
-  INTO VideoSessions (id, appointment_id, video_link, session_status) VALUES ('vid003', 'app003', 'https://video.com/session3', 'Scheduled')
-  INTO VideoSessions (id, appointment_id, video_link, session_status) VALUES ('vid004', 'app004', 'https://video.com/session4', 'Completed')
-SELECT * FROM dual;
+-- 21. Ambulances
+INSERT INTO Ambulances VALUES ('amb001', 'AMB-001', 'Available', 'Main Hospital Branch', 'b001');
+INSERT INTO Ambulances VALUES ('amb002', 'AMB-002', 'In Transit', 'North Branch', 'b002');
+INSERT INTO Ambulances VALUES ('amb003', 'AMB-003', 'Available', 'South Branch', 'b003');
+INSERT INTO Ambulances VALUES ('amb004', 'AMB-004', 'Maintenance', 'East Branch', 'b004');
+INSERT INTO Ambulances VALUES ('amb005', 'AMB-005', 'Available', 'West Branch', 'b005');
+INSERT INTO Ambulances VALUES ('amb006', 'AMB-006', 'In Transit', 'Central Branch', 'b006');
+INSERT INTO Ambulances VALUES ('amb007', 'AMB-007', 'Available', 'Downtown Branch', 'b007');
+INSERT INTO Ambulances VALUES ('amb008', 'AMB-008', 'Available', 'Suburban Branch', 'b008');
+INSERT INTO Ambulances VALUES ('amb009', 'AMB-009', 'In Transit', 'Metropolitan Branch', 'b009');
+INSERT INTO Ambulances VALUES ('amb010', 'AMB-010', 'Available', 'Community Branch', 'b010');
 
--- ChatLogs
-INSERT ALL
-  INTO ChatLogs (id, appointment_id, sender_id, message, timestamp) VALUES ('chat001', 'app001', 'u004', 'Hello Doctor', DATE '2024-07-15')
-  INTO ChatLogs (id, appointment_id, sender_id, message, timestamp) VALUES ('chat002', 'app001', 'u001', 'Hello, how can I help?', DATE '2024-07-15')
-  INTO ChatLogs (id, appointment_id, sender_id, message, timestamp) VALUES ('chat003', 'app002', 'u002', 'I am feeling better.', DATE '2024-07-16')
-  INTO ChatLogs (id, appointment_id, sender_id, message, timestamp) VALUES ('chat004', 'app003', 'u003', 'Need a follow-up appointment.', DATE '2024-07-17')
-SELECT * FROM dual;
+-- 22. Ambulance Requests
+INSERT INTO Ambulance_Requests VALUES ('ar001', 'p001', 'amb001', DATE '2024-01-15', '123 Oak Street', 'Main Hospital', 'Completed');
+INSERT INTO Ambulance_Requests VALUES ('ar002', 'p002', 'amb002', DATE '2024-01-16', '456 Pine Avenue', 'North Branch', 'In Progress');
+INSERT INTO Ambulance_Requests VALUES ('ar003', 'p003', 'amb003', DATE '2024-01-17', '789 Maple Drive', 'South Branch', 'Completed');
+INSERT INTO Ambulance_Requests VALUES ('ar004', 'p004', 'amb005', DATE '2024-01-18', '321 Elm Street', 'West Branch', 'Cancelled');
+INSERT INTO Ambulance_Requests VALUES ('ar005', 'p005', 'amb007', DATE '2024-01-19', '654 Cedar Lane', 'Downtown Branch', 'Completed');
+INSERT INTO Ambulance_Requests VALUES ('ar006', 'p006', 'amb006', DATE '2024-01-20', '987 Birch Road', 'Central Branch', 'In Progress');
+INSERT INTO Ambulance_Requests VALUES ('ar007', 'p007', 'amb008', DATE '2024-01-21', '147 Walnut Avenue', 'Suburban Branch', 'Completed');
+INSERT INTO Ambulance_Requests VALUES ('ar008', 'p008', 'amb009', DATE '2024-01-22', '258 Cherry Street', 'Metropolitan Branch', 'In Progress');
+INSERT INTO Ambulance_Requests VALUES ('ar009', 'p009', 'amb010', DATE '2024-01-23', '369 Hickory Drive', 'Community Branch', 'Pending');
+INSERT INTO Ambulance_Requests VALUES ('ar010', 'p010', 'amb001', DATE '2024-01-24', '741 Ash Lane', 'Main Hospital', 'Completed');
 
--- Symptom_Checker
-INSERT ALL
-  INTO Symptom_Checker (id, patient_id, symptoms, suggested_conditions, suggestion_date) VALUES ('sym001', 'pat001', 'Fever, Cough', 'Flu, Viral Fever', DATE '2024-07-14')
-  INTO Symptom_Checker (id, patient_id, symptoms, suggested_conditions, suggestion_date) VALUES ('sym002', 'pat002', 'Headache', 'Migraine, Tension Headache', DATE '2024-07-14')
-  INTO Symptom_Checker (id, patient_id, symptoms, suggested_conditions, suggestion_date) VALUES ('sym003', 'pat003', 'Back Pain', 'Muscle Strain', DATE '2024-07-15')
-  INTO Symptom_Checker (id, patient_id, symptoms, suggested_conditions, suggestion_date) VALUES ('sym004', 'pat004', 'Stomach Ache', 'Gastritis', DATE '2024-07-16')
-SELECT * FROM dual;
+-- 23. Device Logs
+INSERT INTO Device_Logs VALUES ('dl001', 'p001', 'Blood Pressure Monitor', 'Systolic', '120', DATE '2024-01-15');
+INSERT INTO Device_Logs VALUES ('dl002', 'p001', 'Blood Pressure Monitor', 'Diastolic', '80', DATE '2024-01-15');
+INSERT INTO Device_Logs VALUES ('dl003', 'p002', 'Heart Rate Monitor', 'BPM', '72', DATE '2024-01-16');
+INSERT INTO Device_Logs VALUES ('dl004', 'p003', 'Pulse Oximeter', 'Oxygen Saturation', '98', DATE '2024-01-17');
+INSERT INTO Device_Logs VALUES ('dl005', 'p004', 'Thermometer', 'Body Temperature', '98.6', DATE '2024-01-18');
+INSERT INTO Device_Logs VALUES ('dl006', 'p005', 'Glucometer', 'Blood Sugar', '110', DATE '2024-01-19');
+INSERT INTO Device_Logs VALUES ('dl007', 'p006', 'ECG Monitor', 'Heart Rhythm', 'Normal Sinus', DATE '2024-01-20');
+INSERT INTO Device_Logs VALUES ('dl008', 'p007', 'Blood Pressure Monitor', 'Systolic', '140', DATE '2024-01-21');
+INSERT INTO Device_Logs VALUES ('dl009', 'p008', 'Pulse Oximeter', 'Oxygen Saturation', '95', DATE '2024-01-22');
+INSERT INTO Device_Logs VALUES ('dl010', 'p009', 'Heart Rate Monitor', 'BPM', '85', DATE '2024-01-23');
 
--- Feedback
-INSERT ALL
-  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES ('fb001', 'pat001', 'DOCTOR', 'doc001', 5, 'Excellent consultation.', DATE '2024-07-16')
-  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES ('fb002', 'pat002', 'SERVICE', 'hb001', 4, 'Good ambulance service.', DATE '2024-07-17')
-  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES ('fb003', 'pat003', 'DOCTOR', 'doc002', 5, 'Very helpful.', DATE '2024-07-18')
-  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES ('fb004', 'pat004', 'SERVICE', 'hb002', 3, 'Average experience.', DATE '2024-07-19')
-SELECT * FROM dual;
+-- 24. Video Sessions
+INSERT INTO VideoSessions VALUES ('vs001', 'a001', 'https://meet.hospital.com/session1', 'Completed');
+INSERT INTO VideoSessions VALUES ('vs002', 'a002', 'https://meet.hospital.com/session2', 'Completed');
+INSERT INTO VideoSessions VALUES ('vs003', 'a005', 'https://meet.hospital.com/session3', 'Completed');
+INSERT INTO VideoSessions VALUES ('vs004', 'a006', 'https://meet.hospital.com/session4', 'Scheduled');
+INSERT INTO VideoSessions VALUES ('vs005', 'a008', 'https://meet.hospital.com/session5', 'Scheduled');
+INSERT INTO VideoSessions VALUES ('vs006', 'a010', 'https://meet.hospital.com/session6', 'Completed');
+INSERT INTO VideoSessions VALUES ('vs007', 'a003', 'https://meet.hospital.com/session7', 'Cancelled');
+INSERT INTO VideoSessions VALUES ('vs008', 'a007', 'https://meet.hospital.com/session8', 'Completed');
+INSERT INTO VideoSessions VALUES ('vs009', 'a009', 'https://meet.hospital.com/session9', 'Scheduled');
+INSERT INTO VideoSessions VALUES ('vs010', 'a004', 'https://meet.hospital.com/session10', 'Cancelled');
 
--- Insurance_Providers
-INSERT ALL
-  INTO Insurance_Providers (id, name, contact_info) VALUES ('ip001', 'Delta Life Insurance', 'Hotline: 16312, Email: contact@delta.com')
-  INTO Insurance_Providers (id, name, contact_info) VALUES ('ip002', 'Guardian Health', 'Hotline: 16234, Email: info@guardianhealth.com')
-  INTO Insurance_Providers (id, name, contact_info) VALUES ('ip003', 'Arogya Insurance', 'Hotline: 16000, Email: support@arogya.com')
-  INTO Insurance_Providers (id, name, contact_info) VALUES ('ip004', 'SafeHealth', 'Hotline: 16111, Email: contact@safehealth.com')
-SELECT * FROM dual;
+-- 25. Chat Logs
+INSERT INTO ChatLogs VALUES ('cl001', 'a001', 'u011', 'Hello Doctor, I have been experiencing chest pain.', DATE '2024-01-15');
+INSERT INTO ChatLogs VALUES ('cl002', 'a001', 'u001', 'Can you describe the pain? When did it start?', DATE '2024-01-15');
+INSERT INTO ChatLogs VALUES ('cl003', 'a002', 'u012', 'Thank you for the follow-up appointment.', DATE '2024-01-16');
+INSERT INTO ChatLogs VALUES ('cl004', 'a002', 'u002', 'Your test results look good. Continue the medication.', DATE '2024-01-16');
+INSERT INTO ChatLogs VALUES ('cl005', 'a005', 'u015', 'When will I get my biopsy results?', DATE '2024-01-19');
+INSERT INTO ChatLogs VALUES ('cl006', 'a005', 'u005', 'Results should be available by tomorrow evening.', DATE '2024-01-19');
+INSERT INTO ChatLogs VALUES ('cl007', 'a008', 'u018', 'I am feeling much better after the treatment.', DATE '2024-01-22');
+INSERT INTO ChatLogs VALUES ('cl008', 'a008', 'u008', 'That''s great to hear. Let''s schedule your next check-up.', DATE '2024-01-22');
+INSERT INTO ChatLogs VALUES ('cl009', 'a010', 'u020', 'What precautions should I take post-surgery?', DATE '2024-01-24');
+INSERT INTO ChatLogs VALUES ('cl010', 'a010', 'u010', 'Avoid heavy lifting and follow the medication schedule.', DATE '2024-01-24');
 
--- Patient_Insurance
-INSERT ALL
-  INTO Patient_Insurance (id, patient_id, provider_id, policy_number, coverage_details) VALUES ('pi001', 'pat001', 'ip001', 'DLI-123456', 'Coverage up to 80% of total bill')
-  INTO Patient_Insurance (id, patient_id, provider_id, policy_number, coverage_details) VALUES ('pi002', 'pat002', 'ip002', 'GH-654321', 'Covers only outpatient services')
-  INTO Patient_Insurance (id, patient_id, provider_id, policy_number, coverage_details) VALUES ('pi003', 'pat003', 'ip003', 'AR-789012', 'Full coverage with co-pay')
-  INTO Patient_Insurance (id, patient_id, provider_id, policy_number, coverage_details) VALUES ('pi004', 'pat004', 'ip004', 'SH-345678', 'Covers emergency and inpatient care')
-SELECT * FROM dual;
+-- 26. Symptom Checker
+INSERT INTO Symptom_Checker VALUES ('sc001', 'p001', 'Chest pain, shortness of breath, dizziness', 'Possible heart condition, recommend immediate consultation', DATE '2024-01-14');
+INSERT INTO Symptom_Checker VALUES ('sc002', 'p002', 'Headache, blurred vision, nausea', 'Possible neurological issue, recommend MRI scan', DATE '2024-01-15');
+INSERT INTO Symptom_Checker VALUES ('sc003', 'p003', 'Joint pain, swelling, limited mobility', 'Possible arthritis or injury, recommend X-ray', DATE '2024-01-16');
+INSERT INTO Symptom_Checker VALUES ('sc004', 'p004', 'Fever, cough, fatigue', 'Possible viral infection, recommend rest and fluids', DATE '2024-01-17');
+INSERT INTO Symptom_Checker VALUES ('sc005', 'p005', 'Skin rash, itching, redness', 'Possible allergic reaction, recommend dermatology consultation', DATE '2024-01-18');
+INSERT INTO Symptom_Checker VALUES ('sc006', 'p006', 'Unexplained weight loss, fatigue, night sweats', 'Requires immediate medical attention, possible serious condition', DATE '2024-01-19');
+INSERT INTO Symptom_Checker VALUES ('sc007', 'p007', 'Severe abdominal pain, vomiting', 'Possible emergency condition, seek immediate care', DATE '2024-01-20');
+INSERT INTO Symptom_Checker VALUES ('sc008', 'p008', 'Frequent urination, excessive thirst, fatigue', 'Possible diabetes, recommend blood sugar test', DATE '2024-01-21');
+INSERT INTO Symptom_Checker VALUES ('sc009', 'p009', 'Persistent cough, chest pain, difficulty breathing', 'Possible respiratory condition, recommend chest X-ray', DATE '2024-01-22');
+INSERT INTO Symptom_Checker VALUES ('sc010', 'p010', 'Vision problems, eye pain, sensitivity to light', 'Possible eye condition, recommend ophthalmology consultation', DATE '2024-01-23');
 
--- Claims
-INSERT ALL
-  INTO Claims (id, appointment_id, insurance_id, claim_status, claim_amount, submitted_on) VALUES ('cl001', 'app001', 'ip001', 'Approved', 4000.0, DATE '2024-07-16')
-  INTO Claims (id, appointment_id, insurance_id, claim_status, claim_amount, submitted_on) VALUES ('cl002', 'app002', 'ip002', 'Pending', 2000.0, DATE '2024-07-17')
-  INTO Claims (id, appointment_id, insurance_id, claim_status, claim_amount, submitted_on) VALUES ('cl003', 'app003', 'ip003', 'Approved', 3500.0, DATE '2024-07-18')
-  INTO Claims (id, appointment_id, insurance_id, claim_status, claim_amount, submitted_on) VALUES ('cl004', 'app004', 'ip004', 'Rejected', 1500.0, DATE '2024-07-19')
-SELECT * FROM dual;
+-- 27. Feedback
+INSERT INTO Feedback VALUES ('f001', 'p001', 'doctor', 'doc001', 5, 'Excellent care and very professional', DATE '2024-01-16');
+INSERT INTO Feedback VALUES ('f002', 'p002', 'doctor', 'doc002', 4, 'Good consultation, helpful advice', DATE '2024-01-17');
+INSERT INTO Feedback VALUES ('f003', 'p003', 'hospital', 'b002', 3, 'Hospital facilities are average', DATE '2024-01-18');
+INSERT INTO Feedback VALUES ('f004', 'p005', 'doctor', 'doc005', 5, 'Very satisfied with the treatment', DATE '2024-01-20');
+INSERT INTO Feedback VALUES ('f005', 'p007', 'staff', 'st004', 4, 'Nursing staff was very caring', DATE '2024-01-22');
+INSERT INTO Feedback VALUES ('f006', 'p008', 'doctor', 'doc008', 4, 'Doctor explained everything clearly', DATE '2024-01-23');
+INSERT INTO Feedback VALUES ('f007', 'p010', 'hospital', 'b007', 5, 'Excellent hospital facilities and service', DATE '2024-01-25');
+INSERT INTO Feedback VALUES ('f008', 'p006', 'doctor', 'doc006', 3, 'Treatment was effective but communication could be better', DATE '2024-01-21');
+INSERT INTO Feedback VALUES ('f009', 'p009', 'staff', 'st009', 5, 'Surgery team was outstanding', DATE '2024-01-24');
+INSERT INTO Feedback VALUES ('f010', 'p004', 'hospital', 'b002', 2, 'Long waiting times, needs improvement', DATE '2024-01-19');
 
+-- 28. Insurance Providers
+INSERT INTO Insurance_Providers VALUES ('ip001', 'HealthFirst Insurance', 'contact@healthfirst.com, +1-800-111-1111');
+INSERT INTO Insurance_Providers VALUES ('ip002', 'MediCare Plus', 'info@medicareplus.com, +1-800-222-2222');
+INSERT INTO Insurance_Providers VALUES ('ip003', 'United Health Group', 'support@uhg.com, +1-800-333-3333');
+INSERT INTO Insurance_Providers VALUES ('ip004', 'Blue Cross Shield', 'service@bcbs.com, +1-800-444-4444');
+INSERT INTO Insurance_Providers VALUES ('ip005', 'Aetna Insurance', 'help@aetna.com, +1-800-555-5555');
+INSERT INTO Insurance_Providers VALUES ('ip006', 'Cigna Healthcare', 'contact@cigna.com, +1-800-666-6666');
+INSERT INTO Insurance_Providers VALUES ('ip007', 'Humana Insurance', 'info@humana.com, +1-800-777-7777');
+INSERT INTO Insurance_Providers VALUES ('ip008', 'Kaiser Permanente', 'support@kp.com, +1-800-888-8888');
+INSERT INTO Insurance_Providers VALUES ('ip009', 'Anthem Insurance', 'service@anthem.com, +1-800-999-9999');
+INSERT INTO Insurance_Providers VALUES ('ip010', 'MetLife Health', 'help@metlife.com, +1-800-101-1010');
 
--- more feedbacks
-INSERT ALL
-  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES 
-    ('f001', 'pat001', 'doctor', 'doc101', 5, 'The doctor was very attentive and helpful.', DATE '2025-07-01')
-  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES 
-    ('f002', 'pat002', 'hospital', 'branch001', 4, 'Clean facilities and friendly staff.', DATE '2025-07-02')
-  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES 
-    ('f003', 'pat003', 'doctor', 'doc105', 5, 'Got quick diagnosis and good treatment.', DATE '2025-07-03')
-  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES 
-    ('f004', 'pat004', 'hospital', 'branch002', 5, 'Really impressed with the emergency response.', DATE '2025-07-04')
-  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES 
-    ('f005', 'pat005', 'doctor', 'doc107', 4, 'Doctor explained everything clearly.', DATE '2025-07-05')
-  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES 
-    ('f006', 'pat006', 'hospital', 'branch003', 5, 'Very smooth admission and discharge process.', DATE '2025-07-06')
-  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES 
-    ('f007', 'pat007', 'doctor', 'doc108', 4, 'Professional and polite doctor. Recommended.', DATE '2025-07-07')
-  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES 
-    ('f008', 'pat008', 'hospital', 'branch004', 5, 'Hospital staff were very responsive.', DATE '2025-07-08')
-  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES 
-    ('f009', 'pat009', 'doctor', 'doc110', 5, 'Great experience, the doctor was knowledgeable.', DATE '2025-07-09')
-  INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted) VALUES 
-    ('f010', 'pat010', 'hospital', 'branch005', 4, 'Good environment and quick service.', DATE '2025-07-10')
-SELECT * FROM dual;
+-- 29. Patient Insurance
+INSERT INTO Patient_Insurance VALUES ('pi001', 'p001', 'ip001', 'HF123456789', 'Full coverage including emergency care, surgery, and medications');
+INSERT INTO Patient_Insurance VALUES ('pi002', 'p002', 'ip002', 'MP987654321', 'Basic coverage with 80% reimbursement on treatments');
+INSERT INTO Patient_Insurance VALUES ('pi003', 'p003', 'ip003', 'UH456789123', 'Premium coverage including dental and vision');
+INSERT INTO Patient_Insurance VALUES ('pi004', 'p004', 'ip004', 'BC789123456', 'Standard coverage with $500 deductible');
+INSERT INTO Patient_Insurance VALUES ('pi005', 'p005', 'ip005', 'AE123789456', 'Comprehensive coverage including alternative medicine');
+INSERT INTO Patient_Insurance VALUES ('pi006', 'p006', 'ip006', 'CG456123789', 'Cancer treatment specialized coverage');
+INSERT INTO Patient_Insurance VALUES ('pi007', 'p007', 'ip007', 'HU789456123', 'Senior citizen health plan');
+INSERT INTO Patient_Insurance VALUES ('pi008', 'p008', 'ip008', 'KP123456987', 'Diabetes management specialized plan');
+INSERT INTO Patient_Insurance VALUES ('pi009', 'p009', 'ip009', 'AN987123654', 'Surgical procedures coverage');
+INSERT INTO Patient_Insurance VALUES ('pi010', 'p010', 'ip010', 'ML654987321', 'Family health coverage plan');
+
+-- 30. Claims
+INSERT INTO Claims VALUES ('c001', 'a001', 'ip001', 'Approved', 150.00, DATE '2024-01-16');
+INSERT INTO Claims VALUES ('c002', 'a002', 'ip002', 'Approved', 200.40, DATE '2024-01-17');
+INSERT INTO Claims VALUES ('c003', 'a003', 'ip003', 'Pending', 1200.00, DATE '2024-01-18');
+INSERT INTO Claims VALUES ('c004', 'a005', 'ip005', 'Approved', 240.20, DATE '2024-01-20');
+INSERT INTO Claims VALUES ('c005', 'a006', 'ip006', 'Under Review', 1600.00, DATE '2024-01-21');
+INSERT INTO Claims VALUES ('c006', 'a007', 'ip007', 'Approved', 400.60, DATE '2024-01-22');
+INSERT INTO Claims VALUES ('c007', 'a008', 'ip008', 'Pending', 144.00, DATE '2024-01-23');
+INSERT INTO Claims VALUES ('c008', 'a009', 'ip009', 'Under Review', 2400.00, DATE '2024-01-24');
+INSERT INTO Claims VALUES ('c009', 'a010', 'ip010', 'Approved', 100.40, DATE '2024-01-25');
+INSERT INTO Claims VALUES ('c010', 'a001', 'ip001', 'Rejected', 0.00, DATE '2024-01-17');
+
+COMMIT;
