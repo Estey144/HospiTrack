@@ -23,6 +23,7 @@ import StaffDirectory from './StaffDirectory';
 import Rooms from './Rooms';
 import Doctors from './Doctors';
 import Feedback from './Feedback';
+import Symptoms from './SymptomChecker';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -63,6 +64,7 @@ function App() {
     
         <Route path="/lab-tests" element={<LabTests currentUser={user} />} />
         <Route path="/medical-history" element={<MedicalHistory currentUser={user} />} />
+        <Route path="/symptom-checker" element={<Symptoms currentUser={user} />} />
       </Routes>
     </Router>
   );

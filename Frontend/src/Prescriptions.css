@@ -37,7 +37,7 @@
   margin-bottom: 1rem;
 }
 
-.nav-button {
+.prescriptions-nav-button {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -52,30 +52,30 @@
   white-space: nowrap;
 }
 
-.nav-button--secondary {
+.prescriptions-nav-button--secondary {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   box-shadow: 0 4px 6px -1px rgba(102, 126, 234, 0.4);
 }
 
-.nav-button--secondary:hover {
+.prescriptions-nav-button--secondary:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 12px -1px rgba(102, 126, 234, 0.5);
 }
 
-.nav-button--outline {
+.prescriptions-nav-button--outline {
   background: transparent;
   color: #64748b;
   border: 2px solid #e2e8f0;
 }
 
-.nav-button--outline:hover {
+.prescriptions-nav-button--outline:hover {
   background: #f8fafc;
   border-color: #cbd5e1;
   color: #475569;
 }
 
-.page-title h1 {
+.prescriptions-page-title h1 {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -88,7 +88,7 @@
   background-clip: text;
 }
 
-.page-title p {
+.prescriptions-page-title p {
   color: #64748b;
   margin: 0;
   font-size: 1rem;

@@ -154,16 +154,16 @@ const Prescriptions = () => {
       <div className="prescriptions-header">
         <div className="prescriptions-header-left">
           <div className="navigation-buttons">
-            <button className="nav-button nav-button--secondary" onClick={() => navigate('/patient-dashboard')}>
+            <button className="prescriptions-nav-button prescriptions-nav-button--secondary" onClick={() => navigate('/patient-dashboard')}>
               <ArrowLeft size={16} />
               Patient Dashboard
             </button>
-            <button className="nav-button nav-button--outline" onClick={() => navigate('/')}>
+            <button className="prescriptions-nav-button prescriptions-nav-button--outline" onClick={() => navigate('/')}>
               <Home size={16} />
               Home
             </button>
           </div>
-          <div className="page-title">
+          <div className="prescriptions-page-title">
             <h1><Pill size={24} /> My Prescriptions</h1>
             <p>View and manage your prescription medications</p>
           </div>

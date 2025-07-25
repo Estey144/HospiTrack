@@ -97,15 +97,60 @@ Doctors.css
   font-weight: 700;
   color: white;
   text-align: center;
-  margin: 0 0 40px 0;
+  margin: 0 0 20px 0;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   letter-spacing: -0.025em;
+}
+
+.header-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.homepage-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.homepage-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.homepage-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+}
+
+.btn-icon {
+  height: 20px;
+  width: 20px;
 }
 
 .search-filter-section {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 40px 16px;
+  background-color: #f9fafb;
 }
 
 /* Search Bar */
@@ -122,12 +167,12 @@ Doctors.css
 
 .search-icon {
   position: absolute;
-  right: 16px;
+  left: 20px;
   top: 50%;
   transform: translateY(-50%);
   height: 20px;
   width: 20px;
-  color: #9ca3af;
+  color: #8e24aa;
   pointer-events: none;
   z-index: 2;
 }
@@ -135,11 +180,10 @@ Doctors.css
 .search-input {
   width: 100%;
   padding: 16px 20px 16px 50px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid #e5e7eb;
   border-radius: 50px;
   font-size: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  background: white;
   color: #111827;
   box-sizing: border-box;
   transition: all 0.3s ease;
@@ -148,8 +192,8 @@ Doctors.css
 
 .search-input:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.8);
-  background: rgba(255, 255, 255, 1);
+  border-color: #8e24aa;
+  background: white;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
   transform: translateY(-2px);
 }
@@ -168,27 +212,28 @@ Doctors.css
   display: inline-flex;
   align-items: center;
   padding: 12px 24px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid #8e24aa;
   border-radius: 50px;
   font-size: 16px;
   font-weight: 600;
-  color: white;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
+  color: #8e24aa;
+  background: white;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .filter-toggle-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: #8e24aa;
+  color: white;
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 30px rgba(142, 36, 170, 0.3);
 }
 
 .filter-toggle-btn:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.8);
+  border-color: #8e24aa;
+  box-shadow: 0 0 0 3px rgba(142, 36, 170, 0.3);
 }
 
 .filter-icon {
@@ -199,11 +244,10 @@ Doctors.css
 
 /* Filter Options */
 .filter-options {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  background: white;
   border-radius: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid #e5e7eb;
   padding: 24px;
   max-width: 600px;
   margin: 0 auto;
@@ -471,6 +515,16 @@ Doctors.css
   
   .page-title {
     font-size: 24px;
+  }
+  
+  .homepage-btn {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+  
+  .btn-icon {
+    height: 18px;
+    width: 18px;
   }
   
   .search-input {

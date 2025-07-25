@@ -2,11 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import './Branches.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
 const Branches = () => {
+  const navigate = useNavigate();
   const [branches, setBranches] = useState([]);
   const [filteredBranches, setFilteredBranches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -99,8 +101,16 @@ const Branches = () => {
   return (
     <div className="branches-page">
       <div className="branch-page-header">
-        <h1>Hospital Branches</h1>
-        <p className="page-subtitle">Find and explore our hospital network</p>
+        <div className="header-main">
+          <h1>Hospital Branches</h1>
+          <p className="page-subtitle">Find and explore our hospital network</p>
+          <button onClick={() => navigate('/')} className="homepage-btn">
+            <svg className="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            Return to Homepage
+          </button>
+        </div>
       </div>
 
       <div className="search-container">

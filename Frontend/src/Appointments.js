@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import './Appointments.css';
 
 const Appointments = ({ currentUser }) => {
+  const navigate = useNavigate();
   const [user, setUser] = useState(currentUser || JSON.parse(localStorage.getItem('user')));
 
   const [patientAppointments, setPatientAppointments] = useState([]);
@@ -279,6 +280,20 @@ const Appointments = ({ currentUser }) => {
   return (
     <div className="patient-appointments-wrapper">
       <div className="patient-appointments-header">
+        <div className="patient-appointments-nav-buttons">
+          <button
+            className="patient-appointments-nav-btn patient-appointments-nav-btn--secondary"
+            onClick={() => navigate('/patient-dashboard')}
+          >
+            ← Patient Dashboard
+          </button>
+          <button
+            className="patient-appointments-nav-btn patient-appointments-nav-btn--outline"
+            onClick={() => navigate('/')}
+          >
+            🏠 Home
+          </button>
+        </div>
         <div className="patient-appointments-header-content">
           <h1 className="patient-appointments-title">My Appointments</h1>
           <p className="patient-appointments-subtitle">

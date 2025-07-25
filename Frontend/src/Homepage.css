@@ -772,8 +772,15 @@ body.homepage-body {
 
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(3, 1fr) !important;
   gap: 2rem;
+}
+
+@media (min-width: 769px) {
+  .info-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 2rem;
+  }
 }
 
 .info-card {
@@ -790,6 +797,26 @@ body.homepage-body {
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+/* Force 3-column layout on desktop */
+@media (min-width: 1024px) {
+  .homepage .info-section .info-grid,
+  .info-section .info-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 2rem !important;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1023px) {
+  .homepage .info-section .info-grid,
+  .info-section .info-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 1.5rem !important;
+  }
 }
 
 .info-card:hover {
@@ -1197,9 +1224,13 @@ body.homepage-body {
   
   .stats-grid,
   .actions-grid,
-  .info-grid,
   .engagement-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem;
   }
   
   .covid-grid {
@@ -1363,4 +1394,19 @@ body.homepage-body .our-impact_card .stat-label,
 .homepage .our-impact_card .stat-label,
 .our-impact_card .stat-label {
   color: #9f9f9f !important;
+}
+
+/* Very small screens - stack info-grid in single column */
+@media (max-width: 480px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .info-card {
+    padding: 1.5rem;
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
 }
