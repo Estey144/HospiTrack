@@ -45,6 +45,12 @@ const SymptomChecker = () => {
   const [showQuickSymptoms, setShowQuickSymptoms] = useState(true);
   const [chatStarted, setChatStarted] = useState(false);
   const [assessment, setAssessment] = useState(null);
+  const [appointmentSuggested, setAppointmentSuggested] = useState(false);
+
+  // OpenRouter API Configuration for HospiTrack AI - Using environment variables
+  const OPENROUTER_API_URL = process.env.REACT_APP_OPENROUTER_API_URL || 'https://openrouter.ai/api/v1/chat/completions';
+  const DEEPSEEK_MODEL = process.env.REACT_APP_DEEPSEEK_MODEL || 'deepseek/deepseek-chat';
+  const API_KEY = process.env.REACT_APP_OPENROUTER_API_KEY || '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';
 
   // Common symptoms for quick selection
   const quickSymptoms = [
@@ -62,94 +68,191 @@ const SymptomChecker = () => {
     { name: 'Shortness of Breath', icon: '🫁', category: 'respiratory' }
   ];
 
-  // Mock AI responses based on symptoms
-  const getAIResponse = (userInput, context = {}) => {
+  // HospiTrack AI API call function (using DeepSeek model)
+  const callDeepSeekAPI = async (userInput, conversationHistory = []) => {
+    const systemPrompt = `You are HospiTrack AI Chatbot, a professional medical AI assistant for symptom assessment. Your role is to:
+
+1. Provide preliminary symptom assessment and general health guidance
+2. Ask relevant follow-up questions to better understand symptoms
+3. Recommend appropriate self-care measures when suitable
+4. Identify when professional medical attention is needed
+5. ALWAYS recommend emergency care for serious symptoms
+6. Be empathetic and supportive while maintaining professional boundaries
+
+IMPORTANT GUIDELINES:
+- Always emphasize that this is NOT a substitute for professional medical advice
+- For emergency symptoms (chest pain, difficulty breathing, severe pain, etc.), immediately recommend calling 911
+- After 3-4 exchanges, if symptoms are concerning or persistent, recommend booking an appointment
+- Provide practical, evidence-based recommendations
+- Ask clarifying questions about symptom onset, severity, location, and associated symptoms
+- Be concise but thorough in your responses
+
+CRITICAL: You MUST respond with ONLY valid JSON in exactly this format (no extra text, no markdown, no code blocks):
+{
+  "text": "Your main response text",
+  "severity": "emergency|urgent|needs-evaluation|consultation-recommended|moderate|mild-moderate|mild|monitoring",
+  "recommendations": ["recommendation1", "recommendation2", "..."],
+  "followUp": ["question1", "question2", "..."],
+  "condition": "Brief condition name",
+  "suggestAppointment": true/false
+}
+
+Do NOT include any text before or after the JSON. Do NOT use markdown formatting or code blocks.`;
+
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...conversationHistory.map(msg => ({
+        role: msg.type === 'user' ? 'user' : 'assistant',
+        content: msg.text
+      })),
+      { role: 'user', content: userInput }
+    ];
+
+    try {
+      const response = await fetch(OPENROUTER_API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': window.location.origin,
+          'X-Title': 'HospiTrack Symptom Checker'
+        },
+        body: JSON.stringify({
+          model: DEEPSEEK_MODEL,
+          messages: messages,
+          temperature: 0.3,
+          max_tokens: 600,
+          top_p: 0.8,
+          frequency_penalty: 0.0,
+          presence_penalty: 0.0,
+          response_format: { type: "json_object" }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const aiResponse = data.choices[0].message.content;
+
+      // Try to parse as JSON, fallback to text response if parsing fails
+      try {
+        const parsedResponse = JSON.parse(aiResponse);
+        return parsedResponse;
+      } catch (parseError) {
+        console.log('JSON parsing failed, attempting to extract JSON from response:', parseError);
+        
+        // Try to extract JSON from response that might have extra text
+        const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          try {
+            const extractedResponse = JSON.parse(jsonMatch[0]);
+            return extractedResponse;
+          } catch (extractError) {
+            console.log('JSON extraction failed:', extractError);
+          }
+        }
+        
+        // Clean the text response by removing any JSON formatting markers
+        const cleanText = aiResponse
+          .replace(/```json/g, '')
+          .replace(/```/g, '')
+          .replace(/^\s*\{[\s\S]*\}\s*/g, '')
+          .trim();
+        
+        // Fallback response if JSON parsing fails completely
+        return {
+          text: cleanText || "I understand you're experiencing symptoms. Let me help assess your situation. Can you provide more details about what you're experiencing?",
+          severity: 'monitoring',
+          recommendations: ['Monitor your symptoms', 'Stay hydrated', 'Rest as needed'],
+          followUp: ['How long have you had these symptoms?', 'Any other symptoms?', 'Rate severity 1-10'],
+          condition: 'General Assessment',
+          suggestAppointment: false
+        };
+      }
+    } catch (error) {
+      console.error('HospiTrack AI API Error:', error);
+      throw error;
+    }
+  };
+
+  // Enhanced AI response function with HospiTrack AI integration
+  const getAIResponse = async (userInput, context = {}) => {
     const input = userInput.toLowerCase();
+    const messageCount = messages.length;
     
-    // Emergency keywords
-    const emergencyKeywords = ['chest pain', 'difficulty breathing', 'severe pain', 'unconscious', 'bleeding heavily', 'stroke', 'heart attack'];
+    // Emergency keywords - immediate response without API call
+    const emergencyKeywords = ['chest pain', 'difficulty breathing', 'severe pain', 'unconscious', 'bleeding heavily', 'stroke', 'heart attack', 'can\'t breathe', 'severe chest', 'heart racing', 'suicide', 'overdose'];
     if (emergencyKeywords.some(keyword => input.includes(keyword))) {
       return {
         text: "⚠️ Based on your symptoms, this could be a medical emergency. Please call 911 or go to the nearest emergency room immediately. Do not delay seeking medical attention.",
-        urgency: 'emergency',
-        recommendations: ['Call 911 immediately', 'Go to nearest ER', 'Do not drive yourself']
+        severity: 'emergency',
+        recommendations: ['Call 911 immediately', 'Go to nearest ER', 'Do not drive yourself'],
+        followUp: ['Are you able to call 911 now?', 'Is someone with you?'],
+        condition: 'Medical Emergency',
+        suggestAppointment: false,
+        urgency: 'emergency'
       };
     }
 
-    // Symptom-specific responses
-    if (input.includes('headache')) {
-      return {
-        text: "I understand you're experiencing a headache. Let me help assess this. Can you tell me more about the pain? Is it throbbing, sharp, or dull? How long have you had it?",
-        followUp: ['When did the headache start?', 'Rate the pain from 1-10', 'Any nausea or sensitivity to light?'],
-        assessment: {
-          condition: 'Headache Assessment',
-          severity: 'mild-moderate',
-          recommendations: ['Rest in a dark room', 'Stay hydrated', 'Consider over-the-counter pain relief', 'Monitor symptoms']
-        }
-      };
-    }
-
-    if (input.includes('fever')) {
-      return {
-        text: "A fever can indicate your body is fighting an infection. What's your current temperature? Are you experiencing any other symptoms like chills, body aches, or fatigue?",
-        followUp: ['What is your temperature?', 'Any chills or sweating?', 'How long have you had the fever?'],
-        assessment: {
-          condition: 'Fever Assessment',
-          severity: 'moderate',
-          recommendations: ['Monitor temperature regularly', 'Stay hydrated', 'Rest', 'Consider fever reducers', 'Seek care if fever >101.3°F persists']
-        }
-      };
-    }
-
-    if (input.includes('cough')) {
-      return {
-        text: "I see you have a cough. Is it a dry cough or are you producing mucus? Any associated symptoms like fever, shortness of breath, or chest pain?",
-        followUp: ['Dry or productive cough?', 'Any fever?', 'Difficulty breathing?', 'How long have you had it?'],
-        assessment: {
-          condition: 'Cough Assessment',
-          severity: 'mild-moderate',
-          recommendations: ['Stay hydrated', 'Use honey for throat relief', 'Avoid irritants', 'Rest', 'Monitor for worsening symptoms']
-        }
-      };
-    }
-
-    if (input.includes('stomach') || input.includes('nausea')) {
-      return {
-        text: "Stomach issues can be uncomfortable. Can you describe the pain? Is it cramping, sharp, or burning? Any nausea, vomiting, or changes in bowel movements?",
-        followUp: ['Type of pain?', 'Any vomiting?', 'When did you last eat?', 'Any fever?'],
-        assessment: {
-          condition: 'Gastrointestinal Assessment',
-          severity: 'mild-moderate',
-          recommendations: ['Stay hydrated with clear fluids', 'BRAT diet (bananas, rice, applesauce, toast)', 'Rest', 'Avoid dairy and fatty foods']
-        }
-      };
-    }
-
-    // Age/gender collection
-    if (input.includes('age') || input.match(/\d+/)) {
-      return {
-        text: "Thank you for that information. This helps me provide more accurate guidance. What other symptoms are you experiencing?",
-        context: 'collecting_info'
-      };
-    }
-
-    // General responses
-    const generalResponses = [
-      {
-        text: "I understand you're not feeling well. Can you describe your main symptoms in detail? This will help me provide better guidance.",
-        followUp: ['What are your main symptoms?', 'When did they start?', 'Rate severity 1-10']
-      },
-      {
-        text: "Thank you for sharing that information. Based on what you've told me, I'd like to ask a few more questions to better understand your condition.",
-        context: 'assessment'
-      },
-      {
-        text: "I'm here to help assess your symptoms. Please remember that this is not a replacement for professional medical advice. If you're experiencing severe symptoms, please seek immediate medical attention.",
-        context: 'disclaimer'
+    // Use HospiTrack AI API for all responses (except emergencies)
+    try {
+      const conversationHistory = messages.slice(-6); // Send last 6 messages for context
+      const aiResponse = await callDeepSeekAPI(userInput, conversationHistory);
+      
+      // Add appointment suggestion logic based on message count
+      if (messageCount >= 8 && !aiResponse.suggestAppointment) {
+        aiResponse.suggestAppointment = true;
+        aiResponse.severity = aiResponse.severity === 'mild' || aiResponse.severity === 'monitoring' 
+          ? 'consultation-recommended' 
+          : aiResponse.severity;
       }
-    ];
 
-    return generalResponses[Math.floor(Math.random() * generalResponses.length)];
+      return {
+        ...aiResponse,
+        urgency: aiResponse.severity === 'emergency' ? 'emergency' : 'normal'
+      };
+    } catch (error) {
+      console.error('API call failed, using fallback response:', error);
+
+      // Fallback mock responses for when API is not available
+      const generalResponses = [
+        {
+          text: "I want to help you better understand your symptoms. Can you provide more specific details about what you're experiencing? For example, when did the symptoms start, how severe are they, and are there any patterns you've noticed?",
+          followUp: ['Started today', 'Started this week', 'Mild symptoms', 'Moderate symptoms', 'Severe symptoms', 'Getting worse'],
+          condition: 'General Assessment',
+          severity: 'monitoring',
+          recommendations: ['Monitor your symptoms', 'Stay hydrated', 'Rest as needed', 'Note any changes']
+        },
+        {
+          text: "Thank you for sharing that information. Understanding your symptoms fully helps provide better guidance. Are there any other symptoms you're experiencing along with this? Sometimes symptoms can be related.",
+          followUp: ['No other symptoms', 'Yes, also have fever', 'Yes, also tired', 'Yes, also pain', 'Multiple symptoms'],
+          condition: 'Symptom Assessment',
+          severity: 'monitoring',
+          recommendations: ['Continue monitoring', 'Stay comfortable', 'Note symptom patterns', 'Maintain good hydration']
+        },
+        {
+          text: "I appreciate you taking the time to describe your symptoms. Health concerns can be worrying, and it's important to address them properly. Can you tell me if these symptoms are affecting your daily activities or sleep?",
+          followUp: ['Affecting daily life', 'Sleep problems', 'Can manage normally', 'Getting concerned', 'Need relief'],
+          condition: 'Impact Assessment',
+          severity: messageCount >= 8 ? 'consultation-recommended' : 'monitoring',
+          recommendations: ['Monitor impact on daily life', 'Track sleep patterns', 'Note functional limitations', 'Consider professional consultation if symptoms persist']
+        }
+      ];
+
+      const response = generalResponses[Math.floor(Math.random() * generalResponses.length)];
+      
+      return {
+        text: response.text,
+        followUp: response.followUp,
+        condition: response.condition,
+        severity: response.severity,
+        recommendations: response.recommendations,
+        suggestAppointment: messageCount >= 8,
+        urgency: 'normal'
+      };
+    }
   };
 
   const scrollToBottom = () => {
@@ -165,7 +268,7 @@ const SymptomChecker = () => {
     const welcomeMessage = {
       id: 1,
       type: 'bot',
-      text: "Hello! I'm your AI Health Assistant. I can help assess your symptoms and provide general health guidance. Please note that this is not a substitute for professional medical advice.",
+      text: "Hello! I'm HospiTrack AI Chatbot, your intelligent health assistant. I can help assess your symptoms and provide general health guidance. Please note that this is not a substitute for professional medical advice.",
       timestamp: new Date(),
       isWelcome: true
     };
@@ -188,27 +291,59 @@ const SymptomChecker = () => {
     setChatStarted(true);
     setShowQuickSymptoms(false);
 
-    // Simulate AI processing delay
-    setTimeout(() => {
-      const aiResponse = getAIResponse(inputMessage, { currentStep, patientData });
-      
-      const botMessage = {
-        id: Date.now() + 1,
-        type: 'bot',
-        text: aiResponse.text,
-        timestamp: new Date(),
-        followUp: aiResponse.followUp || [],
-        assessment: aiResponse.assessment || null,
-        urgency: aiResponse.urgency || 'normal',
-        recommendations: aiResponse.recommendations || []
-      };
+    // Simulate AI processing delay and get response
+    setTimeout(async () => {
+      try {
+        const aiResponse = await getAIResponse(inputMessage, { currentStep, patientData });
+        
+        const botMessage = {
+          id: Date.now() + 1,
+          type: 'bot',
+          text: aiResponse.text,
+          timestamp: new Date(),
+          followUp: aiResponse.followUp || [],
+          assessment: aiResponse.assessment || {
+            condition: aiResponse.condition,
+            severity: aiResponse.severity,
+            recommendations: aiResponse.recommendations
+          },
+          urgency: aiResponse.urgency || 'normal',
+          recommendations: aiResponse.recommendations || [],
+          suggestAppointment: aiResponse.suggestAppointment || false
+        };
 
-      setMessages(prev => [...prev, botMessage]);
-      setIsTyping(false);
+        setMessages(prev => [...prev, botMessage]);
+        setIsTyping(false);
 
-      // Set assessment if provided
-      if (aiResponse.assessment) {
-        setAssessment(aiResponse.assessment);
+        // Set assessment if provided
+        if (aiResponse.assessment || (aiResponse.condition && aiResponse.severity)) {
+          setAssessment(aiResponse.assessment || {
+            condition: aiResponse.condition,
+            severity: aiResponse.severity,
+            recommendations: aiResponse.recommendations
+          });
+        }
+
+        // Track appointment suggestion
+        if (aiResponse.suggestAppointment) {
+          setAppointmentSuggested(true);
+        }
+      } catch (error) {
+        console.error('Error getting AI response:', error);
+        
+        // Fallback error message
+        const errorMessage = {
+          id: Date.now() + 1,
+          type: 'bot',
+          text: "I'm sorry, I'm having trouble processing your request right now. Please try again or consider contacting a healthcare provider directly if you have urgent concerns.",
+          timestamp: new Date(),
+          urgency: 'normal',
+          recommendations: ['Try again in a moment', 'Contact healthcare provider if urgent'],
+          followUp: ['Try again', 'Contact doctor', 'Emergency services']
+        };
+
+        setMessages(prev => [...prev, errorMessage]);
+        setIsTyping(false);
       }
     }, 1500);
   };
@@ -234,8 +369,12 @@ const SymptomChecker = () => {
     switch(severity) {
       case 'emergency': return '#dc2626';
       case 'urgent': return '#ea580c';
+      case 'needs-evaluation': return '#f59e0b';
+      case 'consultation-recommended': return '#3b82f6';
       case 'moderate': return '#d97706';
+      case 'mild-moderate': return '#10b981';
       case 'mild': return '#059669';
+      case 'monitoring': return '#6b7280';
       default: return '#6b7280';
     }
   };
@@ -283,15 +422,15 @@ const SymptomChecker = () => {
             </button>
           </div>
           <div className="symptom-page-title">
-            <h1><Brain size={24} /> AI Symptom Checker</h1>
-            <p>Get preliminary health guidance with our AI-powered symptom assessment</p>
+            <h1><Brain size={24} /> HospiTrack AI Chatbot</h1>
+            <p>Get preliminary health guidance with HospiTrack's AI-powered symptom assessment</p>
           </div>
         </div>
         <div className="symptom-checker-header-right">
           <div className="ai-status">
             <div className="ai-indicator">
               <Bot size={20} />
-              <span>AI Assistant Online</span>
+              <span>HospiTrack AI Online</span>
             </div>
           </div>
         </div>
@@ -302,7 +441,7 @@ const SymptomChecker = () => {
         <AlertTriangle size={20} />
         <div className="disclaimer-content">
           <h4>Important Medical Disclaimer</h4>
-          <p>This AI symptom checker is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.</p>
+          <p>HospiTrack AI Chatbot is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.</p>
         </div>
       </div>
 
@@ -340,7 +479,7 @@ const SymptomChecker = () => {
                   {message.type === 'bot' ? <Bot size={20} /> : <User size={20} />}
                 </div>
                 <div className="message-content">
-                  <div className={`message-bubble ${message.urgency || ''}`}>
+                  <div className={`message-bubble ${message.urgency || ''} ${message.suggestAppointment ? 'appointment-suggestion' : ''}`}>
                     <p>{message.text}</p>
                     {message.recommendations && message.recommendations.length > 0 && (
                       <div className="recommendations">
@@ -350,6 +489,24 @@ const SymptomChecker = () => {
                             <li key={index}>{rec}</li>
                           ))}
                         </ul>
+                      </div>
+                    )}
+                    {message.suggestAppointment && (
+                      <div className="appointment-suggestion-actions">
+                        <button 
+                          className="appointment-cta-button"
+                          onClick={() => navigate('/appointments')}
+                        >
+                          <Calendar size={16} />
+                          Book Appointment Now
+                        </button>
+                        <button 
+                          className="doctors-cta-button"
+                          onClick={() => navigate('/doctors')}
+                        >
+                          <Stethoscope size={16} />
+                          Find Doctors
+                        </button>
                       </div>
                     )}
                   </div>
@@ -455,6 +612,23 @@ const SymptomChecker = () => {
                 </span>
               </div>
 
+              {(assessment.severity === 'consultation-recommended' || assessment.severity === 'needs-evaluation' || appointmentSuggested) && (
+                <div className="appointment-recommendation">
+                  <div className="appointment-rec-header">
+                    <Calendar size={16} />
+                    <span>Professional Consultation Recommended</span>
+                  </div>
+                  <p>Based on your symptoms and our assessment, we recommend scheduling an appointment with a healthcare provider for proper evaluation and treatment.</p>
+                  <button 
+                    className="appointment-rec-button"
+                    onClick={() => navigate('/appointments')}
+                  >
+                    <Calendar size={16} />
+                    Schedule Appointment
+                  </button>
+                </div>
+              )}
+
               <div className="assessment-recommendations">
                 <h5>Recommendations:</h5>
                 <ul>
@@ -530,22 +704,6 @@ const SymptomChecker = () => {
             <div className="action-buttons">
               <button 
                 className="action-button"
-                onClick={() => navigate('/appointments')}
-              >
-                <Calendar size={16} />
-                Book Appointment
-                <ChevronRight size={14} />
-              </button>
-              <button 
-                className="action-button"
-                onClick={() => navigate('/doctors')}
-              >
-                <Stethoscope size={16} />
-                Find Doctors
-                <ChevronRight size={14} />
-              </button>
-              <button 
-                className="action-button"
                 onClick={() => navigate('/branches')}
               >
                 <MapPin size={16} />
@@ -554,26 +712,10 @@ const SymptomChecker = () => {
               </button>
               <button 
                 className="action-button"
-                onClick={() => navigate('/video-sessions')}
-              >
-                <Phone size={16} />
-                Telehealth Consultation
-                <ChevronRight size={14} />
-              </button>
-              <button 
-                className="action-button"
                 onClick={() => navigate('/ambulance')}
               >
                 <Star size={16} />
                 Emergency Services
-                <ChevronRight size={14} />
-              </button>
-              <button 
-                className="action-button"
-                onClick={() => navigate('/lab-tests')}
-              >
-                <Activity size={16} />
-                Lab Tests & Results
                 <ChevronRight size={14} />
               </button>
             </div>
