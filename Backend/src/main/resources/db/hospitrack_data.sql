@@ -2,16 +2,16 @@
 -- Insert data in order to maintain referential integrity
 
 -- 1. Users Table (Foundation table)
-INSERT INTO Users VALUES ('u001', 'Dr. John Smith', 'john.smith@hospital.com', 'password123', '+1234567890', DATE '2023-01-15', 'doctor');
-INSERT INTO Users VALUES ('u002', 'Dr. Sarah Johnson', 'sarah.johnson@hospital.com', 'password123', '+1234567891', DATE '2023-01-20', 'doctor');
-INSERT INTO Users VALUES ('u003', 'Dr. Michael Brown', 'michael.brown@hospital.com', 'password123', '+1234567892', DATE '2023-02-01', 'doctor');
-INSERT INTO Users VALUES ('u004', 'Dr. Emily Davis', 'emily.davis@hospital.com', 'password123', '+1234567893', DATE '2023-02-15', 'doctor');
-INSERT INTO Users VALUES ('u005', 'Dr. Robert Wilson', 'robert.wilson@hospital.com', 'password123', '+1234567894', DATE '2023-03-01', 'doctor');
-INSERT INTO Users VALUES ('u006', 'Dr. Lisa Anderson', 'lisa.anderson@hospital.com', 'password123', '+1234567895', DATE '2023-03-10', 'doctor');
-INSERT INTO Users VALUES ('u007', 'Dr. David Taylor', 'david.taylor@hospital.com', 'password123', '+1234567896', DATE '2023-03-20', 'doctor');
-INSERT INTO Users VALUES ('u008', 'Dr. Jennifer Martinez', 'jennifer.martinez@hospital.com', 'password123', '+1234567897', DATE '2023-04-01', 'doctor');
-INSERT INTO Users VALUES ('u009', 'Dr. Christopher Lee', 'christopher.lee@hospital.com', 'password123', '+1234567898', DATE '2023-04-15', 'doctor');
-INSERT INTO Users VALUES ('u010', 'Dr. Amanda White', 'amanda.white@hospital.com', 'password123', '+1234567899', DATE '2023-05-01', 'doctor');
+INSERT INTO Users VALUES ('u001', 'dr. mohammad abdul karim', 'abdul.karim@hospital.com', 'password123', '+1234567890', DATE '2023-01-15', 'doctor');
+INSERT INTO Users VALUES ('u002', 'dr. fatema khatun', 'fatema.khatun@hospital.com', 'password123', '+1234567891', DATE '2023-01-20', 'doctor');
+INSERT INTO Users VALUES ('u003', 'dr. rahim uddin ahmed', 'rahim.ahmed@hospital.com', 'password123', '+1234567892', DATE '2023-02-01', 'doctor');
+INSERT INTO Users VALUES ('u004', 'dr. mahmuda sultana', 'mahmuda.sultana@hospital.com', 'password123', '+1234567893', DATE '2023-02-15', 'doctor');
+INSERT INTO Users VALUES ('u005', 'dr. nazmul haque', 'nazmul.haque@hospital.com', 'password123', '+1234567894', DATE '2023-03-01', 'doctor');
+INSERT INTO Users VALUES ('u006', 'dr. shireen akhter', 'shireen.akther@hospital.com', 'password123', '+1234567895', DATE '2023-03-10', 'doctor');
+INSERT INTO Users VALUES ('u007', 'dr. ashikur rahman', 'ashikur.rahman@hospital.com', 'password123', '+1234567896', DATE '2023-03-20', 'doctor');
+INSERT INTO Users VALUES ('u008', 'dr. mariam faruqui', 'mariam.faruqi@hospital.com', 'password123', '+1234567897', DATE '2023-04-01', 'doctor');
+INSERT INTO Users VALUES ('u009', 'dr. habibur rahman', 'rahman.habib@hospital.com', 'password123', '+1234567898', DATE '2023-04-15', 'doctor');
+INSERT INTO Users VALUES ('u010', 'dr. laila arjumana banu', 'laila.banu@hospital.com', 'password123', '+1234567899', DATE '2023-05-01', 'doctor');
 
 INSERT INTO Users VALUES ('u011', 'Alice Thompson', 'alice.thompson@email.com', 'password123', '+1234567900', DATE '2023-01-10', 'patient');
 INSERT INTO Users VALUES ('u012', 'Bob Rodriguez', 'bob.rodriguez@email.com', 'password123', '+1234567901', DATE '2023-01-12', 'patient');
@@ -25,10 +25,10 @@ INSERT INTO Users VALUES ('u019', 'Ivy Wilson', 'ivy.wilson@email.com', 'passwor
 INSERT INTO Users VALUES ('u020', 'Jack Brown', 'jack.brown@email.com', 'password123', '+1234567909', DATE '2023-01-28', 'patient');
 
 INSERT INTO Users VALUES ('s001', 'Nurse Nancy Green', 'nancy.green@hospital.com', 'password123', '+1234567910', DATE '2023-01-05', 'staff');
-INSERT INTO Users VALUES ('s002', 'Admin Alex Blue', 'alex.blue@hospital.com', 'password123', '+1234567911', DATE '2023-01-07', 'staff');
+INSERT INTO Users VALUES ('s002', 'Alex Blue', 'alex.blue@hospital.com', 'password123', '+1234567911', DATE '2023-01-07', 'admin');
 INSERT INTO Users VALUES ('s003', 'Tech Tom Red', 'tom.red@hospital.com', 'password123', '+1234567912', DATE '2023-01-09', 'staff');
 INSERT INTO Users VALUES ('s004', 'Nurse Nina Yellow', 'nina.yellow@hospital.com', 'password123', '+1234567913', DATE '2023-01-11', 'staff');
-INSERT INTO Users VALUES ('s005', 'Admin Anna Purple', 'anna.purple@hospital.com', 'password123', '+1234567914', DATE '2023-01-13', 'staff');
+INSERT INTO Users VALUES ('s005', 'Anna Purple', 'anna.purple@hospital.com', 'password123', '+1234567914', DATE '2023-01-13', 'admin');
 
 -- 2. Hospital Branches
 INSERT INTO Hospital_Branches VALUES ('b001', 'Main Hospital Branch', '123 Medical Center Drive, City A', DATE '2020-01-01');
@@ -79,16 +79,16 @@ INSERT INTO Staff VALUES ('st009', 's004', 'd006', 'Oncology Nurse', 'b008');
 INSERT INTO Staff VALUES ('st010', 's005', 'd009', 'Surgery Coordinator', 'b009');
 
 -- 6. Doctors
-INSERT INTO Doctors VALUES ('doc001', 'u001', 'b001', 'MD12345', 15, '9:00 AM - 5:00 PM', 'd001', 'https://example.com/doctor1.jpg');
-INSERT INTO Doctors VALUES ('doc002', 'u002', 'b001', 'MD12346', 12, '8:00 AM - 4:00 PM', 'd002', 'https://example.com/doctor2.jpg');
-INSERT INTO Doctors VALUES ('doc003', 'u003', 'b002', 'MD12347', 10, '10:00 AM - 6:00 PM', 'd003', 'https://example.com/doctor3.jpg');
-INSERT INTO Doctors VALUES ('doc004', 'u004', 'b002', 'MD12348', 8, '9:00 AM - 5:00 PM', 'd004', 'https://example.com/doctor4.jpg');
-INSERT INTO Doctors VALUES ('doc005', 'u005', 'b003', 'MD12349', 20, '7:00 AM - 3:00 PM', 'd005', 'https://example.com/doctor5.jpg');
-INSERT INTO Doctors VALUES ('doc006', 'u006', 'b003', 'MD12350', 14, '11:00 AM - 7:00 PM', 'd006', 'https://example.com/doctor6.jpg');
-INSERT INTO Doctors VALUES ('doc007', 'u007', 'b004', 'MD12351', 16, '8:00 AM - 4:00 PM', 'd007', 'https://example.com/doctor7.jpg');
-INSERT INTO Doctors VALUES ('doc008', 'u008', 'b005', 'MD12352', 11, '9:00 AM - 5:00 PM', 'd008', 'https://example.com/doctor8.jpg');
-INSERT INTO Doctors VALUES ('doc009', 'u009', 'b006', 'MD12353', 13, '10:00 AM - 6:00 PM', 'd009', 'https://example.com/doctor9.jpg');
-INSERT INTO Doctors VALUES ('doc010', 'u010', 'b007', 'MD12354', 9, '8:00 AM - 4:00 PM', 'd010', 'https://example.com/doctor10.jpg');
+INSERT INTO Doctors VALUES ('doc001', 'u001', 'b001', 'MD12345', 15, '9:00 AM - 5:00 PM', 'd001', 'https://labaid.com.bd/files/images/1700976017.jpg');
+INSERT INTO Doctors VALUES ('doc002', 'u002', 'b001', 'MD12346', 12, '8:00 AM - 4:00 PM', 'd002', 'https://labaid.com.bd/files/images/1613040676.jpg');
+INSERT INTO Doctors VALUES ('doc003', 'u003', 'b002', 'MD12347', 10, '10:00 AM - 6:00 PM', 'd003', 'https://labaid.com.bd/files/images/1700978846.jpg');
+INSERT INTO Doctors VALUES ('doc004', 'u004', 'b002', 'MD12348', 8, '9:00 AM - 5:00 PM', 'd004', 'https://labaid.com.bd/files/images/1613040829.jpg');
+INSERT INTO Doctors VALUES ('doc005', 'u005', 'b003', 'MD12349', 20, '7:00 AM - 3:00 PM', 'd005', 'https://labaid.com.bd/files/images/1700981398.jpg');
+INSERT INTO Doctors VALUES ('doc006', 'u006', 'b003', 'MD12350', 14, '11:00 AM - 7:00 PM', 'd006', 'https://labaid.com.bd/files/images/1610864098.jpg');
+INSERT INTO Doctors VALUES ('doc007', 'u007', 'b004', 'MD12351', 16, '8:00 AM - 4:00 PM', 'd007', 'https://labaid.com.bd/files/images/1700978055.jpg');
+INSERT INTO Doctors VALUES ('doc008', 'u008', 'b005', 'MD12352', 11, '9:00 AM - 5:00 PM', 'd008', 'https://labaid.com.bd/files/images/1700980489.jpg');
+INSERT INTO Doctors VALUES ('doc009', 'u009', 'b006', 'MD12353', 13, '10:00 AM - 6:00 PM', 'd009', 'https://labaid.com.bd/files/images/1700981489.jpg');
+INSERT INTO Doctors VALUES ('doc010', 'u010', 'b007', 'MD12354', 9, '8:00 AM - 4:00 PM', 'd010', 'https://labaid.com.bd/files/images/1700980412.jpg');
 
 -- 7. Patients
 INSERT INTO Patients VALUES ('p001', 'u011', DATE '1990-05-15', 'Female', 'A+', '123 Oak Street, City A', '+1234567920');
