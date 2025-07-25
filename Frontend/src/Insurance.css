@@ -6,6 +6,42 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+/* Error Container */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: white;
+  border-radius: 12px;
+  padding: 3rem;
+  margin: 2rem auto;
+  max-width: 500px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.error-container h3 {
+  color: #dc3545;
+  margin: 1rem 0 0.5rem 0;
+  font-size: 1.5rem;
+}
+
+.error-container p {
+  color: #6c757d;
+  margin-bottom: 1.5rem;
+}
+
+/* Spinning animation */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 /* Header */
 .insurance-header {
   display: flex;
@@ -103,7 +139,7 @@
 }
 
 .stat-card {
-  background: white;
+  background: white !important;
   padding: 1.5rem;
   border-radius: 1rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
@@ -111,6 +147,12 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.15);
 }
 
 .stat-icon {
@@ -126,18 +168,19 @@
 .stat-info {
   display: flex;
   flex-direction: column;
+  color: inherit;
 }
 
 .stat-label {
   font-size: 0.875rem;
-  color: #64748b;
+  color: #64748b !important;
   font-weight: 500;
 }
 
 .stat-value {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1e293b;
+  color: #1e293b !important;
 }
 
 /* Tabs */

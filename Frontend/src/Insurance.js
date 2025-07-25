@@ -37,139 +37,169 @@ const Insurance = () => {
   const [selectedClaim, setSelectedClaim] = useState(null);
   const [showClaimDetails, setShowClaimDetails] = useState(false);
 
-  // Mock insurance data
-  const [insurancePlans] = useState([
+  // Mock insurance providers (from Insurance_Providers table)
+  const [insuranceProviders] = useState([
     {
-      id: 1,
-      isPrimary: true,
-      provider: 'Blue Cross Blue Shield',
-      planName: 'Premium Health Plan',
-      policyNumber: 'BC123456789',
-      groupNumber: 'GRP789012',
-      memberID: 'MEM456789',
-      effectiveDate: '2024-01-01',
-      expirationDate: '2024-12-31',
-      status: 'active',
-      deductible: {
-        individual: 500.00,
-        family: 1500.00,
-        met: 350.00,
-        remaining: 150.00
-      },
-      outOfPocketMax: {
-        individual: 3000.00,
-        family: 9000.00,
-        met: 850.00,
-        remaining: 2150.00
-      },
-      copays: {
-        primaryCare: 25.00,
-        specialist: 50.00,
-        emergency: 200.00,
-        urgentCare: 75.00
-      },
-      coverage: {
-        medical: 80,
-        prescription: 75,
-        dental: 70,
-        vision: 60,
-        mentalHealth: 80
-      },
-      contact: {
+      id: 'PROV-001',
+      name: 'Blue Cross Blue Shield',
+      contact_info: JSON.stringify({
         phone: '1-800-BCBS-123',
         website: 'www.bcbs.com',
-        memberServices: '1-800-MEMBER-1'
-      },
-      employer: 'TechCorp Solutions',
-      rxBIN: '610014',
-      rxPCN: 'BCBS',
-      rxGroup: 'RX12345'
+        memberServices: '1-800-MEMBER-1',
+        address: '123 Healthcare Blvd, Chicago, IL 60601'
+      })
     },
     {
-      id: 2,
-      isPrimary: false,
-      provider: 'Aetna Dental',
-      planName: 'Dental Plus Coverage',
-      policyNumber: 'AET987654321',
-      groupNumber: 'DENT456',
-      memberID: 'DEN789012',
-      effectiveDate: '2024-01-01',
-      expirationDate: '2024-12-31',
-      status: 'active',
-      deductible: {
-        individual: 100.00,
-        family: 300.00,
-        met: 75.00,
-        remaining: 25.00
-      },
-      outOfPocketMax: {
-        individual: 1500.00,
-        family: 4500.00,
-        met: 300.00,
-        remaining: 1200.00
-      },
-      coverage: {
-        preventive: 100,
-        basic: 80,
-        major: 50,
-        orthodontics: 50
-      },
-      contact: {
+      id: 'PROV-002',
+      name: 'Aetna',
+      contact_info: JSON.stringify({
         phone: '1-800-AETNA-DT',
         website: 'www.aetna.com',
-        memberServices: '1-800-DENTAL-1'
-      },
-      employer: 'TechCorp Solutions'
+        memberServices: '1-800-DENTAL-1',
+        address: '151 Farmington Ave, Hartford, CT 06156'
+      })
     }
   ]);
 
+  // Mock patient insurance data (from Patient_Insurance table)
+  const [patientInsurance] = useState([
+    {
+      id: 'PI-001',
+      patient_id: 'PAT-001', // Current patient ID
+      provider_id: 'PROV-001',
+      policy_number: 'BC123456789',
+      coverage_details: JSON.stringify({
+        planName: 'Premium Health Plan',
+        groupNumber: 'GRP789012',
+        memberID: 'MEM456789',
+        effectiveDate: '2024-01-01',
+        expirationDate: '2024-12-31',
+        status: 'active',
+        isPrimary: true,
+        deductible: {
+          individual: 500.00,
+          family: 1500.00,
+          met: 350.00,
+          remaining: 150.00
+        },
+        outOfPocketMax: {
+          individual: 3000.00,
+          family: 9000.00,
+          met: 850.00,
+          remaining: 2150.00
+        },
+        copays: {
+          primaryCare: 25.00,
+          specialist: 50.00,
+          emergency: 200.00,
+          urgentCare: 75.00
+        },
+        coverage: {
+          medical: 80,
+          prescription: 75,
+          dental: 70,
+          vision: 60,
+          mentalHealth: 80
+        },
+        employer: 'TechCorp Solutions',
+        rxBIN: '610014',
+        rxPCN: 'BCBS',
+        rxGroup: 'RX12345'
+      })
+    },
+    {
+      id: 'PI-002',
+      patient_id: 'PAT-001', // Current patient ID
+      provider_id: 'PROV-002',
+      policy_number: 'AET987654321',
+      coverage_details: JSON.stringify({
+        planName: 'Dental Plus Coverage',
+        groupNumber: 'DENT456',
+        memberID: 'DEN789012',
+        effectiveDate: '2024-01-01',
+        expirationDate: '2024-12-31',
+        status: 'active',
+        isPrimary: false,
+        deductible: {
+          individual: 100.00,
+          family: 300.00,
+          met: 75.00,
+          remaining: 25.00
+        },
+        outOfPocketMax: {
+          individual: 1500.00,
+          family: 4500.00,
+          met: 300.00,
+          remaining: 1200.00
+        },
+        coverage: {
+          preventive: 100,
+          basic: 80,
+          major: 50,
+          orthodontics: 50
+        },
+        employer: 'TechCorp Solutions'
+      })
+    }
+  ]);
+
+  // Mock claims data (from Claims table)
   const [recentClaims] = useState([
     {
       id: 'CLM-2024-0087',
-      date: '2024-12-15',
+      appointment_id: 'APT-2024-0156',
+      insurance_id: 'PI-001',
+      claim_status: 'processed',
+      claim_amount: 425.00,
+      submitted_on: '2024-12-15',
+      // Additional fields for display (would come from joins with other tables)
       provider: 'Dr. Sarah Johnson',
       service: 'Cardiology Consultation',
-      amount: 425.00,
       approved: 340.00,
       paid: 340.00,
       patientResponsibility: 85.00,
-      status: 'processed',
       insurancePlan: 'Blue Cross Blue Shield'
     },
     {
       id: 'CLM-2024-0078',
-      date: '2024-11-28',
+      appointment_id: 'APT-2024-0145',
+      insurance_id: 'PI-001',
+      claim_status: 'processed',
+      claim_amount: 1250.00,
+      submitted_on: '2024-11-28',
       provider: 'Emergency Medical Center',
       service: 'Emergency Room Visit',
-      amount: 1250.00,
       approved: 1000.00,
       paid: 1000.00,
       patientResponsibility: 250.00,
-      status: 'processed',
       insurancePlan: 'Blue Cross Blue Shield'
     },
     {
       id: 'CLM-2024-0065',
-      date: '2024-10-10',
+      appointment_id: 'APT-2024-0134',
+      insurance_id: 'PI-001',
+      claim_status: 'processed',
+      claim_amount: 320.00,
+      submitted_on: '2024-10-10',
       provider: 'Dr. Emily Rodriguez',
       service: 'Annual Physical',
-      amount: 320.00,
       approved: 256.00,
       paid: 256.00,
       patientResponsibility: 64.00,
-      status: 'processed',
       insurancePlan: 'Blue Cross Blue Shield'
     },
     {
       id: 'CLM-2024-0052',
-      date: '2024-09-05',
+      appointment_id: 'APT-2024-0123',
+      insurance_id: 'PI-002',
+      claim_status: 'processed',
+      claim_amount: 150.00,
+      submitted_on: '2024-09-05',
       provider: 'Dental Care Center',
       service: 'Dental Cleaning',
-      amount: 150.00,
       approved: 150.00,
       paid: 150.00,
       patientResponsibility: 0.00,
-      status: 'processed',
       insurancePlan: 'Aetna Dental'
     }
   ]);
@@ -248,15 +278,34 @@ const Insurance = () => {
     }
   };
 
-  const getClaimStatusBadgeClass = (status) => {
-    switch(status) {
+  const getClaimStatusBadgeClass = (claim_status) => {
+    switch(claim_status) {
       case 'processed': return 'claim-badge--success';
       case 'pending': return 'claim-badge--warning';
       case 'denied': return 'claim-badge--danger';
+      case 'submitted': return 'claim-badge--default';
       default: return 'claim-badge--default';
     }
   };
 
+  // Helper function to get insurance plans with provider info
+  const getInsurancePlansWithProviders = () => {
+    return patientInsurance.map(insurance => {
+      const provider = insuranceProviders.find(p => p.id === insurance.provider_id);
+      const coverageDetails = JSON.parse(insurance.coverage_details);
+      const contactInfo = provider ? JSON.parse(provider.contact_info) : {};
+      
+      return {
+        id: insurance.id,
+        provider: provider?.name || 'Unknown Provider',
+        policyNumber: insurance.policy_number,
+        ...coverageDetails,
+        contact: contactInfo
+      };
+    });
+  };
+
+  const insurancePlans = getInsurancePlansWithProviders();
   const primaryInsurance = insurancePlans.find(plan => plan.isPrimary);
 
   const handleViewClaim = (claim) => {
@@ -483,11 +532,11 @@ const Insurance = () => {
                       <span className="claim-provider">{claim.provider}</span>
                     </div>
                     <div className="claim-amounts">
-                      <span className="claim-amount">Billed: {formatCurrency(claim.amount)}</span>
+                      <span className="claim-amount">Billed: {formatCurrency(claim.claim_amount)}</span>
                       <span className="claim-paid">Paid: {formatCurrency(claim.paid)}</span>
                     </div>
-                    <span className={`claim-badge ${getClaimStatusBadgeClass(claim.status)}`}>
-                      {claim.status.charAt(0).toUpperCase() + claim.status.slice(1)}
+                    <span className={`claim-badge ${getClaimStatusBadgeClass(claim.claim_status)}`}>
+                      {claim.claim_status.charAt(0).toUpperCase() + claim.claim_status.slice(1)}
                     </span>
                   </div>
                 ))}
@@ -630,13 +679,13 @@ const Insurance = () => {
               {recentClaims.map((claim) => (
                 <div key={claim.id} className="claim-row">
                   <span className="claim-id">{claim.id}</span>
-                  <span className="claim-date">{formatDate(claim.date)}</span>
+                  <span className="claim-date">{formatDate(claim.submitted_on)}</span>
                   <span className="claim-provider">{claim.provider}</span>
                   <span className="claim-service">{claim.service}</span>
-                  <span className="claim-amount">{formatCurrency(claim.amount)}</span>
+                  <span className="claim-amount">{formatCurrency(claim.claim_amount)}</span>
                   <span className="claim-paid">{formatCurrency(claim.paid)}</span>
-                  <span className={`claim-badge ${getClaimStatusBadgeClass(claim.status)}`}>
-                    {claim.status.charAt(0).toUpperCase() + claim.status.slice(1)}
+                  <span className={`claim-badge ${getClaimStatusBadgeClass(claim.claim_status)}`}>
+                    {claim.claim_status.charAt(0).toUpperCase() + claim.claim_status.slice(1)}
                   </span>
                   <div className="claim-actions">
                     <button className="btn btn-outline btn-sm" onClick={() => handleViewClaim(claim)}>
@@ -670,12 +719,9 @@ const Insurance = () => {
                       <label>Insurance Provider *</label>
                       <select required>
                         <option value="">Select Provider</option>
-                        <option value="bcbs">Blue Cross Blue Shield</option>
-                        <option value="aetna">Aetna</option>
-                        <option value="cigna">Cigna</option>
-                        <option value="uhc">UnitedHealthcare</option>
-                        <option value="humana">Humana</option>
-                        <option value="kaiser">Kaiser Permanente</option>
+                        {insuranceProviders.map(provider => (
+                          <option key={provider.id} value={provider.id}>{provider.name}</option>
+                        ))}
                         <option value="other">Other</option>
                       </select>
                     </div>
@@ -795,10 +841,10 @@ const Insurance = () => {
               <div className="claim-details-content">
                 <div className="claim-overview">
                   <div className="claim-status-header">
-                    <span className={`claim-badge ${getClaimStatusBadgeClass(selectedClaim.status)}`}>
-                      {selectedClaim.status.charAt(0).toUpperCase() + selectedClaim.status.slice(1)}
+                    <span className={`claim-badge ${getClaimStatusBadgeClass(selectedClaim.claim_status)}`}>
+                      {selectedClaim.claim_status.charAt(0).toUpperCase() + selectedClaim.claim_status.slice(1)}
                     </span>
-                    <span className="claim-date">Submitted: {formatDate(selectedClaim.date)}</span>
+                    <span className="claim-date">Submitted: {formatDate(selectedClaim.submitted_on)}</span>
                   </div>
                   
                   <div className="claim-summary-grid">
@@ -815,7 +861,7 @@ const Insurance = () => {
                         </div>
                         <div className="info-item">
                           <span className="info-label">Date of Service:</span>
-                          <span className="info-value">{formatDate(selectedClaim.date)}</span>
+                          <span className="info-value">{formatDate(selectedClaim.submitted_on)}</span>
                         </div>
                         <div className="info-item">
                           <span className="info-label">Insurance Plan:</span>
@@ -829,7 +875,7 @@ const Insurance = () => {
                       <div className="financial-breakdown">
                         <div className="financial-item">
                           <span className="financial-label">Amount Billed:</span>
-                          <span className="financial-value">{formatCurrency(selectedClaim.amount)}</span>
+                          <span className="financial-value">{formatCurrency(selectedClaim.claim_amount)}</span>
                         </div>
                         <div className="financial-item">
                           <span className="financial-label">Amount Approved:</span>
@@ -854,28 +900,28 @@ const Insurance = () => {
                         <div className="timeline-dot"></div>
                         <div className="timeline-content">
                           <span className="timeline-title">Claim Submitted</span>
-                          <span className="timeline-date">{formatDate(selectedClaim.date)}</span>
+                          <span className="timeline-date">{formatDate(selectedClaim.submitted_on)}</span>
                         </div>
                       </div>
                       <div className="timeline-item completed">
                         <div className="timeline-dot"></div>
                         <div className="timeline-content">
                           <span className="timeline-title">Claim Received</span>
-                          <span className="timeline-date">{formatDate(selectedClaim.date)}</span>
+                          <span className="timeline-date">{formatDate(selectedClaim.submitted_on)}</span>
                         </div>
                       </div>
                       <div className="timeline-item completed">
                         <div className="timeline-dot"></div>
                         <div className="timeline-content">
                           <span className="timeline-title">Claim Processed</span>
-                          <span className="timeline-date">{formatDate(selectedClaim.date)}</span>
+                          <span className="timeline-date">{formatDate(selectedClaim.submitted_on)}</span>
                         </div>
                       </div>
                       <div className="timeline-item completed">
                         <div className="timeline-dot"></div>
                         <div className="timeline-content">
                           <span className="timeline-title">Payment Issued</span>
-                          <span className="timeline-date">{formatDate(selectedClaim.date)}</span>
+                          <span className="timeline-date">{formatDate(selectedClaim.submitted_on)}</span>
                         </div>
                       </div>
                     </div>
