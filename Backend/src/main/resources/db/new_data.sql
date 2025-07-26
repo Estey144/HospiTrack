@@ -36,7 +36,7 @@ INSERT INTO Users VALUES ('s007', 'Technician Rafiq Ahmed', 'rafiq.ahmed@hospita
 INSERT INTO Users VALUES ('s008', 'Admin Shahana Parvin', 'shahana.parvin@hospital.com', 'password123', '+8801710000048', DATE '2023-01-19', 'admin');
 INSERT INTO Users VALUES ('s009', 'Nurse Rehana Khatun', 'rehana.khatun@hospital.com', 'password123', '+8801710000049', DATE '2023-01-21', 'staff');
 INSERT INTO Users VALUES ('s010', 'Technician Mamun Rahman', 'mamun.rahman@hospital.com', 'password123', '+8801710000050', DATE '2023-01-23', 'staff');
-
+commit;
 -- Additional Branch Contacts
 INSERT INTO Branch_Contacts VALUES ('bc011', 'b008', '+1234567011', 'main');
 INSERT INTO Branch_Contacts VALUES ('bc012', 'b008', '+1234567012', 'emergency');

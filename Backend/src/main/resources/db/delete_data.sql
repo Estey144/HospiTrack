@@ -1,30 +1,43 @@
-DELETE FROM Pres_Med;
-DELETE FROM Bill_Items;
-DELETE FROM Claims;
-DELETE FROM Doctor_Specializations;
-DELETE FROM ChatLogs;
-DELETE FROM VideoSessions;
-DELETE FROM Device_Logs;
-DELETE FROM Audit_Log;
-DELETE FROM Feedback;
-DELETE FROM Symptom_Checker;
-DELETE FROM Lab_Tests;
-DELETE FROM Ambulance_Requests;
-DELETE FROM Room_Assignments;
-DELETE FROM Prescriptions;
-DELETE FROM Bills;
-DELETE FROM Appointments;
-DELETE FROM Cabin;
-DELETE FROM Patient_Insurance;
-DELETE FROM Medications;
-DELETE FROM Rooms;
-DELETE FROM Doctors;
-DELETE FROM Staff;
-DELETE FROM Patients;
-DELETE FROM Departments;
-DELETE FROM Specializations;
-DELETE FROM Branch_Contacts;
-DELETE FROM Insurance_Providers;
-DELETE FROM Ambulances;
-DELETE FROM Hospital_Branches;
-DELETE FROM Users;
+-- Level 1: Deepest children (no FK dependencies)
+DELETE FROM pres_med;
+DELETE FROM bill_items;
+DELETE FROM doctor_specializations;
+DELETE FROM branch_contacts;
+DELETE FROM cabin;
+
+-- Level 2: Depends on others
+DELETE FROM prescriptions;
+DELETE FROM room_assignments;
+DELETE FROM lab_tests;
+DELETE FROM ambulance_requests;
+DELETE FROM device_logs;
+DELETE FROM videosessions;
+DELETE FROM chatlogs;
+DELETE FROM symptom_checker;
+DELETE FROM feedback;
+DELETE FROM patient_insurance;
+DELETE FROM claims;
+
+-- Level 3: Middle layer
+DELETE FROM appointments;
+DELETE FROM bills;
+
+-- Level 4: References USERS, DOCTORS, PATIENTS
+DELETE FROM doctors;
+DELETE FROM patients;
+DELETE FROM staff;
+DELETE FROM ambulances;
+
+-- Level 5: Less dependent
+DELETE FROM hospital_branches;
+DELETE FROM departments;
+DELETE FROM rooms;
+DELETE FROM insurance_providers;
+DELETE FROM medications;
+DELETE FROM specializations;
+
+-- Level 6: Audit logs (user activity)
+DELETE FROM audit_log;
+
+-- Level 7: Root table
+DELETE FROM users;

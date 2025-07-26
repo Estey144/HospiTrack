@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Date;
 import java.util.List;
-
 @Service
 public class AppointmentService {
 
@@ -23,7 +22,7 @@ public class AppointmentService {
                 appointment.getId(),
                 appointment.getPatientId(),
                 appointment.getDoctorId(),
-                appointment.getAppointmentDate() != null ? new Date(appointment.getAppointmentDate().getTime()) : null,
+                appointment.getAppointmentDate() != null ? new java.sql.Date(appointment.getAppointmentDate().getTime()) : null,
                 appointment.getTimeSlot(),
                 appointment.getType(),
                 appointment.getStatus()
@@ -68,5 +67,21 @@ public class AppointmentService {
     """;
 
         return jdbc.query(sql, new Object[]{patientId}, new BeanPropertyRowMapper<>(AppointmentResponseDTO.class));
+    }
+
+    // New method to get patientId from userId
+    public String getPatientIdByUserId(String userId) {
+        String sql = "SELECT id FROM Patients WHERE user_id = ?";
+        List<String> ids = jdbc.query(sql, new Object[]{userId}, (rs, rowNum) -> rs.getString("id"));
+        return ids.isEmpty() ? null : ids.get(0);
+    }
+
+    // New method to get appointments by userId
+    public List<Appointment> getByUserId(String userId) {
+        String patientId = getPatientIdByUserId(userId);
+        if (patientId == null) {
+            return List.of();
+        }
+        return getByPatientId(patientId);
     }
 }

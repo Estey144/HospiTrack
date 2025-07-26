@@ -61,7 +61,7 @@ const PatientDashboard = () => {
     { path: '/appointments?book=true', label: 'Book Appointment', icon: Calendar, color: 'bg-blue-500 hover:bg-blue-600' },
     { path: '/prescriptions', label: 'View Prescriptions', icon: FileText, color: 'bg-green-500 hover:bg-green-600' },
     { path: '/bills', label: 'Billing Info', icon: DollarSign, color: 'bg-orange-500 hover:bg-orange-600' },
-    { path: '/medical-history', label: 'Medical History', icon: FileText, color: 'bg-purple-500 hover:bg-purple-600' },
+    // Removed Medical History from here to add a custom button below
     { path: '/insurance', label: 'Apply for Insurance', icon: Shield, color: 'bg-teal-500 hover:bg-teal-600' },
     { path: '/ambulance', label: 'Book Ambulance', icon: Ambulance, color: 'bg-red-500 hover:bg-red-600' },
     { path: '/video-sessions', label: 'Join Video Session', icon: Video, color: 'bg-indigo-500 hover:bg-indigo-600' },
@@ -231,6 +231,20 @@ const PatientDashboard = () => {
           <div className="patient-dash-actions-grid">
             {dashboardActions.map((action) => {
               const IconComponent = action.icon;
+
+              if (action.path === '/lab-tests') {
+                return (
+                  <button
+                    key={action.path}
+                    onClick={() => navigate(action.path, { state: { userId: user?.id } })}
+                    className={`patient-dash-action-card ${action.color}`}
+                  >
+                    <IconComponent size={24} className="patient-dash-action-icon" />
+                    <span className="patient-dash-action-label">{action.label}</span>
+                  </button>
+                );
+              }
+
               return (
                 <button
                   key={action.path}
@@ -242,6 +256,15 @@ const PatientDashboard = () => {
                 </button>
               );
             })}
+
+            {/* Custom Medical History button passing userId */}
+            <button
+              onClick={() => navigate('/medical-history', { state: { userId: user?.id } })}
+              className="patient-dash-action-card bg-purple-500 hover:bg-purple-600"
+            >
+              <FileText size={24} className="patient-dash-action-icon" />
+              <span className="patient-dash-action-label">Medical History</span>
+            </button>
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   FlaskConical, 
   ArrowLeft, 
@@ -16,341 +16,82 @@ import {
   TrendingDown, 
   Minus,
   FileText,
-  User,
-  Building,
-  ChevronDown,
-  ChevronUp,
   Info,
-  Activity
+  Activity,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import './LabTests.css';
 
 const LabTests = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const userId = location.state?.userId || null;
+
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [filterDate, setFilterDate] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');  // Not used much but kept for UI consistency
+  const [filterDate, setFilterDate] = useState('all');      // You can remove filters not supported by your data
   const [filterType, setFilterType] = useState('all');
   const [sortBy, setSortBy] = useState('date-desc');
   const [expandedTest, setExpandedTest] = useState(null);
   const [selectedTest, setSelectedTest] = useState(null);
   const [showTestDetails, setShowTestDetails] = useState(false);
   const [loading, setLoading] = useState(true);
-
-  // Mock lab tests data
-  const [labTests] = useState([
-    {
-      id: 'LAB-2024-0156',
-      date: '2024-12-15',
-      orderedBy: 'Dr. Sarah Johnson',
-      department: 'Cardiology',
-      testType: 'Lipid Panel',
-      status: 'completed',
-      priority: 'routine',
-      results: [
-        { 
-          name: 'Total Cholesterol', 
-          value: 185, 
-          unit: 'mg/dL', 
-          normalRange: '< 200', 
-          status: 'normal',
-          trend: 'stable'
-        },
-        { 
-          name: 'LDL Cholesterol', 
-          value: 115, 
-          unit: 'mg/dL', 
-          normalRange: '< 100', 
-          status: 'high',
-          trend: 'up'
-        },
-        { 
-          name: 'HDL Cholesterol', 
-          value: 52, 
-          unit: 'mg/dL', 
-          normalRange: '> 40', 
-          status: 'normal',
-          trend: 'stable'
-        },
-        { 
-          name: 'Triglycerides', 
-          value: 89, 
-          unit: 'mg/dL', 
-          normalRange: '< 150', 
-          status: 'normal',
-          trend: 'down'
-        }
-      ],
-      notes: 'LDL cholesterol slightly elevated. Recommend dietary modifications and follow-up in 3 months.',
-      attachments: ['Lipid Panel Report.pdf', 'Reference Ranges.pdf']
-    },
-    {
-      id: 'LAB-2024-0142',
-      date: '2024-11-28',
-      orderedBy: 'Dr. Michael Chen',
-      department: 'Emergency Medicine',
-      testType: 'Complete Blood Count (CBC)',
-      status: 'completed',
-      priority: 'urgent',
-      results: [
-        { 
-          name: 'White Blood Cells', 
-          value: 7.2, 
-          unit: 'K/μL', 
-          normalRange: '4.0-11.0', 
-          status: 'normal',
-          trend: 'stable'
-        },
-        { 
-          name: 'Red Blood Cells', 
-          value: 4.8, 
-          unit: 'M/μL', 
-          normalRange: '4.2-5.4', 
-          status: 'normal',
-          trend: 'stable'
-        },
-        { 
-          name: 'Hemoglobin', 
-          value: 14.2, 
-          unit: 'g/dL', 
-          normalRange: '12.0-16.0', 
-          status: 'normal',
-          trend: 'up'
-        },
-        { 
-          name: 'Hematocrit', 
-          value: 42.1, 
-          unit: '%', 
-          normalRange: '36.0-46.0', 
-          status: 'normal',
-          trend: 'stable'
-        },
-        { 
-          name: 'Platelets', 
-          value: 285, 
-          unit: 'K/μL', 
-          normalRange: '150-450', 
-          status: 'normal',
-          trend: 'stable'
-        }
-      ],
-      notes: 'All blood count parameters within normal limits. No signs of infection or anemia.',
-      attachments: ['CBC Results.pdf', 'Lab Summary.pdf']
-    },
-    {
-      id: 'LAB-2024-0128',
-      date: '2024-10-10',
-      orderedBy: 'Dr. Emily Rodriguez',
-      department: 'Family Medicine',
-      testType: 'Comprehensive Metabolic Panel',
-      status: 'completed',
-      priority: 'routine',
-      results: [
-        { 
-          name: 'Glucose', 
-          value: 92, 
-          unit: 'mg/dL', 
-          normalRange: '70-99', 
-          status: 'normal',
-          trend: 'stable'
-        },
-        { 
-          name: 'Sodium', 
-          value: 142, 
-          unit: 'mEq/L', 
-          normalRange: '136-145', 
-          status: 'normal',
-          trend: 'stable'
-        },
-        { 
-          name: 'Potassium', 
-          value: 4.1, 
-          unit: 'mEq/L', 
-          normalRange: '3.5-5.0', 
-          status: 'normal',
-          trend: 'stable'
-        },
-        { 
-          name: 'Creatinine', 
-          value: 0.9, 
-          unit: 'mg/dL', 
-          normalRange: '0.6-1.2', 
-          status: 'normal',
-          trend: 'stable'
-        },
-        { 
-          name: 'BUN', 
-          value: 18, 
-          unit: 'mg/dL', 
-          normalRange: '7-20', 
-          status: 'normal',
-          trend: 'stable'
-        }
-      ],
-      notes: 'Metabolic panel shows normal kidney function and electrolyte balance.',
-      attachments: ['Metabolic Panel.pdf']
-    },
-    {
-      id: 'LAB-2024-0089',
-      date: '2024-09-05',
-      orderedBy: 'Dr. Lisa Park',
-      department: 'Endocrinology',
-      testType: 'Thyroid Function Panel',
-      status: 'completed',
-      priority: 'routine',
-      results: [
-        { 
-          name: 'TSH', 
-          value: 2.8, 
-          unit: 'mIU/L', 
-          normalRange: '0.4-4.0', 
-          status: 'normal',
-          trend: 'stable'
-        },
-        { 
-          name: 'Free T4', 
-          value: 1.2, 
-          unit: 'ng/dL', 
-          normalRange: '0.8-1.8', 
-          status: 'normal',
-          trend: 'stable'
-        },
-        { 
-          name: 'Free T3', 
-          value: 3.1, 
-          unit: 'pg/mL', 
-          normalRange: '2.3-4.2', 
-          status: 'normal',
-          trend: 'up'
-        }
-      ],
-      notes: 'Thyroid function is normal. Continue current monitoring schedule.',
-      attachments: ['Thyroid Panel.pdf', 'Trend Analysis.pdf']
-    },
-    {
-      id: 'LAB-2024-0067',
-      date: '2024-08-20',
-      orderedBy: 'Dr. Sarah Johnson',
-      department: 'Cardiology',
-      testType: 'HbA1c',
-      status: 'pending',
-      priority: 'routine',
-      results: [],
-      notes: 'Test ordered for diabetes monitoring. Results pending.',
-      attachments: []
-    }
-  ]);
-
-  const [testCategories] = useState([
-    { name: 'Blood Chemistry', count: 8, color: '#ef4444' },
-    { name: 'Hematology', count: 5, color: '#f59e0b' },
-    { name: 'Endocrinology', count: 4, color: '#10b981' },
-    { name: 'Immunology', count: 3, color: '#3b82f6' },
-    { name: 'Microbiology', count: 2, color: '#8b5cf6' },
-    { name: 'Pathology', count: 1, color: '#ec4899' }
-  ]);
+  const [labTests, setLabTests] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
+    if (!userId) {
       setLoading(false);
-    }, 1000);
+      setError('No user ID provided.');
+      return;
+    }
 
-    return () => clearTimeout(timer);
-  }, []);
+    const fetchLabTests = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch(`http://localhost:8080/api/lab-tests/user/${userId}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (!response.ok) throw new Error('Failed to fetch lab tests');
+        const data = await response.json();
+        setLabTests(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Filter and sort tests
+    fetchLabTests();
+  }, [userId]);
+
+  // Simple search & filter based on available fields
   const filteredTests = labTests
     .filter(test => {
-      const matchesSearch = test.testType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           test.orderedBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           test.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           test.id.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = test.testType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           test.doctorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           test.id?.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesStatus = filterStatus === 'all' || test.status === filterStatus;
-      const matchesType = filterType === 'all' || test.testType.toLowerCase().includes(filterType.toLowerCase());
-      
-      const matchesDate = filterDate === 'all' || (() => {
-        const testDate = new Date(test.date);
-        const now = new Date();
-        const diffTime = now - testDate;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        switch(filterDate) {
-          case '30': return diffDays <= 30;
-          case '90': return diffDays <= 90;
-          case '365': return diffDays <= 365;
-          default: return true;
-        }
-      })();
-
-      return matchesSearch && matchesStatus && matchesType && matchesDate;
+      // Since your backend data doesn't have 'status' or 'date' filters, just ignore those filters
+      return matchesSearch;
     })
     .sort((a, b) => {
       switch(sortBy) {
-        case 'date-desc': return new Date(b.date) - new Date(a.date);
-        case 'date-asc': return new Date(a.date) - new Date(b.date);
-        case 'test-type': return a.testType.localeCompare(b.testType);
-        case 'status': return a.status.localeCompare(b.status);
+        case 'date-desc': return new Date(b.testDate) - new Date(a.testDate);
+        case 'date-asc': return new Date(a.testDate) - new Date(b.testDate);
+        case 'test-type': return (a.testType || '').localeCompare(b.testType || '');
         default: return 0;
       }
     });
 
-  const getStatusIcon = (status) => {
-    switch(status) {
-      case 'completed': return <CheckCircle size={16} />;
-      case 'pending': return <Clock size={16} />;
-      case 'abnormal': return <AlertTriangle size={16} />;
-      default: return <FileText size={16} />;
-    }
-  };
-
-  const getStatusBadgeClass = (status) => {
-    switch(status) {
-      case 'completed': return 'test-badge--success';
-      case 'pending': return 'test-badge--warning';
-      case 'abnormal': return 'test-badge--danger';
-      default: return 'test-badge--default';
-    }
-  };
-
-  const getResultStatusIcon = (status) => {
-    switch(status) {
-      case 'normal': return <CheckCircle size={14} />;
-      case 'high': return <TrendingUp size={14} />;
-      case 'low': return <TrendingDown size={14} />;
-      default: return <Minus size={14} />;
-    }
-  };
-
-  const getResultStatusClass = (status) => {
-    switch(status) {
-      case 'normal': return 'result-status--normal';
-      case 'high': return 'result-status--high';
-      case 'low': return 'result-status--low';
-      default: return 'result-status--default';
-    }
-  };
-
-  const getTrendIcon = (trend) => {
-    switch(trend) {
-      case 'up': return <TrendingUp size={12} />;
-      case 'down': return <TrendingDown size={12} />;
-      case 'stable': return <Minus size={12} />;
-      default: return null;
-    }
-  };
-
-  const getTrendClass = (trend) => {
-    switch(trend) {
-      case 'up': return 'trend--up';
-      case 'down': return 'trend--down';
-      case 'stable': return 'trend--stable';
-      default: return '';
-    }
-  };
-
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -368,17 +109,6 @@ const LabTests = () => {
     setShowTestDetails(true);
   };
 
-  const getAbnormalResults = () => {
-    return labTests
-      .filter(test => test.status === 'completed')
-      .flatMap(test => test.results)
-      .filter(result => result.status !== 'normal').length;
-  };
-
-  const getPendingTests = () => {
-    return labTests.filter(test => test.status === 'pending').length;
-  };
-
   if (loading) {
     return (
       <div className="lab-tests-page">
@@ -386,6 +116,14 @@ const LabTests = () => {
           <div className="loading-spinner"></div>
           <p>Loading lab test results...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="lab-tests-page">
+        <p className="error-message">{error}</p>
       </div>
     );
   }
@@ -418,66 +156,6 @@ const LabTests = () => {
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="lab-quick-stats">
-        <div className="stat-card">
-          <div className="stat-icon">
-            <FlaskConical size={24} />
-          </div>
-          <div className="stat-info">
-            <span className="stat-label">Total Tests</span>
-            <span className="stat-value">{labTests.length}</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">
-            <CheckCircle size={24} />
-          </div>
-          <div className="stat-info">
-            <span className="stat-label">Completed</span>
-            <span className="stat-value">{labTests.filter(t => t.status === 'completed').length}</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">
-            <Clock size={24} />
-          </div>
-          <div className="stat-info">
-            <span className="stat-label">Pending</span>
-            <span className="stat-value">{getPendingTests()}</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">
-            <AlertTriangle size={24} />
-          </div>
-          <div className="stat-info">
-            <span className="stat-label">Abnormal Values</span>
-            <span className="stat-value">{getAbnormalResults()}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Test Categories */}
-      <div className="test-categories">
-        <h3>Test Categories</h3>
-        <div className="categories-grid">
-          {testCategories.map((category, index) => (
-            <div key={index} className="category-card">
-              <div className="category-info">
-                <div className="category-icon" style={{ backgroundColor: category.color }}>
-                  <Activity size={20} />
-                </div>
-                <div className="category-details">
-                  <span className="category-name">{category.name}</span>
-                  <span className="category-count">{category.count} tests</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Controls */}
       <div className="lab-tests-controls">
         <div className="search-box">
@@ -488,49 +166,6 @@ const LabTests = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-        </div>
-        
-        <div className="filters">
-          <div className="filter-group">
-            <Filter size={16} />
-            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-              <option value="all">All Status</option>
-              <option value="completed">Completed</option>
-              <option value="pending">Pending</option>
-              <option value="abnormal">Abnormal</option>
-            </select>
-          </div>
-          
-          <div className="filter-group">
-            <FlaskConical size={16} />
-            <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-              <option value="all">All Types</option>
-              <option value="blood">Blood Tests</option>
-              <option value="chemistry">Chemistry</option>
-              <option value="thyroid">Thyroid</option>
-              <option value="lipid">Lipid Panel</option>
-            </select>
-          </div>
-          
-          <div className="filter-group">
-            <Calendar size={16} />
-            <select value={filterDate} onChange={(e) => setFilterDate(e.target.value)}>
-              <option value="all">All Dates</option>
-              <option value="30">Last 30 days</option>
-              <option value="90">Last 3 months</option>
-              <option value="365">Last year</option>
-            </select>
-          </div>
-          
-          <div className="filter-group">
-            <Info size={16} />
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-              <option value="date-desc">Newest First</option>
-              <option value="date-asc">Oldest First</option>
-              <option value="test-type">By Test Type</option>
-              <option value="status">By Status</option>
-            </select>
-          </div>
         </div>
       </div>
 
@@ -550,47 +185,30 @@ const LabTests = () => {
                   <div className="test-title-row">
                     <div className="test-id-status">
                       <span className="test-id">{test.id}</span>
-                      <span className={`test-badge ${getStatusBadgeClass(test.status)}`}>
-                        {getStatusIcon(test.status)}
-                        {test.status.charAt(0).toUpperCase() + test.status.slice(1)}
-                      </span>
+                      <span className="test-badge--default">No status</span>
                     </div>
-                    <span className="test-date">{formatDate(test.date)}</span>
+                    <span className="test-date">{formatDate(test.testDate)}</span>
                   </div>
                   <div className="test-details-row">
                     <div className="test-info">
                       <h3 className="test-type">{test.testType}</h3>
                       <div className="test-meta">
-                        <span className="ordered-by">Ordered by {test.orderedBy}</span>
-                        <span className="department">{test.department}</span>
+                        <span className="ordered-by">Doctor: {test.doctorName || 'N/A'}</span>
                       </div>
                     </div>
-                    {test.results.length > 0 && (
-                      <div className="test-summary">
-                        <span className="result-count">{test.results.length} parameters</span>
-                        {test.results.some(r => r.status !== 'normal') && (
-                          <span className="abnormal-indicator">
-                            <AlertTriangle size={14} />
-                            {test.results.filter(r => r.status !== 'normal').length} abnormal
-                          </span>
-                        )}
-                      </div>
-                    )}
                   </div>
                 </div>
                 <div className="test-actions">
-                  {test.status === 'completed' && (
-                    <button 
-                      className="btn btn-outline btn-sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleViewTest(test);
-                      }}
-                    >
-                      <Eye size={14} />
-                      View Details
-                    </button>
-                  )}
+                  <button 
+                    className="btn btn-outline btn-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleViewTest(test);
+                    }}
+                  >
+                    <Eye size={14} />
+                    View Details
+                  </button>
                   <div className="test-expand-button">
                     {expandedTest === test.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                   </div>
@@ -599,77 +217,16 @@ const LabTests = () => {
 
               {expandedTest === test.id && (
                 <div className="test-details">
-                  {test.results.length > 0 ? (
-                    <div className="results-section">
-                      <h4>Test Results</h4>
-                      <div className="results-table">
-                        <div className="results-header">
-                          <span>Parameter</span>
-                          <span>Value</span>
-                          <span>Normal Range</span>
-                          <span>Status</span>
-                          <span>Trend</span>
-                        </div>
-                        {test.results.map((result, index) => (
-                          <div key={index} className="result-row">
-                            <span className="result-name">{result.name}</span>
-                            <span className="result-value">
-                              {result.value} {result.unit}
-                            </span>
-                            <span className="result-range">{result.normalRange}</span>
-                            <span className={`result-status ${getResultStatusClass(result.status)}`}>
-                              {getResultStatusIcon(result.status)}
-                              {result.status}
-                            </span>
-                            <span className={`result-trend ${getTrendClass(result.trend)}`}>
-                              {getTrendIcon(result.trend)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="pending-results">
-                      <Clock size={24} />
-                      <span>Results pending - will be available once test is completed</span>
-                    </div>
-                  )}
-
-                  {test.notes && (
-                    <div className="notes-section">
-                      <h4>Clinical Notes</h4>
-                      <p className="test-notes">{test.notes}</p>
-                    </div>
-                  )}
-
-                  {test.attachments.length > 0 && (
-                    <div className="attachments-section">
-                      <h4>Reports & Documents</h4>
-                      <div className="attachments-list">
-                        {test.attachments.map((attachment, index) => (
-                          <button key={index} className="attachment-item">
-                            <FileText size={16} />
-                            <span>{attachment}</span>
-                            <Download size={14} />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="test-detail-actions">
-                    <button className="btn btn-outline">
-                      <Download size={16} />
-                      Download Report
-                    </button>
-                    {test.status === 'completed' && (
-                      <button 
-                        className="btn btn-primary"
-                        onClick={() => handleViewTest(test)}
-                      >
-                        <Eye size={16} />
-                        View Full Results
-                      </button>
+                  <div className="summary-section">
+                    <p><strong>Result:</strong> {test.result || 'Not available'}</p>
+                    <p><strong>Test Date:</strong> {formatDate(test.testDate)}</p>
+                    <p><strong>Doctor:</strong> {test.doctorName || 'N/A'}</p>
+                    {test.fileUrl && (
+                      <p>
+                        <a href={test.fileUrl} target="_blank" rel="noopener noreferrer" className="report-link">
+                          View Report
+                        </a>
+                      </p>
                     )}
                   </div>
                 </div>
@@ -697,77 +254,28 @@ const LabTests = () => {
                     </div>
                     <div className="overview-item">
                       <span className="overview-label">Date:</span>
-                      <span className="overview-value">{formatDate(selectedTest.date)}</span>
+                      <span className="overview-value">{formatDate(selectedTest.testDate)}</span>
                     </div>
                     <div className="overview-item">
                       <span className="overview-label">Ordered by:</span>
-                      <span className="overview-value">{selectedTest.orderedBy}</span>
+                      <span className="overview-value">{selectedTest.doctorName || 'N/A'}</span>
                     </div>
                     <div className="overview-item">
-                      <span className="overview-label">Department:</span>
-                      <span className="overview-value">{selectedTest.department}</span>
+                      <span className="overview-label">Result:</span>
+                      <span className="overview-value">{selectedTest.result || 'Not available'}</span>
                     </div>
-                    <div className="overview-item">
-                      <span className="overview-label">Status:</span>
-                      <span className={`test-badge ${getStatusBadgeClass(selectedTest.status)}`}>
-                        {getStatusIcon(selectedTest.status)}
-                        {selectedTest.status.charAt(0).toUpperCase() + selectedTest.status.slice(1)}
-                      </span>
-                    </div>
+                    {selectedTest.fileUrl && (
+                      <div className="overview-item">
+                        <span className="overview-label">Report:</span>
+                        <span className="overview-value">
+                          <a href={selectedTest.fileUrl} target="_blank" rel="noopener noreferrer">
+                            View Report
+                          </a>
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
-
-                {selectedTest.results.length > 0 && (
-                  <div className="detailed-results">
-                    <h4>Detailed Results</h4>
-                    <div className="detailed-results-grid">
-                      {selectedTest.results.map((result, index) => (
-                        <div key={index} className="detailed-result-card">
-                          <div className="result-header">
-                            <span className="result-parameter">{result.name}</span>
-                            <span className={`result-status-indicator ${getResultStatusClass(result.status)}`}>
-                              {getResultStatusIcon(result.status)}
-                            </span>
-                          </div>
-                          <div className="result-content">
-                            <div className="result-value-section">
-                              <span className="result-main-value">{result.value}</span>
-                              <span className="result-unit">{result.unit}</span>
-                            </div>
-                            <div className="result-info">
-                              <div className="result-info-item">
-                                <span className="info-label">Normal Range:</span>
-                                <span className="info-value">{result.normalRange}</span>
-                              </div>
-                              <div className="result-info-item">
-                                <span className="info-label">Status:</span>
-                                <span className={`info-value ${getResultStatusClass(result.status)}`}>
-                                  {result.status.charAt(0).toUpperCase() + result.status.slice(1)}
-                                </span>
-                              </div>
-                              <div className="result-info-item">
-                                <span className="info-label">Trend:</span>
-                                <span className={`info-value ${getTrendClass(result.trend)}`}>
-                                  {getTrendIcon(result.trend)}
-                                  {result.trend}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {selectedTest.notes && (
-                  <div className="detailed-notes">
-                    <h4>Clinical Interpretation</h4>
-                    <div className="notes-content">
-                      <p>{selectedTest.notes}</p>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
             <div className="modal-footer">
