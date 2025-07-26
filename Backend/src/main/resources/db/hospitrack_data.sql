@@ -13,34 +13,36 @@ INSERT INTO Users VALUES ('u008', 'dr. mariam faruqui', 'mariam.faruqi@hospital.
 INSERT INTO Users VALUES ('u009', 'dr. habibur rahman', 'rahman.habib@hospital.com', 'password123', '+1234567898', DATE '2023-04-15', 'doctor');
 INSERT INTO Users VALUES ('u010', 'dr. laila arjumana banu', 'laila.banu@hospital.com', 'password123', '+1234567899', DATE '2023-05-01', 'doctor');
 
-INSERT INTO Users VALUES ('u011', 'Alice Thompson', 'alice.thompson@email.com', 'password123', '+1234567900', DATE '2023-01-10', 'patient');
-INSERT INTO Users VALUES ('u012', 'Bob Rodriguez', 'bob.rodriguez@email.com', 'password123', '+1234567901', DATE '2023-01-12', 'patient');
-INSERT INTO Users VALUES ('u013', 'Carol Williams', 'carol.williams@email.com', 'password123', '+1234567902', DATE '2023-01-14', 'patient');
-INSERT INTO Users VALUES ('u014', 'Daniel Garcia', 'daniel.garcia@email.com', 'password123', '+1234567903', DATE '2023-01-16', 'patient');
-INSERT INTO Users VALUES ('u015', 'Eva Martinez', 'eva.martinez@email.com', 'password123', '+1234567904', DATE '2023-01-18', 'patient');
-INSERT INTO Users VALUES ('u016', 'Frank Johnson', 'frank.johnson@email.com', 'password123', '+1234567905', DATE '2023-01-20', 'patient');
-INSERT INTO Users VALUES ('u017', 'Grace Miller', 'grace.miller@email.com', 'password123', '+1234567906', DATE '2023-01-22', 'patient');
-INSERT INTO Users VALUES ('u018', 'Henry Davis', 'henry.davis@email.com', 'password123', '+1234567907', DATE '2023-01-24', 'patient');
-INSERT INTO Users VALUES ('u019', 'Ivy Wilson', 'ivy.wilson@email.com', 'password123', '+1234567908', DATE '2023-01-26', 'patient');
-INSERT INTO Users VALUES ('u020', 'Jack Brown', 'jack.brown@email.com', 'password123', '+1234567909', DATE '2023-01-28', 'patient');
+-- Bangladeshi Patients (Users)
+INSERT INTO Users VALUES ('u011', 'Anika Rahman', 'anika.rahman@mail.com', 'password123', '+8801710000001', DATE '2023-01-10', 'patient');
+INSERT INTO Users VALUES ('u012', 'Rafiul Islam', 'rafiul.islam@mail.com', 'password123', '+8801710000002', DATE '2023-01-12', 'patient');
+INSERT INTO Users VALUES ('u013', 'Mehnaz Kabir', 'mehnaz.kabir@mail.com', 'password123', '+8801710000003', DATE '2023-01-14', 'patient');
+INSERT INTO Users VALUES ('u014', 'Tanvir Ahmed', 'tanvir.ahmed@mail.com', 'password123', '+8801710000004', DATE '2023-01-16', 'patient');
+INSERT INTO Users VALUES ('u015', 'Shabnam Yasmin', 'shabnam.yasmin@mail.com', 'password123', '+8801710000005', DATE '2023-01-18', 'patient');
+INSERT INTO Users VALUES ('u016', 'Nazmul Huda', 'nazmul.huda@mail.com', 'password123', '+8801710000006', DATE '2023-01-20', 'patient');
+INSERT INTO Users VALUES ('u017', 'Farzana Haque', 'farzana.haque@mail.com', 'password123', '+8801710000007', DATE '2023-01-22', 'patient');
+INSERT INTO Users VALUES ('u018', 'Shafiq Rahman', 'shafiq.rahman@mail.com', 'password123', '+8801710000008', DATE '2023-01-24', 'patient');
+INSERT INTO Users VALUES ('u019', 'Jannatul Ferdous', 'jannatul.ferdous@mail.com', 'password123', '+8801710000009', DATE '2023-01-26', 'patient');
+INSERT INTO Users VALUES ('u020', 'Hasibul Hasan', 'hasibul.hasan@mail.com', 'password123', '+8801710000010', DATE '2023-01-28', 'patient');
 
-INSERT INTO Users VALUES ('s001', 'Nurse Nancy Green', 'nancy.green@hospital.com', 'password123', '+1234567910', DATE '2023-01-05', 'staff');
-INSERT INTO Users VALUES ('s002', 'Alex Blue', 'alex.blue@hospital.com', 'password123', '+1234567911', DATE '2023-01-07', 'admin');
-INSERT INTO Users VALUES ('s003', 'Tech Tom Red', 'tom.red@hospital.com', 'password123', '+1234567912', DATE '2023-01-09', 'staff');
-INSERT INTO Users VALUES ('s004', 'Nurse Nina Yellow', 'nina.yellow@hospital.com', 'password123', '+1234567913', DATE '2023-01-11', 'staff');
-INSERT INTO Users VALUES ('s005', 'Anna Purple', 'anna.purple@hospital.com', 'password123', '+1234567914', DATE '2023-01-13', 'admin');
+-- Bangladeshi Staff/Admins
+INSERT INTO Users VALUES ('s001', 'Nurse Nusrat Jahan', 'nusrat.jahan@hospital.com', 'password123', '+8801710000011', DATE '2023-01-05', 'staff');
+INSERT INTO Users VALUES ('s002', 'Sabbir Hossain', 'sabbir.hossain@hospital.com', 'password123', '+8801710000012', DATE '2023-01-07', 'admin');
+INSERT INTO Users VALUES ('s003', 'Technician Tanim Rahman', 'tanim.rahman@hospital.com', 'password123', '+8801710000013', DATE '2023-01-09', 'staff');
+INSERT INTO Users VALUES ('s004', 'Nurse Nabila Sultana', 'nabila.sultana@hospital.com', 'password123', '+8801710000014', DATE '2023-01-11', 'staff');
+INSERT INTO Users VALUES ('s005', 'Admin Ayesha Akter', 'ayesha.akter@hospital.com', 'password123', '+8801710000015', DATE '2023-01-13', 'admin');
 
 -- 2. Hospital Branches
-INSERT INTO Hospital_Branches VALUES ('b001', 'Main Hospital Branch', '123 Medical Center Drive, City A', DATE '2020-01-01');
-INSERT INTO Hospital_Branches VALUES ('b002', 'North Branch', '456 North Street, City B', DATE '2021-03-15');
-INSERT INTO Hospital_Branches VALUES ('b003', 'South Branch', '789 South Avenue, City C', DATE '2021-06-20');
-INSERT INTO Hospital_Branches VALUES ('b004', 'East Branch', '321 East Road, City D', DATE '2022-01-10');
-INSERT INTO Hospital_Branches VALUES ('b005', 'West Branch', '654 West Boulevard, City E', DATE '2022-04-25');
-INSERT INTO Hospital_Branches VALUES ('b006', 'Central Branch', '987 Central Plaza, City F', DATE '2022-07-30');
-INSERT INTO Hospital_Branches VALUES ('b007', 'Downtown Branch', '147 Downtown Square, City G', DATE '2022-10-15');
-INSERT INTO Hospital_Branches VALUES ('b008', 'Suburban Branch', '258 Suburban Lane, City H', DATE '2023-01-20');
-INSERT INTO Hospital_Branches VALUES ('b009', 'Metropolitan Branch', '369 Metro Center, City I', DATE '2023-04-05');
-INSERT INTO Hospital_Branches VALUES ('b010', 'Community Branch', '741 Community Circle, City J', DATE '2023-07-12');
+INSERT INTO Hospital_Branches VALUES ('b001', 'Dhaka Medical Branch', 'Azimpur, Dhaka', DATE '2020-01-01');
+INSERT INTO Hospital_Branches VALUES ('b002', 'Mirpur Branch', 'Mirpur-10, Dhaka', DATE '2021-03-15');
+INSERT INTO Hospital_Branches VALUES ('b003', 'Gulshan Branch', 'Gulshan-2, Dhaka', DATE '2021-06-20');
+INSERT INTO Hospital_Branches VALUES ('b004', 'Rajshahi Branch', 'Kazla, Rajshahi', DATE '2022-01-10');
+INSERT INTO Hospital_Branches VALUES ('b005', 'Chattogram General Branch', 'Andarkilla, Chattogram', DATE '2022-04-25');
+INSERT INTO Hospital_Branches VALUES ('b006', 'Sylhet Central Branch', 'Zindabazar, Sylhet', DATE '2022-07-30');
+INSERT INTO Hospital_Branches VALUES ('b007', 'Khulna Hospital Branch', 'Shibbari, Khulna', DATE '2022-10-15');
+INSERT INTO Hospital_Branches VALUES ('b008', 'Uttara Community Branch', 'Sector 10, Uttara, Dhaka', DATE '2023-01-20');
+INSERT INTO Hospital_Branches VALUES ('b009', 'Rangpur Medical Branch', 'Rangpur Sadar, Rangpur', DATE '2023-04-05');
+INSERT INTO Hospital_Branches VALUES ('b010', 'Barisal City Branch', 'Nathullabad, Barisal', DATE '2023-07-12');
 
 -- 3. Branch Contacts
 INSERT INTO Branch_Contacts VALUES ('bc001', 'b001', '+1234567001', 'main');
@@ -91,16 +93,16 @@ INSERT INTO Doctors VALUES ('doc009', 'u009', 'b006', 'MD12353', 13, '10:00 AM -
 INSERT INTO Doctors VALUES ('doc010', 'u010', 'b007', 'MD12354', 9, '8:00 AM - 4:00 PM', 'd010', 'https://labaid.com.bd/files/images/1700980412.jpg');
 
 -- 7. Patients
-INSERT INTO Patients VALUES ('p001', 'u011', DATE '1990-05-15', 'Female', 'A+', '123 Oak Street, City A', '+1234567920');
-INSERT INTO Patients VALUES ('p002', 'u012', DATE '1985-08-22', 'Male', 'B+', '456 Pine Avenue, City B', '+1234567921');
-INSERT INTO Patients VALUES ('p003', 'u013', DATE '1992-12-03', 'Female', 'O-', '789 Maple Drive, City C', '+1234567922');
-INSERT INTO Patients VALUES ('p004', 'u014', DATE '1988-03-17', 'Male', 'AB+', '321 Elm Street, City D', '+1234567923');
-INSERT INTO Patients VALUES ('p005', 'u015', DATE '1995-09-08', 'Female', 'A-', '654 Cedar Lane, City E', '+1234567924');
-INSERT INTO Patients VALUES ('p006', 'u016', DATE '1983-06-25', 'Male', 'B-', '987 Birch Road, City F', '+1234567925');
-INSERT INTO Patients VALUES ('p007', 'u017', DATE '1991-11-12', 'Female', 'O+', '147 Walnut Avenue, City G', '+1234567926');
-INSERT INTO Patients VALUES ('p008', 'u018', DATE '1987-04-30', 'Male', 'AB-', '258 Cherry Street, City H', '+1234567927');
-INSERT INTO Patients VALUES ('p009', 'u019', DATE '1993-07-18', 'Female', 'A+', '369 Hickory Drive, City I', '+1234567928');
-INSERT INTO Patients VALUES ('p010', 'u020', DATE '1989-10-05', 'Male', 'B+', '741 Ash Lane, City J', '+1234567929');
+INSERT INTO Patients VALUES ('p001', 'u011', DATE '1990-05-15', 'Female', 'A+', '23/B Dhanmondi, Dhaka', '+8801711000001');
+INSERT INTO Patients VALUES ('p002', 'u012', DATE '1987-08-22', 'Male', 'B+', '88 Mirpur Road, Dhaka', '+8801711000002');
+INSERT INTO Patients VALUES ('p003', 'u013', DATE '1994-12-03', 'Female', 'O-', '5 Gulshan-2, Dhaka', '+8801711000003');
+INSERT INTO Patients VALUES ('p004', 'u014', DATE '1989-03-17', 'Male', 'AB+', '9/A Kazla, Rajshahi', '+8801711000004');
+INSERT INTO Patients VALUES ('p005', 'u015', DATE '1996-09-08', 'Female', 'A-', '13 Sholoshohor, Chattogram', '+8801711000005');
+INSERT INTO Patients VALUES ('p006', 'u016', DATE '1985-06-25', 'Male', 'B-', '11 Airport Road, Sylhet', '+8801711000006');
+INSERT INTO Patients VALUES ('p007', 'u017', DATE '1992-11-12', 'Female', 'O+', 'Plot-7, Khulshi, Chattogram', '+8801711000007');
+INSERT INTO Patients VALUES ('p008', 'u018', DATE '1986-04-30', 'Male', 'AB-', 'House 22, Rangpur Sadar', '+8801711000008');
+INSERT INTO Patients VALUES ('p009', 'u019', DATE '1993-07-18', 'Female', 'A+', 'Sector 10, Uttara, Dhaka', '+8801711000009');
+INSERT INTO Patients VALUES ('p010', 'u020', DATE '1991-10-05', 'Male', 'B+', 'Modhubag, Moghbazar, Dhaka', '+8801711000010');
 
 -- 8. Rooms
 INSERT INTO Rooms VALUES ('r001', '101', 'Standard', 'Available');
@@ -271,16 +273,16 @@ INSERT INTO Ambulances VALUES ('amb009', 'AMB-009', 'In Transit', 'Metropolitan 
 INSERT INTO Ambulances VALUES ('amb010', 'AMB-010', 'Available', 'Community Branch', 'b010');
 
 -- 22. Ambulance Requests
-INSERT INTO Ambulance_Requests VALUES ('ar001', 'p001', 'amb001', DATE '2024-01-15', '123 Oak Street', 'Main Hospital', 'Completed');
-INSERT INTO Ambulance_Requests VALUES ('ar002', 'p002', 'amb002', DATE '2024-01-16', '456 Pine Avenue', 'North Branch', 'In Progress');
-INSERT INTO Ambulance_Requests VALUES ('ar003', 'p003', 'amb003', DATE '2024-01-17', '789 Maple Drive', 'South Branch', 'Completed');
-INSERT INTO Ambulance_Requests VALUES ('ar004', 'p004', 'amb005', DATE '2024-01-18', '321 Elm Street', 'West Branch', 'Cancelled');
-INSERT INTO Ambulance_Requests VALUES ('ar005', 'p005', 'amb007', DATE '2024-01-19', '654 Cedar Lane', 'Downtown Branch', 'Completed');
-INSERT INTO Ambulance_Requests VALUES ('ar006', 'p006', 'amb006', DATE '2024-01-20', '987 Birch Road', 'Central Branch', 'In Progress');
-INSERT INTO Ambulance_Requests VALUES ('ar007', 'p007', 'amb008', DATE '2024-01-21', '147 Walnut Avenue', 'Suburban Branch', 'Completed');
-INSERT INTO Ambulance_Requests VALUES ('ar008', 'p008', 'amb009', DATE '2024-01-22', '258 Cherry Street', 'Metropolitan Branch', 'In Progress');
-INSERT INTO Ambulance_Requests VALUES ('ar009', 'p009', 'amb010', DATE '2024-01-23', '369 Hickory Drive', 'Community Branch', 'Pending');
-INSERT INTO Ambulance_Requests VALUES ('ar010', 'p010', 'amb001', DATE '2024-01-24', '741 Ash Lane', 'Main Hospital', 'Completed');
+INSERT INTO Ambulance_Requests VALUES ('ar001', 'p001', 'amb001', DATE '2024-01-15', '23/B Dhanmondi, Dhaka', 'Dhaka Medical Branch', 'Completed');
+INSERT INTO Ambulance_Requests VALUES ('ar002', 'p002', 'amb002', DATE '2024-01-16', '88 Mirpur Road, Dhaka', 'Mirpur Branch', 'In Progress');
+INSERT INTO Ambulance_Requests VALUES ('ar003', 'p003', 'amb003', DATE '2024-01-17', '5 Gulshan-2, Dhaka', 'Gulshan Branch', 'Completed');
+INSERT INTO Ambulance_Requests VALUES ('ar004', 'p004', 'amb005', DATE '2024-01-18', '9/A Kazla, Rajshahi', 'Rajshahi Medical Branch', 'Cancelled');
+INSERT INTO Ambulance_Requests VALUES ('ar005', 'p005', 'amb007', DATE '2024-01-19', '13 Sholoshohor, Chattogram', 'Chattogram General Branch', 'Completed');
+INSERT INTO Ambulance_Requests VALUES ('ar006', 'p006', 'amb006', DATE '2024-01-20', '11 Airport Road, Sylhet', 'Sylhet Central Branch', 'In Progress');
+INSERT INTO Ambulance_Requests VALUES ('ar007', 'p007', 'amb008', DATE '2024-01-21', 'Plot-7, Khulshi, Chattogram', 'Khulshi Sub-Branch', 'Completed');
+INSERT INTO Ambulance_Requests VALUES ('ar008', 'p008', 'amb009', DATE '2024-01-22', 'House 22, Rangpur Sadar', 'Rangpur Medical Branch', 'In Progress');
+INSERT INTO Ambulance_Requests VALUES ('ar009', 'p009', 'amb010', DATE '2024-01-23', 'Sector 10, Uttara, Dhaka', 'Uttara Community Branch', 'Pending');
+INSERT INTO Ambulance_Requests VALUES ('ar010', 'p010', 'amb001', DATE '2024-01-24', 'Modhubag, Moghbazar, Dhaka', 'Dhaka Medical Branch', 'Completed');
 
 -- 23. Device Logs
 INSERT INTO Device_Logs VALUES ('dl001', 'p001', 'Blood Pressure Monitor', 'Systolic', '120', DATE '2024-01-15');
@@ -343,16 +345,16 @@ INSERT INTO Feedback VALUES ('f009', 'p009', 'staff', 'st009', 5, 'Surgery team 
 INSERT INTO Feedback VALUES ('f010', 'p004', 'hospital', 'b002', 2, 'Long waiting times, needs improvement', DATE '2024-01-19');
 
 -- 28. Insurance Providers
-INSERT INTO Insurance_Providers VALUES ('ip001', 'HealthFirst Insurance', 'contact@healthfirst.com, +1-800-111-1111');
-INSERT INTO Insurance_Providers VALUES ('ip002', 'MediCare Plus', 'info@medicareplus.com, +1-800-222-2222');
-INSERT INTO Insurance_Providers VALUES ('ip003', 'United Health Group', 'support@uhg.com, +1-800-333-3333');
-INSERT INTO Insurance_Providers VALUES ('ip004', 'Blue Cross Shield', 'service@bcbs.com, +1-800-444-4444');
-INSERT INTO Insurance_Providers VALUES ('ip005', 'Aetna Insurance', 'help@aetna.com, +1-800-555-5555');
-INSERT INTO Insurance_Providers VALUES ('ip006', 'Cigna Healthcare', 'contact@cigna.com, +1-800-666-6666');
-INSERT INTO Insurance_Providers VALUES ('ip007', 'Humana Insurance', 'info@humana.com, +1-800-777-7777');
-INSERT INTO Insurance_Providers VALUES ('ip008', 'Kaiser Permanente', 'support@kp.com, +1-800-888-8888');
-INSERT INTO Insurance_Providers VALUES ('ip009', 'Anthem Insurance', 'service@anthem.com, +1-800-999-9999');
-INSERT INTO Insurance_Providers VALUES ('ip010', 'MetLife Health', 'help@metlife.com, +1-800-101-1010');
+INSERT INTO Insurance_Providers VALUES ('ip001', 'Guardian Life Insurance Ltd.', 'contact@guardianlife.com.bd, +8809609001234');
+INSERT INTO Insurance_Providers VALUES ('ip002', 'Pragati Life Insurance Ltd.', 'info@pragatilife.com.bd, +8809612005678');
+INSERT INTO Insurance_Providers VALUES ('ip003', 'Popular Life Insurance Co. Ltd.', 'support@popularlife.com.bd, +8809612345678');
+INSERT INTO Insurance_Providers VALUES ('ip004', 'MetLife Bangladesh', 'service@metlife.com.bd, +8809612333444');
+INSERT INTO Insurance_Providers VALUES ('ip005', 'Delta Life Insurance Co. Ltd.', 'help@deltalife.com.bd, +8809612555666');
+INSERT INTO Insurance_Providers VALUES ('ip006', 'Jiban Bima Corporation', 'contact@jbc.gov.bd, +8809612111222');
+INSERT INTO Insurance_Providers VALUES ('ip007', 'National Life Insurance Co. Ltd.', 'info@nlicl.com.bd, +8809612888999');
+INSERT INTO Insurance_Providers VALUES ('ip008', 'Sandhani Life Insurance Co. Ltd.', 'support@sandhanilife.com.bd, +8809612777888');
+INSERT INTO Insurance_Providers VALUES ('ip009', 'Rupali Life Insurance Co. Ltd.', 'service@rupalilife.com.bd, +8809612444555');
+INSERT INTO Insurance_Providers VALUES ('ip010', 'Sunlife Insurance Co. Ltd.', 'help@sunlife.com.bd, +8809612999000');
 
 -- 29. Patient Insurance
 INSERT INTO Patient_Insurance VALUES ('pi001', 'p001', 'ip001', 'HF123456789', 'Full coverage including emergency care, surgery, and medications');
