@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { 
   Receipt, 
   ArrowLeft, 
@@ -25,8 +25,48 @@ import {
 } from 'lucide-react';
 import './Bills.css';
 
-const Bills = () => {
+const Bills = ({ currentUser }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  
+  // Get user from multiple sources with priority order
+  const getUserFromParams = () => {
+    // 1. From navigation state (highest priority)
+    if (location.state?.user) return location.state.user;
+    
+    // 2. From URL parameters
+    const userIdFromParams = searchParams.get('userId');
+    if (userIdFromParams) {
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (storedUser.id === userIdFromParams) return storedUser;
+    }
+    
+    // 3. From props
+    if (currentUser) return currentUser;
+    
+    // 4. From localStorage (fallback)
+    return JSON.parse(localStorage.getItem('user') || '{}');
+  };
+
+  const [user, setUser] = useState(getUserFromParams());
+  
+  // Debug logging to verify user ID is received
+  useEffect(() => {
+    console.log('Bills page - User ID from params:', searchParams.get('userId'));
+    console.log('Bills page - User from state:', location.state?.user);
+    console.log('Bills page - Current user:', user);
+  }, [searchParams, location.state, user]);
+
+  // Update user state when navigation state or URL params change
+  useEffect(() => {
+    const newUser = getUserFromParams();
+    if (newUser && newUser.id !== user?.id) {
+      setUser(newUser);
+      console.log('Bills page - User updated:', newUser);
+    }
+  }, [location.state, searchParams]);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterDate, setFilterDate] = useState('all');
@@ -36,10 +76,11 @@ const Bills = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Mock bills data
+  // Mock bills data - would normally be fetched based on user ID
   const [bills] = useState([
     {
       id: 'INV-2024-0087',
+      patientId: user?.id || 'PAT-001', // Use actual user ID
       date: '2024-12-15',
       dueDate: '2025-01-15',
       status: 'pending',
@@ -68,6 +109,7 @@ const Bills = () => {
     },
     {
       id: 'INV-2024-0078',
+      patientId: user?.id || 'PAT-001', // Use actual user ID
       date: '2024-11-28',
       dueDate: '2024-12-28',
       status: 'paid',
@@ -100,6 +142,7 @@ const Bills = () => {
     },
     {
       id: 'INV-2024-0065',
+      patientId: user?.id || 'PAT-001', // Use actual user ID
       date: '2024-10-10',
       dueDate: '2024-11-10',
       status: 'overdue',
@@ -129,6 +172,7 @@ const Bills = () => {
     },
     {
       id: 'INV-2024-0052',
+      patientId: user?.id || 'PAT-001', // Use actual user ID
       date: '2024-09-05',
       dueDate: '2024-10-05',
       status: 'paid',
@@ -273,11 +317,11 @@ const Bills = () => {
       <div className="bills-header">
         <div className="bills-header-left">
           <div className="navigation-buttons">
-            <button className="bills-nav-button bills-nav-button--secondary" onClick={() => navigate('/patient-dashboard')}>
+            <button className="bills-nav-button bills-nav-button--secondary" onClick={() => navigate('/patient-dashboard', { state: { user } })}>
               <ArrowLeft size={16} />
               Patient Dashboard
             </button>
-            <button className="bills-nav-button bills-nav-button--outline" onClick={() => navigate('/')}>
+            <button className="bills-nav-button bills-nav-button--outline" onClick={() => navigate('/', { state: { user } })}>
               <Home size={16} />
               Home
             </button>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { 
   Home, 
   ArrowLeft,
@@ -18,8 +18,47 @@ import {
 } from 'lucide-react';
 import './AmbulanceRequest.css';
 
-const AmbulanceRequest = () => {
+const AmbulanceRequest = ({ currentUser }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  
+  // Get user from multiple sources with priority order
+  const getUserFromParams = () => {
+    // 1. From navigation state (highest priority)
+    if (location.state?.user) return location.state.user;
+    
+    // 2. From URL parameters
+    const userIdFromParams = searchParams.get('userId');
+    if (userIdFromParams) {
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (storedUser.id === userIdFromParams) return storedUser;
+    }
+    
+    // 3. From props
+    if (currentUser) return currentUser;
+    
+    // 4. From localStorage (fallback)
+    return JSON.parse(localStorage.getItem('user') || '{}');
+  };
+
+  const [user, setUser] = useState(getUserFromParams());
+  
+  // Debug logging to verify user ID is received
+  useEffect(() => {
+    console.log('AmbulanceRequest page - User ID from params:', searchParams.get('userId'));
+    console.log('AmbulanceRequest page - User from state:', location.state?.user);
+    console.log('AmbulanceRequest page - Current user:', user);
+  }, [searchParams, location.state, user]);
+
+  // Update user state when navigation state or URL params change
+  useEffect(() => {
+    const newUser = getUserFromParams();
+    if (newUser && newUser.id !== user?.id) {
+      setUser(newUser);
+      console.log('AmbulanceRequest page - User updated:', newUser);
+    }
+  }, [location.state, searchParams]);
   
   // State management
   const [loading, setLoading] = useState(false);
@@ -28,8 +67,8 @@ const AmbulanceRequest = () => {
   const [myRequests, setMyRequests] = useState([]);
   const [showMyRequests, setShowMyRequests] = useState(false);
   const [formData, setFormData] = useState({
-    patientName: '',
-    patientPhone: '',
+    patientName: user?.name || '',
+    patientPhone: user?.phone || '',
     emergencyContact: '',
     emergencyContactName: '',
     pickupLocation: '',
@@ -41,10 +80,11 @@ const AmbulanceRequest = () => {
     requestedTime: ''
   });
 
-  // Sample patient requests history
+  // Sample patient requests history - would normally be fetched based on user ID
   const getMyRequests = () => [
     {
       id: 'AMB001',
+      patientId: user?.id || 'PAT-001', // Use actual user ID
       requestNumber: 'AMB-2025-001',
       pickupLocation: '123 Main St, Downtown',
       destination: 'City General Hospital',
@@ -56,6 +96,7 @@ const AmbulanceRequest = () => {
     },
     {
       id: 'AMB002',
+      patientId: user?.id || 'PAT-001', // Use actual user ID
       requestNumber: 'AMB-2025-002',
       pickupLocation: '456 Oak Ave, Riverside',
       destination: 'St. Mary\'s Medical Center',
@@ -81,8 +122,21 @@ const AmbulanceRequest = () => {
       }
     };
     
-    fetchMyRequests();
-  }, []);
+    if (user?.id) {
+      fetchMyRequests();
+    }
+  }, [user?.id]);
+
+  // Update form data when user changes
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        patientName: user.name || prev.patientName,
+        patientPhone: user.phone || prev.patientPhone
+      }));
+    }
+  }, [user]);
 
   // Form handlers
   const handleInputChange = (e) => {
@@ -105,6 +159,7 @@ const AmbulanceRequest = () => {
       // Add new request to history
       const newRequest = {
         id: `AMB${String(myRequests.length + 1).padStart(3, '0')}`,
+        patientId: user?.id || 'PAT-001', // Use actual user ID
         requestNumber: `AMB-2025-${String(myRequests.length + 1).padStart(3, '0')}`,
         pickupLocation: formData.pickupLocation,
         destination: formData.destination,
@@ -187,14 +242,14 @@ const AmbulanceRequest = () => {
           <div className="navigation-buttons">
             <button 
               className="nav-button nav-button--secondary"
-              onClick={() => navigate('/patient-dashboard')}
+              onClick={() => navigate('/patient-dashboard', { state: { user } })}
             >
               <ArrowLeft size={16} />
               Patient Dashboard
             </button>
             <button 
               className="nav-button nav-button--outline"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/', { state: { user } })}
             >
               <Home size={16} />
               Home

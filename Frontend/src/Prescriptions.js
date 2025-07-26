@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import {
   Home,
   Search,
@@ -19,8 +19,47 @@ import {
 } from 'lucide-react';
 import './Prescriptions.css';
 
-const Prescriptions = () => {
+const Prescriptions = ({ currentUser }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  
+  // Get user from multiple sources with priority order
+  const getUserFromParams = () => {
+    // 1. From navigation state (highest priority)
+    if (location.state?.user) return location.state.user;
+    
+    // 2. From URL parameters
+    const userIdFromParams = searchParams.get('userId');
+    if (userIdFromParams) {
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (storedUser.id === userIdFromParams) return storedUser;
+    }
+    
+    // 3. From props
+    if (currentUser) return currentUser;
+    
+    // 4. From localStorage (fallback)
+    return JSON.parse(localStorage.getItem('user') || '{}');
+  };
+
+  const [user, setUser] = useState(getUserFromParams());
+  
+  // Debug logging to verify user ID is received
+  useEffect(() => {
+    console.log('Prescriptions page - User ID from params:', searchParams.get('userId'));
+    console.log('Prescriptions page - User from state:', location.state?.user);
+    console.log('Prescriptions page - Current user:', user);
+  }, [searchParams, location.state, user]);
+
+  // Update user state when navigation state or URL params change
+  useEffect(() => {
+    const newUser = getUserFromParams();
+    if (newUser && newUser.id !== user?.id) {
+      setUser(newUser);
+      console.log('Prescriptions page - User updated:', newUser);
+    }
+  }, [location.state, searchParams]);
 
   // State
   const [prescriptions, setPrescriptions] = useState([]);
@@ -36,16 +75,17 @@ const Prescriptions = () => {
 
   // Fetch data
   useEffect(() => {
-    fetchPrescriptions();
-  }, []);
+    if (user?.id) {
+      fetchPrescriptions();
+    }
+  }, [user?.id]);
 
   const fetchPrescriptions = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (!user?.id) throw new Error("User not found in localStorage");
+      if (!user?.id) throw new Error("User not found");
 
       // Step 1: Get patientId from userId
       const patientIdResponse = await fetch(`http://localhost:8080/patients/by-user/${user.id}`);
@@ -154,11 +194,11 @@ const Prescriptions = () => {
       <div className="prescriptions-header">
         <div className="prescriptions-header-left">
           <div className="navigation-buttons">
-            <button className="prescriptions-nav-button prescriptions-nav-button--secondary" onClick={() => navigate('/patient-dashboard')}>
+            <button className="prescriptions-nav-button prescriptions-nav-button--secondary" onClick={() => navigate('/patient-dashboard', { state: { user } })}>
               <ArrowLeft size={16} />
               Patient Dashboard
             </button>
-            <button className="prescriptions-nav-button prescriptions-nav-button--outline" onClick={() => navigate('/')}>
+            <button className="prescriptions-nav-button prescriptions-nav-button--outline" onClick={() => navigate('/', { state: { user } })}>
               <Home size={16} />
               Home
             </button>

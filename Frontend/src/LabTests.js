@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { 
   FlaskConical, 
   ArrowLeft, 
@@ -25,10 +25,6 @@ import './LabTests.css';
 
 const LabTests = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const userId = location.state?.userId || null;
-
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');  // Not used much but kept for UI consistency
   const [filterDate, setFilterDate] = useState('all');      // You can remove filters not supported by your data
@@ -38,38 +34,228 @@ const LabTests = () => {
   const [selectedTest, setSelectedTest] = useState(null);
   const [showTestDetails, setShowTestDetails] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [labTests, setLabTests] = useState([]);
-  const [error, setError] = useState(null);
+
+  // Mock lab tests data
+  const [labTests] = useState([
+    {
+      id: 'LAB-2024-0156',
+      date: '2024-12-15',
+      orderedBy: 'Dr. Sarah Johnson',
+      department: 'Cardiology',
+      testType: 'Lipid Panel',
+      status: 'completed',
+      priority: 'routine',
+      results: [
+        { 
+          name: 'Total Cholesterol', 
+          value: 185, 
+          unit: 'mg/dL', 
+          normalRange: '< 200', 
+          status: 'normal',
+          trend: 'stable'
+        },
+        { 
+          name: 'LDL Cholesterol', 
+          value: 115, 
+          unit: 'mg/dL', 
+          normalRange: '< 100', 
+          status: 'high',
+          trend: 'up'
+        },
+        { 
+          name: 'HDL Cholesterol', 
+          value: 52, 
+          unit: 'mg/dL', 
+          normalRange: '> 40', 
+          status: 'normal',
+          trend: 'stable'
+        },
+        { 
+          name: 'Triglycerides', 
+          value: 89, 
+          unit: 'mg/dL', 
+          normalRange: '< 150', 
+          status: 'normal',
+          trend: 'down'
+        }
+      ],
+      notes: 'LDL cholesterol slightly elevated. Recommend dietary modifications and follow-up in 3 months.',
+      attachments: ['Lipid Panel Report.pdf', 'Reference Ranges.pdf']
+    },
+    {
+      id: 'LAB-2024-0142',
+      date: '2024-11-28',
+      orderedBy: 'Dr. Michael Chen',
+      department: 'Emergency Medicine',
+      testType: 'Complete Blood Count (CBC)',
+      status: 'completed',
+      priority: 'urgent',
+      results: [
+        { 
+          name: 'White Blood Cells', 
+          value: 7.2, 
+          unit: 'K/μL', 
+          normalRange: '4.0-11.0', 
+          status: 'normal',
+          trend: 'stable'
+        },
+        { 
+          name: 'Red Blood Cells', 
+          value: 4.8, 
+          unit: 'M/μL', 
+          normalRange: '4.2-5.4', 
+          status: 'normal',
+          trend: 'stable'
+        },
+        { 
+          name: 'Hemoglobin', 
+          value: 14.2, 
+          unit: 'g/dL', 
+          normalRange: '12.0-16.0', 
+          status: 'normal',
+          trend: 'up'
+        },
+        { 
+          name: 'Hematocrit', 
+          value: 42.1, 
+          unit: '%', 
+          normalRange: '36.0-46.0', 
+          status: 'normal',
+          trend: 'stable'
+        },
+        { 
+          name: 'Platelets', 
+          value: 285, 
+          unit: 'K/μL', 
+          normalRange: '150-450', 
+          status: 'normal',
+          trend: 'stable'
+        }
+      ],
+      notes: 'All blood count parameters within normal limits. No signs of infection or anemia.',
+      attachments: ['CBC Results.pdf', 'Lab Summary.pdf']
+    },
+    {
+      id: 'LAB-2024-0128',
+      date: '2024-10-10',
+      orderedBy: 'Dr. Emily Rodriguez',
+      department: 'Family Medicine',
+      testType: 'Comprehensive Metabolic Panel',
+      status: 'completed',
+      priority: 'routine',
+      results: [
+        { 
+          name: 'Glucose', 
+          value: 92, 
+          unit: 'mg/dL', 
+          normalRange: '70-99', 
+          status: 'normal',
+          trend: 'stable'
+        },
+        { 
+          name: 'Sodium', 
+          value: 142, 
+          unit: 'mEq/L', 
+          normalRange: '136-145', 
+          status: 'normal',
+          trend: 'stable'
+        },
+        { 
+          name: 'Potassium', 
+          value: 4.1, 
+          unit: 'mEq/L', 
+          normalRange: '3.5-5.0', 
+          status: 'normal',
+          trend: 'stable'
+        },
+        { 
+          name: 'Creatinine', 
+          value: 0.9, 
+          unit: 'mg/dL', 
+          normalRange: '0.6-1.2', 
+          status: 'normal',
+          trend: 'stable'
+        },
+        { 
+          name: 'BUN', 
+          value: 18, 
+          unit: 'mg/dL', 
+          normalRange: '7-20', 
+          status: 'normal',
+          trend: 'stable'
+        }
+      ],
+      notes: 'Metabolic panel shows normal kidney function and electrolyte balance.',
+      attachments: ['Metabolic Panel.pdf']
+    },
+    {
+      id: 'LAB-2024-0089',
+      date: '2024-09-05',
+      orderedBy: 'Dr. Lisa Park',
+      department: 'Endocrinology',
+      testType: 'Thyroid Function Panel',
+      status: 'completed',
+      priority: 'routine',
+      results: [
+        { 
+          name: 'TSH', 
+          value: 2.8, 
+          unit: 'mIU/L', 
+          normalRange: '0.4-4.0', 
+          status: 'normal',
+          trend: 'stable'
+        },
+        { 
+          name: 'Free T4', 
+          value: 1.2, 
+          unit: 'ng/dL', 
+          normalRange: '0.8-1.8', 
+          status: 'normal',
+          trend: 'stable'
+        },
+        { 
+          name: 'Free T3', 
+          value: 3.1, 
+          unit: 'pg/mL', 
+          normalRange: '2.3-4.2', 
+          status: 'normal',
+          trend: 'up'
+        }
+      ],
+      notes: 'Thyroid function is normal. Continue current monitoring schedule.',
+      attachments: ['Thyroid Panel.pdf', 'Trend Analysis.pdf']
+    },
+    {
+      id: 'LAB-2024-0067',
+      date: '2024-08-20',
+      orderedBy: 'Dr. Sarah Johnson',
+      department: 'Cardiology',
+      testType: 'HbA1c',
+      status: 'pending',
+      priority: 'routine',
+      results: [],
+      notes: 'Test ordered for diabetes monitoring. Results pending.',
+      attachments: []
+    }
+  ]);
+
+  const [testCategories] = useState([
+    { name: 'Blood Chemistry', count: 8, color: '#ef4444' },
+    { name: 'Hematology', count: 5, color: '#f59e0b' },
+    { name: 'Endocrinology', count: 4, color: '#10b981' },
+    { name: 'Immunology', count: 3, color: '#3b82f6' },
+    { name: 'Microbiology', count: 2, color: '#8b5cf6' },
+    { name: 'Pathology', count: 1, color: '#ec4899' }
+  ]);
 
   useEffect(() => {
-    if (!userId) {
+    // Simulate loading
+    const timer = setTimeout(() => {
       setLoading(false);
-      setError('No user ID provided.');
-      return;
-    }
+    }, 1000);
 
-    const fetchLabTests = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await fetch(`http://localhost:8080/api/lab-tests/user/${userId}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        if (!response.ok) throw new Error('Failed to fetch lab tests');
-        const data = await response.json();
-        setLabTests(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLabTests();
-  }, [userId]);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Simple search & filter based on available fields
   const filteredTests = labTests
@@ -134,7 +320,13 @@ const LabTests = () => {
       <div className="lab-tests-header">
         <div className="lab-tests-header-left">
           <div className="navigation-buttons">
-            <button className="lab-nav-button lab-nav-button--secondary" onClick={() => navigate('/patient-dashboard')}>
+            <button 
+              className="lab-nav-button lab-nav-button--secondary" 
+              onClick={() => navigate('/patient-dashboard', { 
+                state: { user },
+                replace: false 
+              })}
+            >
               <ArrowLeft size={16} />
               Patient Dashboard
             </button>

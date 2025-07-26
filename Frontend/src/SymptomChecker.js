@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { 
   Brain, 
   ArrowLeft, 
@@ -29,7 +29,10 @@ import './SymptomChecker.css';
 
 const SymptomChecker = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const messagesEndRef = useRef(null);
+  const [user, setUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -46,6 +49,60 @@ const SymptomChecker = () => {
   const [chatStarted, setChatStarted] = useState(false);
   const [assessment, setAssessment] = useState(null);
   const [appointmentSuggested, setAppointmentSuggested] = useState(false);
+
+  // Function to get user from various sources
+  const getUserFromParams = () => {
+    // Try navigation state first (highest priority)
+    if (location.state?.user) {
+      console.log('SymptomChecker: User found in navigation state:', location.state.user);
+      return location.state.user;
+    }
+    
+    // Try URL parameters
+    const userIdFromUrl = searchParams.get('userId');
+    if (userIdFromUrl) {
+      console.log('SymptomChecker: User ID found in URL params:', userIdFromUrl);
+      return { id: userIdFromUrl };
+    }
+    
+    // Try localStorage as fallback
+    const storedUser = localStorage.getItem('currentUser');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        console.log('SymptomChecker: User found in localStorage:', parsedUser);
+        return parsedUser;
+      } catch (error) {
+        console.error('SymptomChecker: Error parsing stored user:', error);
+      }
+    }
+    
+    console.log('SymptomChecker: No user found in any source');
+    return null;
+  };
+
+  // Function to handle navigation with authentication check
+  const handleAuthenticatedNavigation = (path, additionalState = {}) => {
+    if (!user) {
+      console.log('SymptomChecker: User not authenticated, redirecting to login');
+      // Redirect to login with return path
+      navigate('/login', { 
+        state: { 
+          returnTo: path,
+          ...additionalState 
+        } 
+      });
+      return;
+    }
+
+    console.log('SymptomChecker: User authenticated, navigating to:', path);
+    navigate(path, { 
+      state: { 
+        user,
+        ...additionalState 
+      } 
+    });
+  };
 
   // OpenRouter API Configuration for HospiTrack AI - Using environment variables
   const OPENROUTER_API_URL = process.env.REACT_APP_OPENROUTER_API_URL || 'https://openrouter.ai/api/v1/chat/completions';
@@ -260,8 +317,12 @@ Do NOT include any text before or after the JSON. Do NOT use markdown formatting
   };
 
   useEffect(() => {
+    // Get user data when component mounts
+    const userData = getUserFromParams();
+    setUser(userData);
+    
     scrollToBottom();
-  }, [messages]);
+  }, [messages, location.state, searchParams]);
 
   useEffect(() => {
     // Initial welcome message
@@ -412,7 +473,10 @@ Do NOT include any text before or after the JSON. Do NOT use markdown formatting
       <div className="symptom-checker-header">
         <div className="symptom-checker-header-left">
           <div className="navigation-buttons">
-            <button className="symptom-nav-button symptom-nav-button--secondary" onClick={() => navigate('/patient-dashboard')}>
+            <button 
+              className="symptom-nav-button symptom-nav-button--secondary" 
+              onClick={() => handleAuthenticatedNavigation('/patient-dashboard')}
+            >
               <ArrowLeft size={16} />
               Patient Dashboard
             </button>
@@ -495,14 +559,14 @@ Do NOT include any text before or after the JSON. Do NOT use markdown formatting
                       <div className="appointment-suggestion-actions">
                         <button 
                           className="appointment-cta-button"
-                          onClick={() => navigate('/appointments')}
+                          onClick={() => handleAuthenticatedNavigation('/appointments')}
                         >
                           <Calendar size={16} />
                           Book Appointment Now
                         </button>
                         <button 
                           className="doctors-cta-button"
-                          onClick={() => navigate('/doctors')}
+                          onClick={() => handleAuthenticatedNavigation('/doctors')}
                         >
                           <Stethoscope size={16} />
                           Find Doctors
@@ -621,7 +685,7 @@ Do NOT include any text before or after the JSON. Do NOT use markdown formatting
                   <p>Based on your symptoms and our assessment, we recommend scheduling an appointment with a healthcare provider for proper evaluation and treatment.</p>
                   <button 
                     className="appointment-rec-button"
-                    onClick={() => navigate('/appointments')}
+                    onClick={() => handleAuthenticatedNavigation('/appointments')}
                   >
                     <Calendar size={16} />
                     Schedule Appointment
@@ -644,7 +708,7 @@ Do NOT include any text before or after the JSON. Do NOT use markdown formatting
               <div className="assessment-actions">
                 <button 
                   className="assessment-action-btn primary"
-                  onClick={() => navigate('/appointments')}
+                  onClick={() => handleAuthenticatedNavigation('/appointments')}
                 >
                   <Calendar size={16} />
                   Book Appointment
@@ -658,7 +722,7 @@ Do NOT include any text before or after the JSON. Do NOT use markdown formatting
                 </button>
                 <button 
                   className="assessment-action-btn secondary"
-                  onClick={() => navigate('/doctors')}
+                  onClick={() => handleAuthenticatedNavigation('/doctors')}
                 >
                   <Stethoscope size={16} />
                   Find Doctors
@@ -712,7 +776,7 @@ Do NOT include any text before or after the JSON. Do NOT use markdown formatting
               </button>
               <button 
                 className="action-button"
-                onClick={() => navigate('/ambulance')}
+                onClick={() => handleAuthenticatedNavigation('/ambulance')}
               >
                 <Star size={16} />
                 Emergency Services
