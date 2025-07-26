@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { 
   FileText, ArrowLeft, Home, Calendar, Stethoscope, 
   Activity, Heart, Eye, Search, Filter, Download, Clock,
@@ -9,6 +9,9 @@ import './MedicalHistory.css';
 
 const MedicalHistory = () => {
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem('user'));
+  const token = localStorage.getItem('token');
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterDate, setFilterDate] = useState('all');
@@ -16,119 +19,38 @@ const MedicalHistory = () => {
   const [expandedRecord, setExpandedRecord] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Mock medical history data
-  const [medicalRecords] = useState([
-    {
-      id: 1,
-      date: '2024-12-15',
-      type: 'Consultation',
-      doctor: 'Dr. Sarah Johnson',
-      department: 'Cardiology',
-      diagnosis: 'Hypertension - Routine Follow-up',
-      symptoms: ['Mild headaches', 'Occasional dizziness'],
-      treatment: 'Medication adjustment, lifestyle counseling',
-      medications: ['Lisinopril 10mg', 'Hydrochlorothiazide 25mg'],
-      notes: 'Blood pressure well controlled. Continue current medication regimen. Follow up in 3 months.',
-      vitals: {
-        bloodPressure: '128/82',
-        heartRate: '72 bpm',
-        temperature: '98.6°F',
-        weight: '165 lbs'
-      },
-      labResults: ['CBC - Normal', 'Lipid Panel - Elevated cholesterol'],
-      attachments: ['ECG Report.pdf', 'Blood Test Results.pdf']
-    },
-    {
-      id: 2,
-      date: '2024-11-28',
-      type: 'Emergency',
-      doctor: 'Dr. Michael Chen',
-      department: 'Emergency Medicine',
-      diagnosis: 'Acute Bronchitis',
-      symptoms: ['Persistent cough', 'Chest congestion', 'Fatigue'],
-      treatment: 'Antibiotic therapy, bronchodilator inhaler',
-      medications: ['Amoxicillin 500mg', 'Albuterol inhaler'],
-      notes: 'Patient presented with 5-day history of productive cough. Chest X-ray clear. Prescribed 7-day antibiotic course.',
-      vitals: {
-        bloodPressure: '135/85',
-        heartRate: '88 bpm',
-        temperature: '100.2°F',
-        weight: '165 lbs'
-      },
-      labResults: ['Chest X-ray - Clear', 'WBC - Slightly elevated'],
-      attachments: ['Chest X-ray.pdf', 'Discharge Summary.pdf']
-    },
-    {
-      id: 3,
-      date: '2024-10-10',
-      type: 'Preventive',
-      doctor: 'Dr. Emily Rodriguez',
-      department: 'Family Medicine',
-      diagnosis: 'Annual Physical Examination',
-      symptoms: ['No current symptoms'],
-      treatment: 'Routine health screening, vaccinations updated',
-      medications: ['Multivitamin daily'],
-      notes: 'Overall excellent health. All screenings normal. Flu vaccine administered. Next annual exam in 12 months.',
-      vitals: {
-        bloodPressure: '122/78',
-        heartRate: '68 bpm',
-        temperature: '98.4°F',
-        weight: '163 lbs'
-      },
-      labResults: ['Complete Metabolic Panel - Normal', 'Lipid Panel - Normal', 'HbA1c - 5.2%'],
-      attachments: ['Annual Physical Report.pdf', 'Vaccination Record.pdf']
-    },
-    {
-      id: 4,
-      date: '2024-09-05',
-      type: 'Specialist',
-      doctor: 'Dr. James Wilson',
-      department: 'Ophthalmology',
-      diagnosis: 'Routine Eye Examination',
-      symptoms: ['Mild eye strain from computer work'],
-      treatment: 'Computer vision syndrome management, new prescription glasses',
-      medications: ['Artificial tears as needed'],
-      notes: 'Vision 20/25 both eyes. Mild dry eye syndrome. Recommended blue light filtering glasses for computer work.',
-      vitals: {
-        bloodPressure: '125/80',
-        heartRate: '70 bpm',
-        temperature: '98.5°F',
-        weight: '164 lbs'
-      },
-      labResults: ['Visual Acuity Test - 20/25', 'Intraocular Pressure - Normal'],
-      attachments: ['Eye Exam Report.pdf', 'Prescription Details.pdf']
-    },
-    {
-      id: 5,
-      date: '2024-07-20',
-      type: 'Follow-up',
-      doctor: 'Dr. Sarah Johnson',
-      department: 'Cardiology',
-      diagnosis: 'Hypertension Management',
-      symptoms: ['No symptoms'],
-      treatment: 'Blood pressure monitoring, diet counseling',
-      medications: ['Lisinopril 5mg', 'Low-dose aspirin'],
-      notes: 'Blood pressure improved with lifestyle changes. Reduced medication dosage. Continue dietary modifications.',
-      vitals: {
-        bloodPressure: '118/75',
-        heartRate: '65 bpm',
-        temperature: '98.3°F',
-        weight: '162 lbs'
-      },
-      labResults: ['Basic Metabolic Panel - Normal'],
-      attachments: ['BP Monitoring Log.pdf']
-    }
-  ]);
+  const [medicalRecords, setMedicalRecords] = useState([]);
 
   useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000);
+    const fetchRecords = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        if (!user?.id) throw new Error("User not logged in");
 
-    return () => clearTimeout(timer);
-  }, []);
+        const response = await fetch(`http://localhost:8080/api/medical-records/user/${user.id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        setMedicalRecords(data);
+      } catch (err) {
+        setError(err.message);
+        setMedicalRecords([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecords();
+  }, [user?.id, token]);
 
   const filteredRecords = medicalRecords
     .filter(record => {
@@ -217,13 +139,7 @@ const MedicalHistory = () => {
       <div className="medical-history-header">
         <div className="medical-history-header-left">
           <div className="navigation-buttons">
-            <button 
-              className="medical-nav-button medical-nav-button--secondary" 
-              onClick={() => navigate('/patient-dashboard', { 
-                state: { user },
-                replace: false 
-              })}
-            >
+            <button className="medical-nav-button medical-nav-button--secondary" onClick={() => navigate('/patient-dashboard')}>
               <ArrowLeft size={16} />
               Patient Dashboard
             </button>
