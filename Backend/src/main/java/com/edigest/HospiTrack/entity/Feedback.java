@@ -10,6 +10,12 @@ public class Feedback {
     private int rating;
     private String comments;
     private Date dateSubmitted;
+    private String targetName;
+
+
+    public String getTargetName() { return targetName; }
+    public void setTargetName(String targetName) { this.targetName = targetName; }
+
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }

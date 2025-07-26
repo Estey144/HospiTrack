@@ -22,7 +22,10 @@ public class DoctorController {
     public List<Doctor> getAllRaw() {
         return service.getAllDoctors();
     }
-
+    @GetMapping("/doctors/names")
+    public List<Map<String, Object>> getDoctorsNames() {
+        return service.getDoctorsForFeedback();
+    }
     @GetMapping("/doctors")
     public List<Map<String, Object>> getAllDoctors() {
         for(Map<String, Object> doctor : service.getAllDoctorsForFrontend()) {

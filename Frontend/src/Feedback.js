@@ -25,8 +25,7 @@ const Feedback = () => {
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('user'));
     if (storedUser) setUser(storedUser);
-    
-    // Fetch doctors and branches for selection
+
     fetchDoctorsAndBranches();
   }, []);
 
@@ -36,7 +35,23 @@ const Feedback = () => {
         axios.get(`${API_BASE_URL}/api/doctors`),
         axios.get(`${API_BASE_URL}/api/branches`)
       ]);
-      setDoctors(doctorsRes.data);
+
+      // Transform doctors data - backend already returns correct field names
+      const doctorsData = doctorsRes.data
+        .map(d => ({
+          doctorId: d.doctorId,
+          doctorName: d.doctorName,
+          specialization: d.departmentName || ''
+        }))
+        .filter(doctor => 
+          doctor.doctorId && 
+          doctor.doctorName && 
+          doctor.doctorName.trim() !== ''
+        );
+
+      console.log('Loaded doctors:', doctorsData);
+
+      setDoctors(doctorsData);
       setBranches(branchesRes.data);
     } catch (error) {
       console.error('Failed to fetch doctors/branches:', error);
@@ -45,7 +60,7 @@ const Feedback = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.targetType) newErrors.targetType = 'Please select feedback type';
     if (formData.targetType !== 'Hospital' && !formData.targetId) {
       newErrors.targetId = `Please select a ${formData.targetType.toLowerCase()}`;
@@ -53,33 +68,31 @@ const Feedback = () => {
     if (!formData.rating || formData.rating === 0) newErrors.rating = 'Please provide a rating';
     if (!formData.category) newErrors.category = 'Please select a category';
     if (!formData.comments.trim()) newErrors.comments = 'Please provide your feedback';
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
     setFormData(prev => ({ ...prev, [name]: value }));
-    
-    // Clear specific error when user starts typing
+
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
-    
-    // Clear target selection when type changes
+
     if (name === 'targetType') {
       setFormData(prev => ({ ...prev, targetId: '', targetName: '' }));
     }
-    
-    // Set target name when target ID changes
+
     if (name === 'targetId') {
       let targetName = '';
       if (formData.targetType === 'Doctor') {
-        const doctor = doctors.find(d => d.id.toString() === value);
-        targetName = doctor ? `Dr. ${doctor.name}` : '';
+        const doctor = doctors.find(d => d.doctorId.toString() === value.toString());
+        targetName = doctor ? `Dr. ${doctor.doctorName}` : '';
       } else if (formData.targetType === 'Branch') {
-        const branch = branches.find(b => b.id.toString() === value);
+        const branch = branches.find(b => b.id.toString() === value.toString());
         targetName = branch ? branch.name : '';
       }
       setFormData(prev => ({ ...prev, targetName }));
@@ -122,46 +135,48 @@ const Feedback = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!user) {
       setMessage('Please login to submit feedback.');
       setMessageType('error');
       return;
     }
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setSubmitting(true);
     setMessage('');
-    
+
     try {
-      await axios.post(`${API_BASE_URL}/api/feedback`, {
-        patient_id: user.id,
-        target_type: formData.targetType,
-        target_id: formData.targetId || null,
-        target_name: formData.targetName || 'Hospital',
+      const feedbackData = {
+        patientId: user.id,
+        targetType: formData.targetType,
+        targetId: formData.targetId || null,
+        targetName: formData.targetName || 'Hospital',
         rating: formData.rating,
         category: formData.category,
-        comments: formData.comments,
-      });
-      
+        comments: formData.comments
+      };
+
+      await axios.post(`${API_BASE_URL}/api/feedback`, feedbackData);
+
       setMessage('Thank you for your valuable feedback! We appreciate your input.');
       setMessageType('success');
-      
-      // Reset form
-      setFormData({ 
-        targetType: 'Hospital', 
-        targetId: '', 
+
+      setFormData({
+        targetType: 'Hospital',
+        targetId: '',
         targetName: '',
-        rating: 0, 
+        rating: 0,
         category: '',
-        comments: '' 
+        comments: ''
       });
       setErrors({});
-      
+
     } catch (err) {
+      console.error('Feedback submission error:', err);
       setMessage('Failed to submit feedback. Please try again.');
       setMessageType('error');
     } finally {
@@ -216,11 +231,16 @@ const Feedback = () => {
                     required
                   >
                     <option value="">Choose a doctor</option>
-                    {doctors.map(doctor => (
-                      <option key={doctor.id} value={doctor.id}>
-                        Dr. {doctor.name} - {doctor.specialization}
-                      </option>
-                    ))}
+                    {doctors.length === 0 ? (
+                      <option disabled>Loading doctors...</option>
+                    ) : (
+                      doctors.map(doctor => (
+                        <option key={doctor.doctorId} value={doctor.doctorId}>
+                          Dr. {doctor.doctorName}
+                          {doctor.specialization && ` - ${doctor.specialization}`}
+                        </option>
+                      ))
+                    )}
                   </select>
                   {errors.targetId && <span className="feedback-form-error">{errors.targetId}</span>}
                 </div>
@@ -237,8 +257,8 @@ const Feedback = () => {
                   >
                     <option value="">Choose a branch</option>
                     {branches.map(branch => (
-                      <option key={branch.id} value={branch.id}>
-                        {branch.name} - {branch.location}
+                      <option key={`branch-${branch.id}`} value={branch.id}>
+                        {branch.name} - {branch.address}
                       </option>
                     ))}
                   </select>

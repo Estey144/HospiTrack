@@ -22,7 +22,7 @@ const Homepage = () => {
     setUser(JSON.parse(localStorage.getItem('user')));
     // Add homepage-specific body class
     document.body.classList.add('homepage-body');
-    
+
     // Cleanup function to remove the class when component unmounts
     return () => {
       document.body.classList.remove('homepage-body');
@@ -107,7 +107,7 @@ const Homepage = () => {
           <div className="user-menu" ref={dropdownRef}>
             <button onClick={() => setDropdownOpen(!dropdownOpen)} className="user-button">
               <span className="user-avatar">👤</span>
-              {user.name} <span className="role-badge">({user.role})</span> 
+              {user.name} <span className="role-badge">({user.role})</span>
               <span className={`dropdown-arrow ${dropdownOpen ? 'open' : ''}`}>▼</span>
             </button>
             {dropdownOpen && (
@@ -257,13 +257,17 @@ const Homepage = () => {
           <p>Stay connected with your health</p>
         </div>
         <div className="engagement-grid">
-          <button className="engagement-card" onClick={() => navigate('/feedback')}>
+          <button
+            className="engagement-card"
+            onClick={() => user ? navigate('/feedback') : navigate('/login')}
+          >
             <div className="engagement-icon">💬</div>
             <div className="engagement-content">
               <h4>Feedback Board</h4>
               <p>Share your experience</p>
             </div>
           </button>
+
           <button className="engagement-card" onClick={() => navigate('/symptom-checker')}>
             <div className="engagement-icon">🔍</div>
             <div className="engagement-content">
@@ -324,7 +328,7 @@ const Homepage = () => {
             <h3>What Our Patients Say</h3>
             <p>Real experiences from real people</p>
           </div>
-          <div 
+          <div
             className="testimonials-container"
             ref={feedbackContainerRef}
             onMouseEnter={handleMouseEnter}

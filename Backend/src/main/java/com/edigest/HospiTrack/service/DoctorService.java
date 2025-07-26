@@ -28,7 +28,7 @@ public class DoctorService {
 
     public Doctor saveDoctor(Doctor doctor) {
         String sql = "INSERT INTO Doctors (id, user_id, branch_id, license_number, experience_years, available_hours, department_id, image_url) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         jdbc.update(sql,
                 doctor.getId(),
                 doctor.getUserId(),
@@ -37,7 +37,7 @@ public class DoctorService {
                 doctor.getExperienceYears(),
                 doctor.getAvailableHours(),
                 doctor.getDepartmentId(),
-                doctor.getImageUrl()  
+                doctor.getImageUrl()
         );
         return doctor;
     }
@@ -60,7 +60,7 @@ public class DoctorService {
                    d.experience_years AS experienceYears,
                    d.license_number AS licenseNumber,
                    d.available_hours AS availableHours,
-                   dep.name AS specialization,
+                   dep.name AS departmentName,
                    hb.name AS branchName,
                    d.image_url AS imageUrl
             FROM Doctors d
@@ -70,5 +70,33 @@ public class DoctorService {
         """;
 
         return jdbc.queryForList(sql);
+    }
+
+    // New method specifically for feedback form
+    public List<Map<String, Object>> getDoctorsForFeedback() {
+        String sql = """
+            SELECT d.id AS doctorId,
+                   u.name AS doctorName,
+                   dep.name AS departmentName
+            FROM Doctors d
+            INNER JOIN Users u ON d.user_id = u.id
+            INNER JOIN Departments dep ON d.department_id = dep.id
+            WHERE u.name IS NOT NULL 
+            AND TRIM(u.name) != ''
+            ORDER BY u.name
+        """;
+
+        List<Map<String, Object>> result = jdbc.queryForList(sql);
+        System.out.println("Doctors query returned " + result.size() + " records");
+
+        // Debug: Print first few records
+        for (int i = 0; i < Math.min(3, result.size()); i++) {
+            Map<String, Object> doctor = result.get(i);
+            System.out.println("Doctor " + i + ": ID=" + doctor.get("doctorId") +
+                    ", Name=" + doctor.get("doctorName") +
+                    ", Dept=" + doctor.get("departmentName"));
+        }
+
+        return result;
     }
 }
