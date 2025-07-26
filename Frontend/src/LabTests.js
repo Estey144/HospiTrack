@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { 
   FlaskConical, 
   ArrowLeft, 
@@ -27,6 +27,9 @@ import './LabTests.css';
 
 const LabTests = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const [user, setUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterDate, setFilterDate] = useState('all');
@@ -37,10 +40,42 @@ const LabTests = () => {
   const [showTestDetails, setShowTestDetails] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Function to get user from various sources
+  const getUserFromParams = () => {
+    // Try navigation state first (highest priority)
+    if (location.state?.user) {
+      console.log('LabTests: User found in navigation state:', location.state.user);
+      return location.state.user;
+    }
+    
+    // Try URL parameters
+    const userIdFromUrl = searchParams.get('userId');
+    if (userIdFromUrl) {
+      console.log('LabTests: User ID found in URL params:', userIdFromUrl);
+      return { id: userIdFromUrl };
+    }
+    
+    // Try localStorage as fallback
+    const storedUser = localStorage.getItem('currentUser');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        console.log('LabTests: User found in localStorage:', parsedUser);
+        return parsedUser;
+      } catch (error) {
+        console.error('LabTests: Error parsing stored user:', error);
+      }
+    }
+    
+    console.log('LabTests: No user found in any source');
+    return null;
+  };
+
   // Mock lab tests data
   const [labTests] = useState([
     {
       id: 'LAB-2024-0156',
+      patientId: user?.id || '12345',
       date: '2024-12-15',
       orderedBy: 'Dr. Sarah Johnson',
       department: 'Cardiology',
@@ -86,6 +121,7 @@ const LabTests = () => {
     },
     {
       id: 'LAB-2024-0142',
+      patientId: user?.id || '12345',
       date: '2024-11-28',
       orderedBy: 'Dr. Michael Chen',
       department: 'Emergency Medicine',
@@ -139,6 +175,7 @@ const LabTests = () => {
     },
     {
       id: 'LAB-2024-0128',
+      patientId: user?.id || '12345',
       date: '2024-10-10',
       orderedBy: 'Dr. Emily Rodriguez',
       department: 'Family Medicine',
@@ -192,6 +229,7 @@ const LabTests = () => {
     },
     {
       id: 'LAB-2024-0089',
+      patientId: user?.id || '12345',
       date: '2024-09-05',
       orderedBy: 'Dr. Lisa Park',
       department: 'Endocrinology',
@@ -229,6 +267,7 @@ const LabTests = () => {
     },
     {
       id: 'LAB-2024-0067',
+      patientId: user?.id || '12345',
       date: '2024-08-20',
       orderedBy: 'Dr. Sarah Johnson',
       department: 'Cardiology',
@@ -251,13 +290,17 @@ const LabTests = () => {
   ]);
 
   useEffect(() => {
+    // Get user data when component mounts
+    const userData = getUserFromParams();
+    setUser(userData);
+    
     // Simulate loading
     const timer = setTimeout(() => {
       setLoading(false);
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [location.state, searchParams]);
 
   // Filter and sort tests
   const filteredTests = labTests
@@ -396,7 +439,13 @@ const LabTests = () => {
       <div className="lab-tests-header">
         <div className="lab-tests-header-left">
           <div className="navigation-buttons">
-            <button className="lab-nav-button lab-nav-button--secondary" onClick={() => navigate('/patient-dashboard')}>
+            <button 
+              className="lab-nav-button lab-nav-button--secondary" 
+              onClick={() => navigate('/patient-dashboard', { 
+                state: { user },
+                replace: false 
+              })}
+            >
               <ArrowLeft size={16} />
               Patient Dashboard
             </button>

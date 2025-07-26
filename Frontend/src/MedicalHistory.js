@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { 
   FileText, 
   ArrowLeft, 
@@ -23,6 +23,9 @@ import './MedicalHistory.css';
 
 const MedicalHistory = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const [user, setUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterDate, setFilterDate] = useState('all');
@@ -31,10 +34,42 @@ const MedicalHistory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Function to get user from various sources
+  const getUserFromParams = () => {
+    // Try navigation state first (highest priority)
+    if (location.state?.user) {
+      console.log('MedicalHistory: User found in navigation state:', location.state.user);
+      return location.state.user;
+    }
+    
+    // Try URL parameters
+    const userIdFromUrl = searchParams.get('userId');
+    if (userIdFromUrl) {
+      console.log('MedicalHistory: User ID found in URL params:', userIdFromUrl);
+      return { id: userIdFromUrl };
+    }
+    
+    // Try localStorage as fallback
+    const storedUser = localStorage.getItem('currentUser');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        console.log('MedicalHistory: User found in localStorage:', parsedUser);
+        return parsedUser;
+      } catch (error) {
+        console.error('MedicalHistory: Error parsing stored user:', error);
+      }
+    }
+    
+    console.log('MedicalHistory: No user found in any source');
+    return null;
+  };
+
   // Mock medical history data
   const [medicalRecords] = useState([
     {
       id: 1,
+      patientId: user?.id || '12345',
       date: '2024-12-15',
       type: 'Consultation',
       doctor: 'Dr. Sarah Johnson',
@@ -55,6 +90,7 @@ const MedicalHistory = () => {
     },
     {
       id: 2,
+      patientId: user?.id || '12345',
       date: '2024-11-28',
       type: 'Emergency',
       doctor: 'Dr. Michael Chen',
@@ -75,6 +111,7 @@ const MedicalHistory = () => {
     },
     {
       id: 3,
+      patientId: user?.id || '12345',
       date: '2024-10-10',
       type: 'Preventive',
       doctor: 'Dr. Emily Rodriguez',
@@ -95,6 +132,7 @@ const MedicalHistory = () => {
     },
     {
       id: 4,
+      patientId: user?.id || '12345',
       date: '2024-09-05',
       type: 'Specialist',
       doctor: 'Dr. James Wilson',
@@ -115,6 +153,7 @@ const MedicalHistory = () => {
     },
     {
       id: 5,
+      patientId: user?.id || '12345',
       date: '2024-07-20',
       type: 'Follow-up',
       doctor: 'Dr. Sarah Johnson',
@@ -136,13 +175,17 @@ const MedicalHistory = () => {
   ]);
 
   useEffect(() => {
+    // Get user data when component mounts
+    const userData = getUserFromParams();
+    setUser(userData);
+    
     // Simulate loading
     const timer = setTimeout(() => {
       setLoading(false);
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [location.state, searchParams]);
 
   // Filter and sort records
   const filteredRecords = medicalRecords
@@ -231,7 +274,13 @@ const MedicalHistory = () => {
       <div className="medical-history-header">
         <div className="medical-history-header-left">
           <div className="navigation-buttons">
-            <button className="medical-nav-button medical-nav-button--secondary" onClick={() => navigate('/patient-dashboard')}>
+            <button 
+              className="medical-nav-button medical-nav-button--secondary" 
+              onClick={() => navigate('/patient-dashboard', { 
+                state: { user },
+                replace: false 
+              })}
+            >
               <ArrowLeft size={16} />
               Patient Dashboard
             </button>

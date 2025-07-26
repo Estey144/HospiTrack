@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, DollarSign, FileText, Shield, Ambulance, Video, TestTube, ChevronRight, AlertCircle, Loader, Home } from 'lucide-react';
+import { Calendar, DollarSign, FileText, Shield, Ambulance, Video, TestTube, ChevronRight, AlertCircle, Loader, Home, Brain } from 'lucide-react';
 import './PatientDashboard.css';
 
 const PatientDashboard = () => {
@@ -55,7 +55,12 @@ const PatientDashboard = () => {
     if (user?.id) fetchPendingBills();
   }, [user?.id]);
 
-  const goTo = (path) => navigate(path);
+  const goTo = (path) => {
+    // Add user ID as URL parameter if not already present
+    const separator = path.includes('?') ? '&' : '?';
+    const pathWithUserId = `${path}${separator}userId=${user?.id}`;
+    navigate(pathWithUserId, { state: { user } });
+  };
 
   const dashboardActions = [
     { path: '/appointments?book=true', label: 'Book Appointment', icon: Calendar, color: 'bg-blue-500 hover:bg-blue-600' },
@@ -65,7 +70,8 @@ const PatientDashboard = () => {
     { path: '/insurance', label: 'Apply for Insurance', icon: Shield, color: 'bg-teal-500 hover:bg-teal-600' },
     { path: '/ambulance', label: 'Book Ambulance', icon: Ambulance, color: 'bg-red-500 hover:bg-red-600' },
     { path: '/video-sessions', label: 'Join Video Session', icon: Video, color: 'bg-indigo-500 hover:bg-indigo-600' },
-    { path: '/lab-tests', label: 'See Test List', icon: TestTube, color: 'bg-pink-500 hover:bg-pink-600' }
+    { path: '/lab-tests', label: 'See Test List', icon: TestTube, color: 'bg-pink-500 hover:bg-pink-600' },
+    { path: '/symptom-checker', label: 'AI Symptom Checker', icon: Brain, color: 'bg-emerald-500 hover:bg-emerald-600' }
   ];
 
   const formatDate = (dateString) =>
@@ -102,7 +108,7 @@ const PatientDashboard = () => {
             <span className="patient-dash-id-value">{user?.id}</span>
           </div>
           <button 
-            onClick={() => goTo('/')} 
+            onClick={() => navigate('/', { state: { user } })} 
             className="patient-dash-home-btn"
           >
             <Home size={16} style={{ marginRight: 5 }} />

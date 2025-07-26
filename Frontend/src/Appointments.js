@@ -1,11 +1,40 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import './Appointments.css';
 
 const Appointments = ({ currentUser }) => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(currentUser || JSON.parse(localStorage.getItem('user')));
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  
+  // Get user from multiple sources with priority order
+  const getUserFromParams = () => {
+    // 1. From navigation state (highest priority)
+    if (location.state?.user) return location.state.user;
+    
+    // 2. From URL parameters
+    const userIdFromParams = searchParams.get('userId');
+    if (userIdFromParams) {
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (storedUser.id === userIdFromParams) return storedUser;
+    }
+    
+    // 3. From props
+    if (currentUser) return currentUser;
+    
+    // 4. From localStorage (fallback)
+    return JSON.parse(localStorage.getItem('user') || '{}');
+  };
+
+  const [user, setUser] = useState(getUserFromParams());
+
+  // Debug logging to verify user ID is received
+  useEffect(() => {
+    console.log('Appointments page - User ID from params:', searchParams.get('userId'));
+    console.log('Appointments page - User from state:', location.state?.user);
+    console.log('Appointments page - Current user:', user);
+  }, [searchParams, location.state, user]);
 
   const [patientAppointments, setPatientAppointments] = useState([]);
   const [isLoadingAppointments, setIsLoadingAppointments] = useState(true);
@@ -28,7 +57,6 @@ const Appointments = ({ currentUser }) => {
     reason: ''
   });
 
-  const location = useLocation();
   const showBookingForm = new URLSearchParams(location.search).get('book') === 'true';
 
   useEffect(() => {
