@@ -166,7 +166,7 @@ const Homepage = () => {
             </div>
           </div>
           <div className="stat-card our-impact-card">
-            <div className="stat-icon">🏥</div>
+            <div className="stat-icon">👥</div>
             <div className="stat-content">
               <h4>Total Patients</h4>
               <p className="stat-number">{stats.patients}</p>
@@ -174,50 +174,13 @@ const Homepage = () => {
             </div>
           </div>
           <div className="stat-card our-impact-card">
-            <div className="stat-icon">🌍</div>
+            <div className="stat-icon">🏥</div>
             <div className="stat-content">
               <h4>Total Branches</h4>
               <p className="stat-number">{stats.branches}</p>
               <span className="stat-label">Locations</span>
             </div>
           </div>
-        </div>
-      </section>
-
-      <section className="actions-section">
-        <div className="section-header">
-          <h3>Quick Access</h3>
-          <p>Everything you need, just a click away</p>
-        </div>
-        <div className="actions-grid">
-          <button className="action-button primary" onClick={() => navigate('/doctors')}>
-            <span className="action-icon">👨‍⚕️</span>
-            <span className="action-text">Find Doctor</span>
-          </button>
-          <button className="action-button" onClick={() => user ? navigate('/lab-tests') : navigate('/login')}>
-            <span className="action-icon">🔬</span>
-            <span className="action-text">Lab Tests</span>
-          </button>
-          <button className="action-button" onClick={() => user ? navigate('/appointments') : navigate('/login')}>
-            <span className="action-icon">📅</span>
-            <span className="action-text">Book Appointment</span>
-          </button>
-          <button className="action-button emergency" onClick={() => user ? navigate('/ambulance') : navigate('/login')}>
-            <span className="action-icon">🚑</span>
-            <span className="action-text">Emergency</span>
-          </button>
-          <button className="action-button" onClick={() => user ? navigate('/prescriptions') : navigate('/login')}>
-            <span className="action-icon">💊</span>
-            <span className="action-text">Prescriptions</span>
-          </button>
-          <button className="action-button" onClick={() => user ? navigate('/bills') : navigate('/login')}>
-            <span className="action-icon">💳</span>
-            <span className="action-text">Bills</span>
-          </button>
-          <button className="action-button" onClick={() => user ? navigate('/video-sessions') : navigate('/login')}>
-            <span className="action-icon">📹</span>
-            <span className="action-text">Video Session</span>
-          </button>
         </div>
       </section>
 
@@ -241,11 +204,11 @@ const Homepage = () => {
               <p>Check real-time status</p>
             </div>
           </button>
-          <button className="info-card" onClick={() => navigate('/staff')}>
-            <div className="info-icon">👥</div>
+          <button className="info-card" onClick={() => navigate('/doctors')}>
+            <div className="info-icon">🥼</div>
             <div className="info-content">
-              <h4>Staff Directory</h4>
-              <p>Meet our team</p>
+              <h4>Doctor Directory</h4>
+              <p>Find our medical professionals</p>
             </div>
           </button>
         </div>
@@ -259,12 +222,12 @@ const Homepage = () => {
         <div className="engagement-grid">
           <button
             className="engagement-card"
-            onClick={() => user ? navigate('/feedback') : navigate('/login')}
+            onClick={() => user ? navigate('/appointments') : navigate('/login')}
           >
-            <div className="engagement-icon">💬</div>
+            <div className="engagement-icon">🗓️</div>
             <div className="engagement-content">
-              <h4>Feedback Board</h4>
-              <p>Share your experience</p>
+              <h4>Appointments</h4>
+              <p>Schedule your visit</p>
             </div>
           </button>
 
@@ -275,11 +238,11 @@ const Homepage = () => {
               <p>AI-powered assessment</p>
             </div>
           </button>
-          <button className="engagement-card" onClick={() => navigate('/video-sessions')}>
-            <div className="engagement-icon">🎥</div>
+          <button className="engagement-card" onClick={() => navigate('/staff')}>
+            <div className="engagement-icon">👷‍♂️</div>
             <div className="engagement-content">
-              <h4>Video Sessions</h4>
-              <p>Connect virtually</p>
+              <h4>Staff Directory</h4>
+              <p>Meet our team</p>
             </div>
           </button>
         </div>

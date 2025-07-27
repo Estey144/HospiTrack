@@ -382,68 +382,84 @@
 }
 
 /* Action Card Color Classes */
-.patient-dash-action-card.bg-blue-500 {
-  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+.patient-dash-action-card.bg-purple-600 {
+  background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
 }
 
-.patient-dash-action-card.bg-blue-500:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-}
-
-.patient-dash-action-card.bg-green-500 {
-  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
-}
-
-.patient-dash-action-card.bg-green-500:hover {
-  background: linear-gradient(135deg, #059669 0%, #065f46 100%);
-}
-
-.patient-dash-action-card.bg-orange-500 {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-}
-
-.patient-dash-action-card.bg-orange-500:hover {
-  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-}
-
-.patient-dash-action-card.bg-purple-500 {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-}
-
-.patient-dash-action-card.bg-purple-500:hover {
+.patient-dash-action-card.bg-purple-600:hover {
   background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
 }
 
-.patient-dash-action-card.bg-teal-500 {
-  background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%);
+.patient-dash-action-card.bg-cyan-600 {
+  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
 }
 
-.patient-dash-action-card.bg-teal-500:hover {
-  background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+.patient-dash-action-card.bg-cyan-600:hover {
+  background: linear-gradient(135deg, #0e7490 0%, #155e75 100%);
 }
 
-.patient-dash-action-card.bg-red-500 {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+.patient-dash-action-card.bg-yellow-600 {
+  background: linear-gradient(135deg, #ca8a04 0%, #a16207 100%);
 }
 
-.patient-dash-action-card.bg-red-500:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+.patient-dash-action-card.bg-yellow-600:hover {
+  background: linear-gradient(135deg, #a16207 0%, #854d0e 100%);
 }
 
-.patient-dash-action-card.bg-indigo-500 {
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+.patient-dash-action-card.bg-sky-600 {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
 }
 
-.patient-dash-action-card.bg-indigo-500:hover {
+.patient-dash-action-card.bg-sky-600:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+}
+
+.patient-dash-action-card.bg-rose-600 {
+  background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+}
+
+.patient-dash-action-card.bg-rose-600:hover {
+  background: linear-gradient(135deg, #be123c 0%, #9f1239 100%);
+}
+
+.patient-dash-action-card.bg-indigo-600 {
   background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
 }
 
-.patient-dash-action-card.bg-pink-500 {
-  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+.patient-dash-action-card.bg-indigo-600:hover {
+  background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
 }
 
-.patient-dash-action-card.bg-pink-500:hover {
-  background: linear-gradient(135deg, #db2777 0%, #be185d 100%);
+.patient-dash-action-card.bg-fuchsia-600 {
+  background: linear-gradient(135deg, #c026d3 0%, #a21caf 100%);
+}
+
+.patient-dash-action-card.bg-fuchsia-600:hover {
+  background: linear-gradient(135deg, #a21caf 0%, #86198f 100%);
+}
+
+.patient-dash-action-card.bg-emerald-600 {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.patient-dash-action-card.bg-emerald-600:hover {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+}
+
+.patient-dash-action-card.bg-violet-600 {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+}
+
+.patient-dash-action-card.bg-violet-600:hover {
+  background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
+}
+
+.patient-dash-action-card.bg-lime-600 {
+  background: linear-gradient(135deg, #65a30d 0%, #4d7c0f 100%);
+}
+
+.patient-dash-action-card.bg-lime-600:hover {
+  background: linear-gradient(135deg, #4d7c0f 0%, #365314 100%);
 }
 
 /* Responsive Design */

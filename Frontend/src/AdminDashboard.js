@@ -29,6 +29,11 @@ const AdminDashboard = () => {
   const [ambulances, setAmbulances] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [equipment, setEquipment] = useState([]);
+  const [ambulanceRequests, setAmbulanceRequests] = useState([]);
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [testReports, setTestReports] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [bills, setBills] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,6 +58,71 @@ const AdminDashboard = () => {
 
   const goToHomepage = () => {
     navigate("/");
+  };
+
+  const handleTabChange = (tabName) => {
+    setActiveTab(tabName);
+    setSidebarOpen(false); // Close sidebar when switching tabs
+  };
+
+  const getEntityDisplayName = (entity) => {
+    const entityNames = {
+      'doctors': 'Doctors',
+      'patients': 'Patients',
+      'staff': 'Staff',
+      'users': 'Users',
+      'rooms': 'Rooms',
+      'branches': 'Branches',
+      'ambulances': 'Ambulances',
+      'departments': 'Departments',
+      'equipment': 'Equipment',
+      'ambulance-requests': 'Ambulance Requests',
+      'prescriptions': 'Prescriptions',
+      'test-reports': 'Test Reports',
+      'appointments': 'Appointments',
+      'bills': 'Bills'
+    };
+    return entityNames[entity] || entity.charAt(0).toUpperCase() + entity.slice(1);
+  };
+
+  const getEntitySingular = (entity) => {
+    const singularNames = {
+      'doctors': 'doctor',
+      'patients': 'patient',
+      'staff': 'staff',
+      'users': 'user',
+      'rooms': 'room',
+      'branches': 'branch',
+      'ambulances': 'ambulance',
+      'departments': 'department',
+      'equipment': 'equipment',
+      'ambulance-requests': 'ambulance-request',
+      'prescriptions': 'prescription',
+      'test-reports': 'test-report',
+      'appointments': 'appointment',
+      'bills': 'bill'
+    };
+    return singularNames[entity] || entity.slice(0, -1);
+  };
+
+  const getApiEntityName = (formType) => {
+    const apiNames = {
+      'doctor': 'doctors',
+      'patient': 'patients',
+      'staff': 'staff',
+      'user': 'users',
+      'room': 'rooms',
+      'branch': 'branches',
+      'ambulance': 'ambulances',
+      'department': 'departments',
+      'equipment': 'equipment',
+      'ambulance-request': 'ambulance-requests',
+      'prescription': 'prescriptions',
+      'test-report': 'test-reports',
+      'appointment': 'appointments',
+      'bill': 'bills'
+    };
+    return apiNames[formType] || formType + 's';
   };
 
   const getSampleData = (entity) => {
@@ -100,6 +170,26 @@ const AdminDashboard = () => {
       equipment: [
         { id: 1, equipment_name: 'MRI Scanner', equipment_type: 'Imaging', manufacturer: 'Siemens', model: 'Magnetom', condition: 'Good', purchase_date: '2020-01-15', department_id: 1, active: true },
         { id: 2, equipment_name: 'Ventilator', equipment_type: 'Life Support', manufacturer: 'Medtronic', model: 'PB980', condition: 'Excellent', purchase_date: '2021-03-10', department_id: 2, active: true }
+      ],
+      'ambulance-requests': [
+        { id: 1, patient_name: 'John Emergency', pickup_location: '123 Main St', destination: 'Main Hospital', request_time: '2024-01-15 14:30', status: 'Pending', priority: 'High', contact_number: '+1-555-9999', active: true },
+        { id: 2, patient_name: 'Jane Urgent', pickup_location: '456 Oak Ave', destination: 'North Branch', request_time: '2024-01-15 15:45', status: 'Dispatched', priority: 'Medium', contact_number: '+1-555-8888', active: true }
+      ],
+      prescriptions: [
+        { id: 1, patient_name: 'John Smith', doctor_name: 'Dr. Sarah Johnson', medication: 'Amoxicillin 500mg', dosage: '3 times daily', duration: '7 days', date_prescribed: '2024-01-15', status: 'Active', active: true },
+        { id: 2, patient_name: 'Maria Garcia', doctor_name: 'Dr. Michael Chen', medication: 'Lisinopril 10mg', dosage: 'Once daily', duration: '30 days', date_prescribed: '2024-01-14', status: 'Active', active: true }
+      ],
+      'test-reports': [
+        { id: 1, patient_name: 'John Smith', test_type: 'Blood Test', report_date: '2024-01-15', result: 'Normal', doctor_name: 'Dr. Sarah Johnson', lab_technician: 'Bob Thompson', status: 'Completed', active: true },
+        { id: 2, patient_name: 'Maria Garcia', test_type: 'X-Ray Chest', report_date: '2024-01-14', result: 'Clear', doctor_name: 'Dr. Michael Chen', lab_technician: 'Bob Thompson', status: 'Completed', active: true }
+      ],
+      appointments: [
+        { id: 1, patient_name: 'John Smith', doctor_name: 'Dr. Sarah Johnson', appointment_date: '2024-01-20', appointment_time: '10:00 AM', department: 'Cardiology', status: 'Scheduled', notes: 'Follow-up consultation', active: true },
+        { id: 2, patient_name: 'Maria Garcia', doctor_name: 'Dr. Michael Chen', appointment_date: '2024-01-21', appointment_time: '2:00 PM', department: 'Emergency Medicine', status: 'Confirmed', notes: 'Regular checkup', active: true }
+      ],
+      bills: [
+        { id: 1, patient_name: 'John Smith', bill_date: '2024-01-15', total_amount: 1250.00, paid_amount: 1250.00, balance: 0.00, status: 'Paid', payment_method: 'Insurance', active: true },
+        { id: 2, patient_name: 'Maria Garcia', bill_date: '2024-01-14', total_amount: 850.00, paid_amount: 400.00, balance: 450.00, status: 'Partial', payment_method: 'Cash', active: true }
       ]
     };
     return sampleData[entity] || [];
@@ -125,6 +215,11 @@ const AdminDashboard = () => {
           case 'ambulances': setAmbulances(sampleData); break;
           case 'departments': setDepartments(sampleData); break;
           case 'equipment': setEquipment(sampleData); break;
+          case 'ambulance-requests': setAmbulanceRequests(sampleData); break;
+          case 'prescriptions': setPrescriptions(sampleData); break;
+          case 'test-reports': setTestReports(sampleData); break;
+          case 'appointments': setAppointments(sampleData); break;
+          case 'bills': setBills(sampleData); break;
           default: break;
         }
       } else {
@@ -139,6 +234,11 @@ const AdminDashboard = () => {
           case 'ambulances': setAmbulances(data); break;
           case 'departments': setDepartments(data); break;
           case 'equipment': setEquipment(data); break;
+          case 'ambulance-requests': setAmbulanceRequests(data); break;
+          case 'prescriptions': setPrescriptions(data); break;
+          case 'test-reports': setTestReports(data); break;
+          case 'appointments': setAppointments(data); break;
+          case 'bills': setBills(data); break;
           default: break;
         }
       }
@@ -155,6 +255,11 @@ const AdminDashboard = () => {
         case 'ambulances': setAmbulances(sampleData); break;
         case 'departments': setDepartments(sampleData); break;
         case 'equipment': setEquipment(sampleData); break;
+        case 'ambulance-requests': setAmbulanceRequests(sampleData); break;
+        case 'prescriptions': setPrescriptions(sampleData); break;
+        case 'test-reports': setTestReports(sampleData); break;
+        case 'appointments': setAppointments(sampleData); break;
+        case 'bills': setBills(sampleData); break;
         default: break;
       }
     }
@@ -279,7 +384,12 @@ const AdminDashboard = () => {
           fetchData('branches'),
           fetchData('ambulances'),
           fetchData('departments'),
-          fetchData('equipment')
+          fetchData('equipment'),
+          fetchData('ambulance-requests'),
+          fetchData('prescriptions'),
+          fetchData('test-reports'),
+          fetchData('appointments'),
+          fetchData('bills')
         ]);
       } catch (err) {
         console.error('Failed to fetch initial data:', err);
@@ -349,7 +459,7 @@ const AdminDashboard = () => {
     e.preventDefault();
     setLoading(true);
 
-    const entity = formType === 'user' ? 'users' : formType + 's';
+    const entity = getApiEntityName(formType);
     const url = `${API_BASE}/${entity}${formMode === 'edit' ? `/${formData.id}` : ''}`;
     const method = formMode === 'edit' ? 'PUT' : 'POST';
 
@@ -372,7 +482,7 @@ const AdminDashboard = () => {
     if (!window.confirm('Are you sure you want to delete this record?')) return;
     setLoading(true);
     try {
-      const entity = type === 'user' ? 'users' : type + 's';
+      const entity = getApiEntityName(type);
       const res = await fetch(`${API_BASE}/${entity}/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete');
       await fetchData(entity);
@@ -392,7 +502,7 @@ const AdminDashboard = () => {
       <tr key={item.id} className="adm-table__row">
         <td className="adm-table__cell">{item.id}</td>
         <td className="adm-table__cell adm-table__cell--primary">
-          {item.name || item.email || item.designation || item.room_number || item.vehicle_number || item.equipment_name || 'N/A'}
+          {item.name || item.email || item.designation || item.room_number || item.vehicle_number || item.equipment_name || item.patient_name || item.medication || item.test_type || 'N/A'}
         </td>
         {type === 'users' && <td className="adm-table__cell">{item.role}</td>}
         {type === 'doctors' && <td className="adm-table__cell">{item.experience_years || 0} years</td>}
@@ -402,19 +512,24 @@ const AdminDashboard = () => {
         {type === 'ambulances' && <td className="adm-table__cell">{item.status || 'Available'}</td>}
         {type === 'departments' && <td className="adm-table__cell">{item.head_doctor || 'N/A'}</td>}
         {type === 'equipment' && <td className="adm-table__cell">{item.condition || 'Good'}</td>}
+        {type === 'ambulance-requests' && <td className="adm-table__cell">{item.priority || 'Medium'}</td>}
+        {type === 'prescriptions' && <td className="adm-table__cell">{item.doctor_name || 'N/A'}</td>}
+        {type === 'test-reports' && <td className="adm-table__cell">{item.result || 'Pending'}</td>}
+        {type === 'appointments' && <td className="adm-table__cell">{item.doctor_name || 'N/A'}</td>}
+        {type === 'bills' && <td className="adm-table__cell">₹{item.total_amount || 0}</td>}
         <td className="adm-table__cell">
           {getStatusBadge(item.active !== false)}
         </td>
         <td className="adm-table__cell adm-table__cell--actions">
           <button 
             className="adm-btn adm-btn--small adm-btn--secondary" 
-            onClick={() => openForm(type.slice(0, -1), 'edit', item)}
+            onClick={() => openForm(getEntitySingular(type), 'edit', item)}
           >
             Edit
           </button>
           <button 
             className="adm-btn adm-btn--small adm-btn--danger" 
-            onClick={() => handleDelete(type.slice(0, -1), item.id)}
+            onClick={() => handleDelete(getEntitySingular(type), item.id)}
           >
             Delete
           </button>
@@ -494,7 +609,7 @@ const AdminDashboard = () => {
   let totalPages = 1;
   let totalItems = 0;
   
-  if (['doctors', 'patients', 'staff', 'users', 'rooms', 'branches', 'ambulances', 'departments', 'equipment'].includes(activeTab)) {
+  if (['doctors', 'patients', 'staff', 'users', 'rooms', 'branches', 'ambulances', 'departments', 'equipment', 'ambulance-requests', 'prescriptions', 'test-reports', 'appointments', 'bills'].includes(activeTab)) {
     switch (activeTab) {
       case 'doctors': ({paged: currentData, totalPages, total: totalItems} = paginatedData(doctors)); break;
       case 'patients': ({paged: currentData, totalPages, total: totalItems} = paginatedData(patients)); break;
@@ -505,6 +620,11 @@ const AdminDashboard = () => {
       case 'ambulances': ({paged: currentData, totalPages, total: totalItems} = paginatedData(ambulances)); break;
       case 'departments': ({paged: currentData, totalPages, total: totalItems} = paginatedData(departments)); break;
       case 'equipment': ({paged: currentData, totalPages, total: totalItems} = paginatedData(equipment)); break;
+      case 'ambulance-requests': ({paged: currentData, totalPages, total: totalItems} = paginatedData(ambulanceRequests)); break;
+      case 'prescriptions': ({paged: currentData, totalPages, total: totalItems} = paginatedData(prescriptions)); break;
+      case 'test-reports': ({paged: currentData, totalPages, total: totalItems} = paginatedData(testReports)); break;
+      case 'appointments': ({paged: currentData, totalPages, total: totalItems} = paginatedData(appointments)); break;
+      case 'bills': ({paged: currentData, totalPages, total: totalItems} = paginatedData(bills)); break;
       default: break;
     }
   }
@@ -544,7 +664,7 @@ const AdminDashboard = () => {
         <nav className="adm-sidebar__nav">
           <button 
             className={`adm-nav-btn ${activeTab === 'dashboard' ? 'adm-nav-btn--active' : ''}`} 
-            onClick={() => setActiveTab('dashboard')}
+            onClick={() => handleTabChange('dashboard')}
           >
             <Activity size={18} style={{ marginRight: '8px' }} />
             System Overview
@@ -554,28 +674,56 @@ const AdminDashboard = () => {
             <div className="adm-nav-section-title">👥 People Management</div>
             <button 
               className={`adm-nav-btn ${activeTab === 'doctors' ? 'adm-nav-btn--active' : ''}`} 
-              onClick={() => setActiveTab('doctors')}
+              onClick={() => handleTabChange('doctors')}
             >
               <Stethoscope size={18} style={{ marginRight: '8px' }} />
               Manage Doctors
             </button>
             <button 
               className={`adm-nav-btn ${activeTab === 'patients' ? 'adm-nav-btn--active' : ''}`} 
-              onClick={() => setActiveTab('patients')}
+              onClick={() => handleTabChange('patients')}
             >
               👥 Manage Patients
             </button>
             <button 
               className={`adm-nav-btn ${activeTab === 'staff' ? 'adm-nav-btn--active' : ''}`} 
-              onClick={() => setActiveTab('staff')}
+              onClick={() => handleTabChange('staff')}
             >
               👨‍💼 Manage Staff
             </button>
             <button 
               className={`adm-nav-btn ${activeTab === 'users' ? 'adm-nav-btn--active' : ''}`} 
-              onClick={() => setActiveTab('users')}
+              onClick={() => handleTabChange('users')}
             >
               👤 Manage Users
+            </button>
+          </div>
+
+          <div className="adm-nav-section">
+            <div className="adm-nav-section-title">📋 Patient Management</div>
+            <button 
+              className={`adm-nav-btn ${activeTab === 'prescriptions' ? 'adm-nav-btn--active' : ''}`} 
+              onClick={() => handleTabChange('prescriptions')}
+            >
+              💊 Manage Prescriptions
+            </button>
+            <button 
+              className={`adm-nav-btn ${activeTab === 'test-reports' ? 'adm-nav-btn--active' : ''}`} 
+              onClick={() => handleTabChange('test-reports')}
+            >
+              🧪 Test Reports
+            </button>
+            <button 
+              className={`adm-nav-btn ${activeTab === 'appointments' ? 'adm-nav-btn--active' : ''}`} 
+              onClick={() => handleTabChange('appointments')}
+            >
+              📅 Manage Appointments
+            </button>
+            <button 
+              className={`adm-nav-btn ${activeTab === 'bills' ? 'adm-nav-btn--active' : ''}`} 
+              onClick={() => handleTabChange('bills')}
+            >
+              💰 Manage Bills
             </button>
           </div>
 
@@ -583,27 +731,27 @@ const AdminDashboard = () => {
             <div className="adm-nav-section-title">🏥 Facility Management</div>
             <button 
               className={`adm-nav-btn ${activeTab === 'branches' ? 'adm-nav-btn--active' : ''}`} 
-              onClick={() => setActiveTab('branches')}
+              onClick={() => handleTabChange('branches')}
             >
               <Building size={18} style={{ marginRight: '8px' }} />
               Hospital Branches
             </button>
             <button 
               className={`adm-nav-btn ${activeTab === 'departments' ? 'adm-nav-btn--active' : ''}`} 
-              onClick={() => setActiveTab('departments')}
+              onClick={() => handleTabChange('departments')}
             >
               🏢 Departments
             </button>
             <button 
               className={`adm-nav-btn ${activeTab === 'rooms' ? 'adm-nav-btn--active' : ''}`} 
-              onClick={() => setActiveTab('rooms')}
+              onClick={() => handleTabChange('rooms')}
             >
               <Bed size={18} style={{ marginRight: '8px' }} />
               Room Management
             </button>
             <button 
               className={`adm-nav-btn ${activeTab === 'equipment' ? 'adm-nav-btn--active' : ''}`} 
-              onClick={() => setActiveTab('equipment')}
+              onClick={() => handleTabChange('equipment')}
             >
               ⚕️ Medical Equipment
             </button>
@@ -613,10 +761,16 @@ const AdminDashboard = () => {
             <div className="adm-nav-section-title">🚑 Emergency Services</div>
             <button 
               className={`adm-nav-btn ${activeTab === 'ambulances' ? 'adm-nav-btn--active' : ''}`} 
-              onClick={() => setActiveTab('ambulances')}
+              onClick={() => handleTabChange('ambulances')}
             >
               <Car size={18} style={{ marginRight: '8px' }} />
               Ambulance Fleet
+            </button>
+            <button 
+              className={`adm-nav-btn ${activeTab === 'ambulance-requests' ? 'adm-nav-btn--active' : ''}`} 
+              onClick={() => handleTabChange('ambulance-requests')}
+            >
+              🚨 Ambulance Requests
             </button>
           </div>
 
@@ -624,27 +778,27 @@ const AdminDashboard = () => {
             <div className="adm-nav-section-title">📊 Reports & Settings</div>
             <button 
               className={`adm-nav-btn ${activeTab === 'reports' ? 'adm-nav-btn--active' : ''}`} 
-              onClick={() => setActiveTab('reports')}
+              onClick={() => handleTabChange('reports')}
             >
               📊 View Reports
             </button>
             <button 
               className={`adm-nav-btn ${activeTab === 'audit' ? 'adm-nav-btn--active' : ''}`} 
-              onClick={() => setActiveTab('audit')}
+              onClick={() => handleTabChange('audit')}
             >
               <Shield size={18} style={{ marginRight: '8px' }} />
               Audit Logs
             </button>
             <button 
               className={`adm-nav-btn ${activeTab === 'settings' ? 'adm-nav-btn--active' : ''}`} 
-              onClick={() => setActiveTab('settings')}
+              onClick={() => handleTabChange('settings')}
             >
               <Settings size={18} style={{ marginRight: '8px' }} />
               System Settings
             </button>
             <button 
               className={`adm-nav-btn ${activeTab === 'backup' ? 'adm-nav-btn--active' : ''}`} 
-              onClick={() => setActiveTab('backup')}
+              onClick={() => handleTabChange('backup')}
             >
               <Database size={18} style={{ marginRight: '8px' }} />
               Backup & Restore
@@ -696,11 +850,11 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {['doctors', 'patients', 'staff', 'users', 'rooms', 'branches', 'ambulances', 'departments', 'equipment'].includes(activeTab) && !loading && (
+          {['doctors', 'patients', 'staff', 'users', 'rooms', 'branches', 'ambulances', 'departments', 'equipment', 'ambulance-requests', 'prescriptions', 'test-reports', 'appointments', 'bills'].includes(activeTab) && !loading && (
             <div className="adm-data-section">
               <div className="adm-data-header">
                 <h2 className="adm-data-title">
-                  {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Management
+                  {getEntityDisplayName(activeTab)} Management
                 </h2>
                 <div className="adm-data-actions">
                   <div className="adm-search-box">
@@ -714,9 +868,9 @@ const AdminDashboard = () => {
                   </div>
                   <button 
                     className="adm-btn adm-btn--primary" 
-                    onClick={() => openForm(activeTab.slice(0, -1), 'create')}
+                    onClick={() => openForm(getEntitySingular(activeTab), 'create')}
                   >
-                    + Add New {activeTab.slice(0, -1).charAt(0).toUpperCase() + activeTab.slice(1, -1)}
+                    + Add New {getEntityDisplayName(activeTab).slice(0, -1)}
                   </button>
                 </div>
               </div>
@@ -739,6 +893,11 @@ const AdminDashboard = () => {
                       {activeTab === 'ambulances' && <th className="adm-table__header">Status</th>}
                       {activeTab === 'departments' && <th className="adm-table__header">Head Doctor</th>}
                       {activeTab === 'equipment' && <th className="adm-table__header">Condition</th>}
+                      {activeTab === 'ambulance-requests' && <th className="adm-table__header">Priority</th>}
+                      {activeTab === 'prescriptions' && <th className="adm-table__header">Doctor</th>}
+                      {activeTab === 'test-reports' && <th className="adm-table__header">Result</th>}
+                      {activeTab === 'appointments' && <th className="adm-table__header">Doctor</th>}
+                      {activeTab === 'bills' && <th className="adm-table__header">Amount</th>}
                       <th className="adm-table__header">Status</th>
                       <th className="adm-table__header">Actions</th>
                     </tr>

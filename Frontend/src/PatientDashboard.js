@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, DollarSign, FileText, Shield, Ambulance, Video, TestTube, ChevronRight, AlertCircle, Loader, Home, Brain } from 'lucide-react';
+import { Calendar, DollarSign, FileText, Shield, Ambulance, Video, TestTube, ChevronRight, AlertCircle, Loader, Home, Brain, MessageSquare } from 'lucide-react';
 import './PatientDashboard.css';
 
 const PatientDashboard = () => {
@@ -63,15 +63,16 @@ const PatientDashboard = () => {
   };
 
   const dashboardActions = [
-    { path: '/appointments?book=true', label: 'Book Appointment', icon: Calendar, color: 'bg-blue-500 hover:bg-blue-600' },
-    { path: '/prescriptions', label: 'View Prescriptions', icon: FileText, color: 'bg-green-500 hover:bg-green-600' },
-    { path: '/bills', label: 'Billing Info', icon: DollarSign, color: 'bg-orange-500 hover:bg-orange-600' },
+    { path: '/appointments?book=true', label: 'Book Appointment', icon: Calendar, color: 'bg-purple-600 hover:bg-purple-700' },
+    { path: '/prescriptions', label: 'View Prescriptions', icon: FileText, color: 'bg-cyan-600 hover:bg-cyan-700' },
+    { path: '/bills', label: 'Billing Info', icon: DollarSign, color: 'bg-yellow-600 hover:bg-yellow-700' },
     // Removed Medical History from here to add a custom button below
-    { path: '/insurance', label: 'Apply for Insurance', icon: Shield, color: 'bg-teal-500 hover:bg-teal-600' },
-    { path: '/ambulance', label: 'Book Ambulance', icon: Ambulance, color: 'bg-red-500 hover:bg-red-600' },
-    { path: '/video-sessions', label: 'Join Video Session', icon: Video, color: 'bg-indigo-500 hover:bg-indigo-600' },
-    { path: '/lab-tests', label: 'See Test List', icon: TestTube, color: 'bg-pink-500 hover:bg-pink-600' },
-    { path: '/symptom-checker', label: 'AI Symptom Checker', icon: Brain, color: 'bg-emerald-500 hover:bg-emerald-600' }
+    { path: '/insurance', label: 'Apply for Insurance', icon: Shield, color: 'bg-sky-600 hover:bg-sky-700' },
+    { path: '/ambulance', label: 'Book Ambulance', icon: Ambulance, color: 'bg-rose-600 hover:bg-rose-700' },
+    { path: '/video-sessions', label: 'Join Video Session', icon: Video, color: 'bg-indigo-600 hover:bg-indigo-700' },
+    { path: '/lab-tests', label: 'See Test List', icon: TestTube, color: 'bg-fuchsia-600 hover:bg-fuchsia-700' },
+    { path: '/symptom-checker', label: 'AI Symptom Checker', icon: Brain, color: 'bg-emerald-600 hover:bg-emerald-700' },
+    { path: '/feedback', label: 'Feedback Board', icon: MessageSquare, color: 'bg-violet-600 hover:bg-violet-700' }
   ];
 
   const formatDate = (dateString) =>
@@ -266,7 +267,7 @@ const PatientDashboard = () => {
             {/* Custom Medical History button passing userId */}
             <button
               onClick={() => navigate('/medical-history', { state: { userId: user?.id } })}
-              className="patient-dash-action-card bg-purple-500 hover:bg-purple-600"
+              className="patient-dash-action-card bg-lime-600 hover:bg-lime-700"
             >
               <FileText size={24} className="patient-dash-action-icon" />
               <span className="patient-dash-action-label">Medical History</span>

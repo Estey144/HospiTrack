@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import './Feedback.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
 const Feedback = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     targetType: 'Hospital',
     targetId: '',
@@ -195,13 +197,167 @@ const Feedback = () => {
 
   return (
     <div className="feedback-page">
-      <div className="feedback-container">
-        <div className="feedback-header">
-          <h2>Share Your Experience</h2>
-          <p className="feedback-subtitle">
-            Your feedback helps us improve our services and provide better care
-          </p>
+      <style jsx>{`
+        .page-header {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          padding: 2rem 0;
+          margin-bottom: 2rem;
+        }
+        
+        .header-nav {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 2rem;
+        }
+        
+        .breadcrumb {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          margin-bottom: 1.5rem;
+        }
+        
+        .nav-btn {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          background: rgba(255, 255, 255, 0.2);
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          color: white;
+          padding: 0.75rem 1.5rem;
+          border-radius: 12px;
+          font-size: 1rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          backdrop-filter: blur(10px);
+        }
+        
+        .nav-btn:hover {
+          background: rgba(255, 255, 255, 0.3);
+          border-color: rgba(255, 255, 255, 0.5);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .home-btn:hover {
+          background: linear-gradient(135deg, #4CAF50, #45a049);
+        }
+        
+        .dashboard-btn:hover {
+          background: linear-gradient(135deg, #2196F3, #1976D2);
+        }
+        
+        .btn-icon {
+          font-size: 1.2rem;
+        }
+        
+        .btn-text {
+          font-weight: 600;
+        }
+        
+        .breadcrumb-separator {
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 1.5rem;
+          font-weight: bold;
+        }
+        
+        .breadcrumb-current {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          background: rgba(255, 255, 255, 0.15);
+          padding: 0.75rem 1.5rem;
+          border-radius: 12px;
+          border: 2px solid rgba(255, 255, 255, 0.2);
+          backdrop-filter: blur(10px);
+        }
+        
+        .current-icon {
+          font-size: 1.2rem;
+        }
+        
+        .current-text {
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .header-content {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 2rem;
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+        }
+        
+        .header-icon-large {
+          font-size: 4rem;
+          background: rgba(255, 255, 255, 0.2);
+          padding: 1rem;
+          border-radius: 20px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          backdrop-filter: blur(10px);
+        }
+        
+        .header-text h1 {
+          margin: 0 0 0.5rem 0;
+          font-size: 2.5rem;
+          font-weight: 700;
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header-text p {
+          margin: 0;
+          font-size: 1.2rem;
+          color: rgba(255, 255, 255, 0.9);
+          font-weight: 400;
+        }
+        
+        .feedback-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 2rem;
+        }
+      `}</style>
+      
+      <div className="page-header">
+        <div className="header-nav">
+          <div className="breadcrumb">
+            <button 
+              className="nav-btn home-btn" 
+              onClick={() => navigate('/')}
+            >
+              <span className="btn-icon">🏠</span>
+              <span className="btn-text">Home</span>
+            </button>
+            <span className="breadcrumb-separator">•</span>
+            <button 
+              className="nav-btn dashboard-btn" 
+              onClick={() => navigate('/patient-dashboard')}
+            >
+              <span className="btn-icon">📊</span>
+              <span className="btn-text">Dashboard</span>
+            </button>
+            <span className="breadcrumb-separator">•</span>
+            <span className="breadcrumb-current">
+              <span className="current-icon">💬</span>
+              <span className="current-text">Feedback</span>
+            </span>
+          </div>
         </div>
+        
+        <div className="header-content">
+          <div className="header-icon-large">💬</div>
+          <div className="header-text">
+            <h1>Patient Feedback</h1>
+            <p>Share your experience to help us improve our services</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="feedback-container">
 
         <form className="feedback-form" onSubmit={handleSubmit}>
           <div className="feedback-form-section">
