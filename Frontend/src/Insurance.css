@@ -57,8 +57,21 @@
 
 .insurance-header-left {
   display: flex;
-  align-items: flex-start;
-  gap: 1.5rem;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.insurance-title-with-sidebar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.insurance-title-with-sidebar h1 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .insurance-header-right {
@@ -97,6 +110,33 @@
 .insurance-nav-button--secondary:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 12px -1px rgba(37, 99, 235, 0.5);
+}
+
+/* Sidebar Toggle Button for Insurance - More specific selector */
+.patient-dashboard-wrapper .insurance-page .patient-sidebar-toggle-main {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: none;
+}
+
+.patient-dashboard-wrapper .insurance-page .patient-sidebar-toggle-main:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px -1px rgba(37, 99, 235, 0.5);
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  border-color: transparent;
+}
+
+.patient-dashboard-wrapper .insurance-page .patient-sidebar-toggle-main:active {
+  transform: translateY(0);
 }
 
 .insurance-nav-button--outline {
@@ -1685,6 +1725,22 @@
     flex-direction: column;
     gap: 1.5rem;
     align-items: flex-start;
+    padding: 1.5rem;
+  }
+
+  .insurance-title-with-sidebar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .insurance-title-with-sidebar h1 {
+    order: 2;
+  }
+
+  .patient-sidebar-toggle-main {
+    order: 1;
+    align-self: flex-start;
   }
 
   .insurance-header-left {

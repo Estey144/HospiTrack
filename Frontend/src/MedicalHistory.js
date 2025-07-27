@@ -1,16 +1,45 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   FileText, ArrowLeft, Home, Calendar, Stethoscope, 
   Activity, Heart, Eye, Search, Filter, Download, Clock,
-  AlertCircle, ChevronDown, ChevronUp, Pill 
+  AlertCircle, ChevronDown, ChevronUp, Pill, DollarSign,
+  Shield, Ambulance, Video, TestTube, Brain, MessageSquare,
+  Menu, X, User
 } from 'lucide-react';
 import './MedicalHistory.css';
+import './PatientDashboard.css';
 
 const MedicalHistory = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const user = JSON.parse(localStorage.getItem('user'));
   const token = localStorage.getItem('token');
+
+  // Sidebar state
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Navigation items
+  const navigationItems = [
+    { path: '/patient-dashboard', label: 'Patient Dashboard', icon: User, color: 'text-blue-600' },
+    { path: '/appointments', label: 'Appointments', icon: Calendar, color: 'text-purple-600' },
+    { path: '/prescriptions', label: 'Prescriptions', icon: FileText, color: 'text-cyan-600' },
+    { path: '/bills', label: 'Bills', icon: DollarSign, color: 'text-yellow-600' },
+    { path: '/medical-history', label: 'Medical History', icon: FileText, color: 'text-lime-600' },
+    { path: '/insurance', label: 'Insurance', icon: Shield, color: 'text-sky-600' },
+    { path: '/ambulance', label: 'Ambulance', icon: Ambulance, color: 'text-rose-600' },
+    { path: '/video-sessions', label: 'Video Sessions', icon: Video, color: 'text-indigo-600' },
+    { path: '/lab-tests', label: 'Lab Tests', icon: TestTube, color: 'text-fuchsia-600' },
+    { path: '/symptom-checker', label: 'AI Symptom Checker', icon: Brain, color: 'text-emerald-600' },
+    { path: '/feedback', label: 'Feedback', icon: MessageSquare, color: 'text-violet-600' }
+  ];
+
+  const handleSidebarNavigation = (path) => {
+    const separator = path.includes('?') ? '&' : '?';
+    const pathWithUserId = `${path}${separator}userId=${user?.id}`;
+    navigate(pathWithUserId, { state: { user } });
+    setSidebarOpen(false); // Close sidebar after navigation
+  };
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
@@ -134,18 +163,77 @@ const MedicalHistory = () => {
   }
 
   return (
+    <div className="patient-dashboard-wrapper">
+      {/* Mobile Overlay */}
+      {sidebarOpen && <div className="patient-sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>}
+      
+      {/* Sidebar */}
+      <div className={`patient-sidebar ${sidebarOpen ? 'patient-sidebar--open' : ''}`}>
+        <div className="patient-sidebar-header">
+          <div className="patient-sidebar-title">
+            <User size={24} className="patient-sidebar-logo" />
+            <span className="patient-sidebar-title-text">Patient Portal</span>
+          </div>
+          <button 
+            className="patient-sidebar-close"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="patient-sidebar-user">
+          <div className="patient-sidebar-user-avatar">
+            {user?.username?.charAt(0)?.toUpperCase() || 'P'}
+          </div>
+          <div className="patient-sidebar-user-info">
+            <div className="patient-sidebar-user-name">{user?.username || 'Patient'}</div>
+            <div className="patient-sidebar-user-id">ID: {user?.id || 'N/A'}</div>
+          </div>
+        </div>
+        
+        <nav className="patient-sidebar-nav">
+          {navigationItems.map((item) => {
+            const IconComponent = item.icon;
+            const isActive = location.pathname === item.path;
+            
+            return (
+              <button
+                key={item.path}
+                onClick={() => handleSidebarNavigation(item.path)}
+                className={`patient-nav-item ${isActive ? 'patient-nav-item--active' : ''}`}
+              >
+                <IconComponent size={20} className={`patient-nav-icon ${item.color}`} />
+                <span className="patient-nav-label">{item.label}</span>
+                {isActive && <div className="patient-nav-indicator" />}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="patient-sidebar-footer">
+          <button 
+            onClick={() => navigate('/', { state: { user } })}
+            className="patient-home-button"
+          >
+            <Home size={16} />
+            Go to Homepage
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="patient-main">
     <div className="medical-history-page">
       {/* Header */}
       <div className="medical-history-header">
         <div className="medical-history-header-left">
           <div className="navigation-buttons">
-            <button className="medical-nav-button medical-nav-button--secondary" onClick={() => navigate('/patient-dashboard')}>
-              <ArrowLeft size={16} />
-              Patient Dashboard
-            </button>
-            <button className="medical-nav-button medical-nav-button--outline" onClick={() => navigate('/')}>
-              <Home size={16} />
-              Home
+            <button 
+              className="sidebar-toggle-btn"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+            >
+              <Menu size={20} />
             </button>
           </div>
           <div className="medical-page-title">
@@ -267,6 +355,8 @@ const MedicalHistory = () => {
           <h4>Active Medications</h4>
           <span className="summary-number">3</span>
         </div>
+      </div>
+    </div>
       </div>
     </div>
   );

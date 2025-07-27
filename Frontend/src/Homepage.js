@@ -10,7 +10,7 @@ const Homepage = () => {
   const [stats, setStats] = useState({ doctors: 0, patients: 0, branches: 0 });
   const [covid, setCovid] = useState({ cases: 0, active: 0, deaths: 0, recovered: 0 });
   const [feedback, setFeedback] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [user, setUser] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -30,7 +30,7 @@ const Homepage = () => {
   }, []);
 
   useEffect(() => {
-    setLoading(true);
+    // Load data in background without showing loading screen
     Promise.all([
       axios.get(`${API_BASE_URL}/api/stats`).then(res => setStats(res.data)).catch(() => setError('Failed to load hospital statistics.')),
       axios.get('https://disease.sh/v3/covid-19/all').then(res => {
@@ -58,7 +58,7 @@ const Homepage = () => {
           { id: 5, comments: "State-of-the-art equipment and skilled medical professionals.", rating: 5, patient_name: "Impressed Visitor" }
         ]);
       })
-    ]).finally(() => setLoading(false));
+    ]);
   }, []);
 
   useEffect(() => {
@@ -144,12 +144,6 @@ const Homepage = () => {
           <div className="floating-element">🏥</div>
         </div>
       </section>
-
-      {error && (
-        <div className="error-container">
-          <p className="error">⚠️ {error}</p>
-        </div>
-      )}
 
       <section className="stats-section our-impact-section">
         <div className="section-header">

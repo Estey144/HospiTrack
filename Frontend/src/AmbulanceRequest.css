@@ -1205,3 +1205,43 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Ambulance-specific sidebar and layout styles */
+.ambulance-title-with-sidebar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Sidebar Toggle Button for Ambulance - More specific selector to avoid conflicts */
+.patient-dashboard-wrapper .ambulance-page .patient-sidebar-toggle-main {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: none;
+}
+
+.patient-dashboard-wrapper .ambulance-page .patient-sidebar-toggle-main:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px -1px rgba(220, 38, 38, 0.5);
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  border-color: transparent;
+}
+
+.patient-dashboard-wrapper .ambulance-page .patient-sidebar-toggle-main:active {
+  transform: translateY(0);
+}
+
+/* Full width layout for ambulance page */
+.patient-dashboard-wrapper .ambulance-page {
+  width: 100%;
+  min-height: 100vh;
+}

@@ -1,12 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { 
+  Menu,
+  X,
+  User,
+  Calendar,
+  FileText,
+  DollarSign,
+  Shield,
+  Activity,
+  Video,
+  TestTube,
+  Brain,
+  MessageSquare
+} from 'lucide-react';
 import './Feedback.css';
+import './PatientDashboard.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
 const Feedback = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  
+  // Get user from multiple sources with priority order
+  const getUserFromParams = () => {
+    // 1. From navigation state (highest priority)
+    if (location.state?.user) return location.state.user;
+    
+    // 2. From URL parameters
+    const userIdFromParams = searchParams.get('userId');
+    if (userIdFromParams) {
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (storedUser.id === userIdFromParams) return storedUser;
+    }
+    
+    // 3. From localStorage (fallback)
+    return JSON.parse(localStorage.getItem('user') || '{}');
+  };
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [formData, setFormData] = useState({
     targetType: 'Hospital',
     targetId: '',
@@ -15,7 +50,7 @@ const Feedback = () => {
     category: '',
     comments: '',
   });
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(getUserFromParams());
   const [doctors, setDoctors] = useState([]);
   const [branches, setBranches] = useState([]);
   const [message, setMessage] = useState('');
@@ -23,6 +58,35 @@ const Feedback = () => {
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [hoverRating, setHoverRating] = useState(0);
+
+  // Navigation items for sidebar
+  const navigationItems = [
+    { path: '/patient-dashboard', label: 'Patient Dashboard', icon: User, color: 'text-blue-600' },
+    { path: '/appointments', label: 'Appointments', icon: Calendar, color: 'text-purple-600' },
+    { path: '/prescriptions', label: 'Prescriptions', icon: FileText, color: 'text-cyan-600' },
+    { path: '/bills', label: 'Bills', icon: DollarSign, color: 'text-yellow-600' },
+    { path: '/medical-history', label: 'Medical History', icon: FileText, color: 'text-lime-600' },
+    { path: '/insurance', label: 'Insurance', icon: Shield, color: 'text-sky-600' },
+    { path: '/ambulance', label: 'Ambulance', icon: Activity, color: 'text-rose-600' },
+    { path: '/video-sessions', label: 'Video Sessions', icon: Video, color: 'text-indigo-600' },
+    { path: '/lab-tests', label: 'Lab Tests', icon: TestTube, color: 'text-fuchsia-600' },
+    { path: '/symptom-checker', label: 'AI Symptom Checker', icon: Brain, color: 'text-emerald-600' },
+    { path: '/feedback', label: 'Feedback', icon: MessageSquare, color: 'text-violet-600' }
+  ];
+
+  const handleSidebarNavigation = (path) => {
+    const separator = path.includes('?') ? '&' : '?';
+    const pathWithUserId = `${path}${separator}userId=${user?.id}`;
+    navigate(pathWithUserId, { state: { user } });
+    setSidebarOpen(false);
+  };
+
+  useEffect(() => {
+    const newUser = getUserFromParams();
+    if (newUser && newUser.id !== user?.id) {
+      setUser(newUser);
+    }
+  }, [location.state, searchParams]);
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('user'));
@@ -196,7 +260,72 @@ const Feedback = () => {
   ];
 
   return (
-    <div className="feedback-page">
+    <div className="patient-dashboard-wrapper">
+      {/* Sidebar */}
+      <div className={`patient-sidebar ${sidebarOpen ? 'patient-sidebar--open' : ''}`}>
+        <div className="patient-sidebar-header">
+          <div className="patient-sidebar-title">
+            <div className="patient-sidebar-title-text">
+              <h2>Patient Portal</h2>
+            </div>
+            <button 
+              className="patient-sidebar-close"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <X size={20} />
+            </button>
+          </div>
+        </div>
+
+        <div className="patient-sidebar-user">
+          <div className="patient-sidebar-user-avatar">
+            <User size={24} />
+          </div>
+          <div>
+            <div className="patient-sidebar-user-name">{user?.name || 'Patient'}</div>
+            <div className="patient-sidebar-user-id">ID: {user?.id || 'N/A'}</div>
+          </div>
+        </div>
+
+        <nav className="patient-sidebar-nav">
+          {navigationItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+            return (
+              <button
+                key={item.path}
+                onClick={() => handleSidebarNavigation(item.path)}
+                className={`patient-nav-item ${isActive ? 'patient-nav-item--active' : ''}`}
+              >
+                <Icon size={18} className={`patient-nav-icon ${item.color}`} />
+                <span className="patient-nav-label">{item.label}</span>
+                {isActive && <div className="patient-nav-indicator" />}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="patient-sidebar-footer">
+          <button 
+            onClick={() => navigate('/', { state: { user } })}
+            className="patient-home-button"
+          >
+            <User size={16} />
+            Go to Homepage
+          </button>
+        </div>
+      </div>
+
+      {/* Sidebar Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="patient-sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <div className="patient-main">
+        <div className="feedback-page">
       <style jsx>{`
         .page-header {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -349,6 +478,26 @@ const Feedback = () => {
         </div>
         
         <div className="header-content">
+          <button 
+            className="patient-sidebar-toggle-main"
+            onClick={() => setSidebarOpen(true)}
+            style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              border: 'none',
+              padding: '12px',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 6px -1px rgba(102, 126, 234, 0.4)',
+              transition: 'all 0.3s ease',
+              marginRight: '1.5rem'
+            }}
+          >
+            <Menu size={20} />
+          </button>
           <div className="header-icon-large">💬</div>
           <div className="header-text">
             <h1>Patient Feedback</h1>
@@ -489,6 +638,8 @@ const Feedback = () => {
             )}
           </div>
         </form>
+      </div>
+    </div>
       </div>
     </div>
   );

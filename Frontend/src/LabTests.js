@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { 
   FlaskConical, 
-  ArrowLeft, 
-  Home, 
   Calendar, 
   Search, 
   Filter, 
@@ -19,15 +17,63 @@ import {
   Info,
   Activity,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Menu,
+  X,
+  User,
+  DollarSign,
+  Shield,
+  TestTube,
+  Video,
+  Brain,
+  MessageSquare
 } from 'lucide-react';
 import './LabTests.css';
+import './PatientDashboard.css';
 
-const LabTests = () => {
+const LabTests = ({ currentUser }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  
+  // Get user from multiple sources with priority order
+  const getUserFromParams = () => {
+    // 1. From navigation state (highest priority)
+    if (location.state?.user) return location.state.user;
+    
+    // 2. From URL parameters
+    const userIdFromParams = searchParams.get('userId');
+    if (userIdFromParams) {
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (storedUser.id === userIdFromParams) return storedUser;
+    }
+    
+    // 3. From props
+    if (currentUser) return currentUser;
+    
+    // 4. From localStorage (fallback)
+    return JSON.parse(localStorage.getItem('user') || '{}');
+  };
 
-  const userId = location.state?.userId || null;
+  const [user, setUser] = useState(getUserFromParams());
+  
+  // Debug logging to verify user ID is received
+  useEffect(() => {
+    console.log('LabTests page - User ID from params:', searchParams.get('userId'));
+    console.log('LabTests page - User from state:', location.state?.user);
+    console.log('LabTests page - Current user:', user);
+  }, [searchParams, location.state, user]);
+
+  // Update user state when navigation state or URL params change
+  useEffect(() => {
+    const newUser = getUserFromParams();
+    if (newUser && newUser.id !== user?.id) {
+      setUser(newUser);
+      console.log('LabTests page - User updated:', newUser);
+    }
+  }, [location.state, searchParams]);
+
+  const userId = user?.id;
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');  // Not used much but kept for UI consistency
@@ -40,6 +86,29 @@ const LabTests = () => {
   const [loading, setLoading] = useState(true);
   const [labTests, setLabTests] = useState([]);
   const [error, setError] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Navigation items for sidebar
+  const navigationItems = [
+    { path: '/patient-dashboard', label: 'Patient Dashboard', icon: User, color: 'text-blue-600' },
+    { path: '/appointments', label: 'Appointments', icon: Calendar, color: 'text-purple-600' },
+    { path: '/prescriptions', label: 'Prescriptions', icon: FileText, color: 'text-cyan-600' },
+    { path: '/bills', label: 'Bills', icon: DollarSign, color: 'text-yellow-600' },
+    { path: '/medical-history', label: 'Medical History', icon: FileText, color: 'text-lime-600' },
+    { path: '/insurance', label: 'Insurance', icon: Shield, color: 'text-sky-600' },
+    { path: '/ambulance', label: 'Ambulance', icon: Activity, color: 'text-rose-600' },
+    { path: '/video-sessions', label: 'Video Sessions', icon: Video, color: 'text-indigo-600' },
+    { path: '/lab-tests', label: 'Lab Tests', icon: TestTube, color: 'text-fuchsia-600' },
+    { path: '/symptom-checker', label: 'AI Symptom Checker', icon: Brain, color: 'text-emerald-600' },
+    { path: '/feedback', label: 'Feedback', icon: MessageSquare, color: 'text-violet-600' }
+  ];
+
+  const handleSidebarNavigation = (path) => {
+    const separator = path.includes('?') ? '&' : '?';
+    const pathWithUserId = `${path}${separator}userId=${user?.id}`;
+    navigate(pathWithUserId, { state: { user } });
+    setSidebarOpen(false); // Close sidebar after navigation
+  };
 
   useEffect(() => {
     if (!userId) {
@@ -129,32 +198,95 @@ const LabTests = () => {
   }
 
   return (
-    <div className="lab-tests-page">
-      {/* Header */}
-      <div className="lab-tests-header">
-        <div className="lab-tests-header-left">
-          <div className="navigation-buttons">
-            <button className="lab-nav-button lab-nav-button--secondary" onClick={() => navigate('/patient-dashboard')}>
-              <ArrowLeft size={16} />
-              Patient Dashboard
+    <div className="patient-dashboard-wrapper">
+      {/* Sidebar */}
+      <div className={`patient-sidebar ${sidebarOpen ? 'patient-sidebar--open' : ''}`}>
+        <div className="patient-sidebar-header">
+          <div className="patient-sidebar-title">
+            <div className="patient-sidebar-title-text">
+              <h2>Patient Portal</h2>
+            </div>
+            <button 
+              className="patient-sidebar-close"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <X size={20} />
             </button>
-            <button className="lab-nav-button lab-nav-button--outline" onClick={() => navigate('/')}>
-              <Home size={16} />
-              Home
-            </button>
-          </div>
-          <div className="lab-page-title">
-            <h1><FlaskConical size={24} /> Lab Tests & Results</h1>
-            <p>View your laboratory test results and reports</p>
           </div>
         </div>
-        <div className="lab-tests-header-right">
-          <button className="btn btn-outline">
-            <Download size={16} />
-            Export Results
+
+        <div className="patient-sidebar-user">
+          <div className="patient-sidebar-user-avatar">
+            <User size={24} />
+          </div>
+          <div>
+            <div className="patient-sidebar-user-name">{user?.name || 'Patient'}</div>
+            <div className="patient-sidebar-user-id">ID: {user?.id || 'N/A'}</div>
+          </div>
+        </div>
+
+        <nav className="patient-sidebar-nav">
+          {navigationItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+            return (
+              <button
+                key={item.path}
+                onClick={() => handleSidebarNavigation(item.path)}
+                className={`patient-nav-item ${isActive ? 'patient-nav-item--active' : ''}`}
+              >
+                <Icon size={18} className={`patient-nav-icon ${item.color}`} />
+                <span className="patient-nav-label">{item.label}</span>
+                {isActive && <div className="patient-nav-indicator" />}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="patient-sidebar-footer">
+          <button 
+            onClick={() => navigate('/', { state: { user } })}
+            className="patient-home-button"
+          >
+            <User size={16} />
+            Go to Homepage
           </button>
         </div>
       </div>
+
+      {/* Sidebar Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="patient-sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <div className="patient-main">
+        <div className="lab-tests-page">
+          {/* Header */}
+          <div className="lab-tests-header">
+            <div className="lab-tests-header-left">
+              <div className="lab-page-title">
+                <div className="lab-title-with-sidebar">
+                  <button 
+                    className="patient-sidebar-toggle-main"
+                    onClick={() => setSidebarOpen(true)}
+                  >
+                    <Menu size={20} />
+                  </button>
+                  <h1><FlaskConical size={24} /> Lab Tests & Results</h1>
+                </div>
+                <p>View your laboratory test results and reports</p>
+              </div>
+            </div>
+            <div className="lab-tests-header-right">
+              <button className="btn btn-outline">
+                <Download size={16} />
+                Export Results
+              </button>
+            </div>
+          </div>
 
       {/* Controls */}
       <div className="lab-tests-controls">
@@ -294,6 +426,8 @@ const LabTests = () => {
           </div>
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 };

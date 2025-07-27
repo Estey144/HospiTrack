@@ -27,6 +27,31 @@
   display: flex;
   gap: 12px;
   margin-bottom: 20px;
+  align-items: center;
+}
+
+.patient-sidebar-toggle-main {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  border: none;
+  color: white;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+.patient-sidebar-toggle-main:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
+  background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
+}
+
+.patient-sidebar-toggle-main:active {
+  transform: translateY(0);
 }
 
 .patient-appointments-nav-btn {
@@ -806,5 +831,22 @@
   
   .patient-appointment-form-group {
     margin-bottom: 20px;
+  }
+  
+  .patient-appointments-nav-buttons {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 15px;
+  }
+  
+  .patient-sidebar-toggle-main {
+    align-self: flex-start;
+    margin-bottom: 8px;
+  }
+  
+  .patient-appointments-nav-btn {
+    width: 100%;
+    justify-content: center;
   }
 }

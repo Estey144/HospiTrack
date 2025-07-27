@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, DollarSign, FileText, Shield, Ambulance, Video, TestTube, ChevronRight, AlertCircle, Loader, Home, Brain, MessageSquare } from 'lucide-react';
+import { Calendar, DollarSign, FileText, Shield, Ambulance, Video, TestTube, ChevronRight, AlertCircle, Loader, Home, Brain, MessageSquare, Menu, X, User } from 'lucide-react';
 import './PatientDashboard.css';
 
 const PatientDashboard = () => {
@@ -11,6 +11,7 @@ const PatientDashboard = () => {
   const [pendingBills, setPendingBills] = useState([]);
   const [loading, setLoading] = useState({ appointments: true, bills: true });
   const [error, setError] = useState({ appointments: null, bills: null });
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const fetchUpcomingAppointments = async () => {
@@ -75,6 +76,27 @@ const PatientDashboard = () => {
     { path: '/feedback', label: 'Feedback Board', icon: MessageSquare, color: 'bg-violet-600 hover:bg-violet-700' }
   ];
 
+  const navigationItems = [
+    { path: '/patient-dashboard', label: 'Patient Dashboard', icon: User, color: 'text-blue-600' },
+    { path: '/appointments', label: 'Appointments', icon: Calendar, color: 'text-purple-600' },
+    { path: '/prescriptions', label: 'Prescriptions', icon: FileText, color: 'text-cyan-600' },
+    { path: '/bills', label: 'Bills', icon: DollarSign, color: 'text-yellow-600' },
+    { path: '/medical-history', label: 'Medical History', icon: FileText, color: 'text-lime-600' },
+    { path: '/insurance', label: 'Insurance', icon: Shield, color: 'text-sky-600' },
+    { path: '/ambulance', label: 'Ambulance', icon: Ambulance, color: 'text-rose-600' },
+    { path: '/video-sessions', label: 'Video Sessions', icon: Video, color: 'text-indigo-600' },
+    { path: '/lab-tests', label: 'Lab Tests', icon: TestTube, color: 'text-fuchsia-600' },
+    { path: '/symptom-checker', label: 'AI Symptom Checker', icon: Brain, color: 'text-emerald-600' },
+    { path: '/feedback', label: 'Feedback', icon: MessageSquare, color: 'text-violet-600' }
+  ];
+
+  const handleSidebarNavigation = (path) => {
+    const separator = path.includes('?') ? '&' : '?';
+    const pathWithUserId = `${path}${separator}userId=${user?.id}`;
+    navigate(pathWithUserId, { state: { user } });
+    setSidebarOpen(false); // Close sidebar after navigation
+  };
+
   const formatDate = (dateString) =>
     new Date(dateString).toLocaleDateString('en-US', {
       weekday: 'short', month: 'short', day: 'numeric'
@@ -97,24 +119,94 @@ const PatientDashboard = () => {
   );
 
   return (
-    <div className="patient-dash-container">
+    <div className="patient-dashboard-wrapper">
+      {/* Sidebar Overlay for mobile */}
+      {sidebarOpen && (
+        <div 
+          className="patient-sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`patient-sidebar ${sidebarOpen ? 'patient-sidebar--open' : ''}`}>
+        <div className="patient-sidebar-header">
+          <div className="patient-sidebar-title">
+            <User size={24} className="patient-sidebar-logo" />
+            <span className="patient-sidebar-title-text">Patient Portal</span>
+          </div>
+          <button 
+            className="patient-sidebar-close"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="patient-sidebar-user">
+          <div className="patient-sidebar-user-avatar">
+            {user?.name?.charAt(0)?.toUpperCase() || 'P'}
+          </div>
+          <div className="patient-sidebar-user-info">
+            <div className="patient-sidebar-user-name">{user?.name || 'Patient'}</div>
+            <div className="patient-sidebar-user-id">ID: {user?.id || 'N/A'}</div>
+          </div>
+        </div>
+
+        <nav className="patient-sidebar-nav">
+          {navigationItems.map((item) => {
+            const IconComponent = item.icon;
+            const isActive = window.location.pathname === item.path;
+            
+            return (
+              <button
+                key={item.path}
+                onClick={() => handleSidebarNavigation(item.path)}
+                className={`patient-nav-item ${isActive ? 'patient-nav-item--active' : ''}`}
+              >
+                <IconComponent size={20} className={`patient-nav-icon ${item.color}`} />
+                <span className="patient-nav-label">{item.label}</span>
+                {isActive && <div className="patient-nav-indicator" />}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="patient-sidebar-footer">
+          <button 
+            onClick={() => navigate('/')}
+            className="patient-home-button"
+          >
+            <Home size={16} />
+            <span>Back to Homepage</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="patient-main">
+        {/* Existing Dashboard Content */}
+        <div className="patient-dash-container">
       <div className="patient-dash-header">
         <div className="patient-dash-welcome">
-          <h1 className="patient-dash-title">Patient Dashboard</h1>
-          <p className="patient-dash-greeting">Welcome back, <span className="patient-dash-name">{user?.name}</span></p>
+          <div className="patient-dash-header-left">
+            <button 
+              className="patient-sidebar-toggle-main"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <Menu size={20} />
+            </button>
+            <div className="patient-dash-title-section">
+              <h1 className="patient-dash-title">Patient Dashboard</h1>
+              <p className="patient-dash-greeting">Welcome back, <span className="patient-dash-name">{user?.name}</span></p>
+            </div>
+          </div>
         </div>
         <div className="patient-dash-header-actions">
           <div className="patient-dash-id">
             <span className="patient-dash-id-label">Patient ID:</span>
             <span className="patient-dash-id-value">{user?.id}</span>
           </div>
-          <button 
-            onClick={() => navigate('/', { state: { user } })} 
-            className="patient-dash-home-btn"
-          >
-            <Home size={16} style={{ marginRight: 5 }} />
-            Go to Homepage
-          </button>
         </div>
       </div>
 
@@ -273,6 +365,8 @@ const PatientDashboard = () => {
               <span className="patient-dash-action-label">Medical History</span>
             </button>
           </div>
+        </div>
+      </div>
         </div>
       </div>
     </div>

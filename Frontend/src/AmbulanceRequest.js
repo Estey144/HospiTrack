@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { 
-  Home, 
-  ArrowLeft,
   Truck,
   Phone,
   MapPin,
@@ -14,9 +12,18 @@ import {
   Send,
   Calendar,
   FileText,
-  Heart
+  Heart,
+  Menu,
+  X,
+  DollarSign,
+  Shield,
+  TestTube,
+  Video,
+  Brain,
+  MessageSquare
 } from 'lucide-react';
 import './AmbulanceRequest.css';
+import './PatientDashboard.css';
 
 const AmbulanceRequest = ({ currentUser }) => {
   const navigate = useNavigate();
@@ -66,6 +73,29 @@ const AmbulanceRequest = ({ currentUser }) => {
   const [success, setSuccess] = useState(false);
   const [myRequests, setMyRequests] = useState([]);
   const [showMyRequests, setShowMyRequests] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Navigation items for sidebar
+  const navigationItems = [
+    { path: '/patient-dashboard', label: 'Patient Dashboard', icon: User, color: 'text-blue-600' },
+    { path: '/appointments', label: 'Appointments', icon: Calendar, color: 'text-purple-600' },
+    { path: '/prescriptions', label: 'Prescriptions', icon: FileText, color: 'text-cyan-600' },
+    { path: '/bills', label: 'Bills', icon: DollarSign, color: 'text-yellow-600' },
+    { path: '/medical-history', label: 'Medical History', icon: FileText, color: 'text-lime-600' },
+    { path: '/insurance', label: 'Insurance', icon: Shield, color: 'text-sky-600' },
+    { path: '/ambulance', label: 'Ambulance', icon: Truck, color: 'text-rose-600' },
+    { path: '/video-sessions', label: 'Video Sessions', icon: Video, color: 'text-indigo-600' },
+    { path: '/lab-tests', label: 'Lab Tests', icon: TestTube, color: 'text-fuchsia-600' },
+    { path: '/symptom-checker', label: 'AI Symptom Checker', icon: Brain, color: 'text-emerald-600' },
+    { path: '/feedback', label: 'Feedback', icon: MessageSquare, color: 'text-violet-600' }
+  ];
+
+  const handleSidebarNavigation = (path) => {
+    const separator = path.includes('?') ? '&' : '?';
+    const pathWithUserId = `${path}${separator}userId=${user?.id}`;
+    navigate(pathWithUserId, { state: { user } });
+    setSidebarOpen(false); // Close sidebar after navigation
+  };
   const [formData, setFormData] = useState({
     patientName: user?.name || '',
     patientPhone: user?.phone || '',
@@ -235,44 +265,101 @@ const AmbulanceRequest = ({ currentUser }) => {
   };
 
   return (
-    <div className="ambulance-page">
-      {/* Header */}
-      <div className="ambulance-header">
-        <div className="ambulance-header-left">
-          <div className="navigation-buttons">
+    <div className="patient-dashboard-wrapper">
+      {/* Sidebar */}
+      <div className={`patient-sidebar ${sidebarOpen ? 'patient-sidebar--open' : ''}`}>
+        <div className="patient-sidebar-header">
+          <div className="patient-sidebar-title">
+            <div className="patient-sidebar-title-text">
+              <h2>Patient Portal</h2>
+            </div>
             <button 
-              className="nav-button nav-button--secondary"
-              onClick={() => navigate('/patient-dashboard', { state: { user } })}
+              className="patient-sidebar-close"
+              onClick={() => setSidebarOpen(false)}
             >
-              <ArrowLeft size={16} />
-              Patient Dashboard
+              <X size={20} />
             </button>
-            <button 
-              className="nav-button nav-button--outline"
-              onClick={() => navigate('/', { state: { user } })}
-            >
-              <Home size={16} />
-              Home
-            </button>
-          </div>
-          <div className="page-title">
-            <h1>
-              <Truck size={24} />
-              Request Ambulance
-            </h1>
-            <p>Emergency and non-emergency ambulance service requests</p>
           </div>
         </div>
-        <div className="ambulance-header-right">
+
+        <div className="patient-sidebar-user">
+          <div className="patient-sidebar-user-avatar">
+            <User size={24} />
+          </div>
+          <div>
+            <div className="patient-sidebar-user-name">{user?.name || 'Patient'}</div>
+            <div className="patient-sidebar-user-id">ID: {user?.id || 'N/A'}</div>
+          </div>
+        </div>
+
+        <nav className="patient-sidebar-nav">
+          {navigationItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+            return (
+              <button
+                key={item.path}
+                onClick={() => handleSidebarNavigation(item.path)}
+                className={`patient-nav-item ${isActive ? 'patient-nav-item--active' : ''}`}
+              >
+                <Icon size={18} className={`patient-nav-icon ${item.color}`} />
+                <span className="patient-nav-label">{item.label}</span>
+                {isActive && <div className="patient-nav-indicator" />}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="patient-sidebar-footer">
           <button 
-            className="btn btn-secondary"
-            onClick={() => setShowMyRequests(!showMyRequests)}
+            onClick={() => navigate('/', { state: { user } })}
+            className="patient-home-button"
           >
-            <FileText size={16} />
-            {showMyRequests ? 'Hide' : 'View'} My Requests
+            <User size={16} />
+            Go to Homepage
           </button>
         </div>
       </div>
+
+      {/* Sidebar Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="patient-sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <div className="patient-main">
+        <div className="ambulance-page">
+          {/* Header */}
+          <div className="ambulance-header">
+            <div className="ambulance-header-left">
+              <div className="page-title">
+                <div className="ambulance-title-with-sidebar">
+                  <button 
+                    className="patient-sidebar-toggle-main"
+                    onClick={() => setSidebarOpen(true)}
+                  >
+                    <Menu size={20} />
+                  </button>
+                  <h1>
+                    <Truck size={24} />
+                    Request Ambulance
+                  </h1>
+                </div>
+                <p>Emergency and non-emergency ambulance service requests</p>
+              </div>
+            </div>
+            <div className="ambulance-header-right">
+              <button 
+                className="btn btn-secondary"
+                onClick={() => setShowMyRequests(!showMyRequests)}
+              >
+                <FileText size={16} />
+                {showMyRequests ? 'Hide' : 'View'} My Requests
+              </button>
+            </div>
+          </div>
 
       {/* Success Message */}
       {success && (
@@ -570,6 +657,8 @@ const AmbulanceRequest = ({ currentUser }) => {
           )}
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 };

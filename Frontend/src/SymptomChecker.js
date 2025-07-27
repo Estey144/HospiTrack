@@ -23,9 +23,16 @@ import {
   CheckCircle,
   Calendar,
   FileText,
-  ChevronRight
+  ChevronRight,
+  Menu,
+  X,
+  DollarSign,
+  Video,
+  TestTube,
+  MessageSquare
 } from 'lucide-react';
 import './SymptomChecker.css';
+import './PatientDashboard.css';
 
 const SymptomChecker = () => {
   const navigate = useNavigate();
@@ -33,6 +40,7 @@ const SymptomChecker = () => {
   const [searchParams] = useSearchParams();
   const messagesEndRef = useRef(null);
   const [user, setUser] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -49,6 +57,28 @@ const SymptomChecker = () => {
   const [chatStarted, setChatStarted] = useState(false);
   const [assessment, setAssessment] = useState(null);
   const [appointmentSuggested, setAppointmentSuggested] = useState(false);
+
+  // Navigation items for sidebar
+  const navigationItems = [
+    { path: '/patient-dashboard', label: 'Patient Dashboard', icon: User, color: 'text-blue-600' },
+    { path: '/appointments', label: 'Appointments', icon: Calendar, color: 'text-purple-600' },
+    { path: '/prescriptions', label: 'Prescriptions', icon: FileText, color: 'text-cyan-600' },
+    { path: '/bills', label: 'Bills', icon: DollarSign, color: 'text-yellow-600' },
+    { path: '/medical-history', label: 'Medical History', icon: FileText, color: 'text-lime-600' },
+    { path: '/insurance', label: 'Insurance', icon: Shield, color: 'text-sky-600' },
+    { path: '/ambulance', label: 'Ambulance', icon: Activity, color: 'text-rose-600' },
+    { path: '/video-sessions', label: 'Video Sessions', icon: Video, color: 'text-indigo-600' },
+    { path: '/lab-tests', label: 'Lab Tests', icon: TestTube, color: 'text-fuchsia-600' },
+    { path: '/symptom-checker', label: 'AI Symptom Checker', icon: Brain, color: 'text-emerald-600' },
+    { path: '/feedback', label: 'Feedback', icon: MessageSquare, color: 'text-violet-600' }
+  ];
+
+  const handleSidebarNavigation = (path) => {
+    const separator = path.includes('?') ? '&' : '?';
+    const pathWithUserId = `${path}${separator}userId=${user?.id}`;
+    navigate(pathWithUserId, { state: { user } });
+    setSidebarOpen(false);
+  };
 
   // Function to get user from various sources
   const getUserFromParams = () => {
@@ -468,39 +498,137 @@ Do NOT include any text before or after the JSON. Do NOT use markdown formatting
   };
 
   return (
-    <div className="symptom-checker-page">
-      {/* Header */}
-      <div className="symptom-checker-header">
-        <div className="symptom-checker-header-left">
-          <div className="navigation-buttons">
-            <button 
-              className="symptom-nav-button symptom-nav-button--secondary" 
-              onClick={() => handleAuthenticatedNavigation('/patient-dashboard')}
-            >
-              <ArrowLeft size={16} />
-              Patient Dashboard
-            </button>
-            <button className="symptom-nav-button symptom-nav-button--outline" onClick={() => navigate('/')}>
-              <Home size={16} />
-              Home
-            </button>
-          </div>
-          <div className="symptom-page-title">
-            <h1><Brain size={24} /> HospiTrack AI Chatbot</h1>
-            <p>Get preliminary health guidance with HospiTrack's AI-powered symptom assessment</p>
-          </div>
-        </div>
-        <div className="symptom-checker-header-right">
-          <div className="ai-status">
-            <div className="ai-indicator">
-              <Bot size={20} />
-              <span>HospiTrack AI Online</span>
+    <div className="patient-dashboard-wrapper">
+      {/* Sidebar */}
+      {user && (
+        <div className={`patient-sidebar ${sidebarOpen ? 'patient-sidebar--open' : ''}`}>
+          <div className="patient-sidebar-header">
+            <div className="patient-sidebar-title">
+              <div className="patient-sidebar-title-text">
+                <h2>Patient Portal</h2>
+              </div>
+              <button 
+                className="patient-sidebar-close"
+                onClick={() => setSidebarOpen(false)}
+              >
+                <X size={20} />
+              </button>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Warning Notice */}
+          <div className="patient-sidebar-user">
+            <div className="patient-sidebar-user-avatar">
+              <User size={24} />
+            </div>
+            <div>
+              <div className="patient-sidebar-user-name">{user?.name || 'Patient'}</div>
+              <div className="patient-sidebar-user-id">ID: {user?.id || 'N/A'}</div>
+            </div>
+          </div>
+
+          <nav className="patient-sidebar-nav">
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.path;
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => handleSidebarNavigation(item.path)}
+                  className={`patient-nav-item ${isActive ? 'patient-nav-item--active' : ''}`}
+                >
+                  <Icon size={18} className={`patient-nav-icon ${item.color}`} />
+                  <span className="patient-nav-label">{item.label}</span>
+                  {isActive && <div className="patient-nav-indicator" />}
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="patient-sidebar-footer">
+            <button 
+              onClick={() => navigate('/', { state: { user } })}
+              className="patient-home-button"
+            >
+              <User size={16} />
+              Go to Homepage
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Sidebar Overlay */}
+      {user && sidebarOpen && (
+        <div 
+          className="patient-sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <div className="patient-main">
+        <div className="symptom-checker-page">
+          {/* Header */}
+          <div className="symptom-checker-header">
+            <div className="symptom-checker-header-left">
+              <div className="symptom-page-title">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  {user ? (
+                    <button 
+                      className="patient-sidebar-toggle-main"
+                      onClick={() => setSidebarOpen(true)}
+                      style={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white',
+                        border: 'none',
+                        padding: '12px',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 4px 6px -1px rgba(102, 126, 234, 0.4)',
+                        transition: 'all 0.3s ease',
+                      }}
+                    >
+                      <Menu size={20} />
+                    </button>
+                  ) : (
+                    <button 
+                      className="symptom-nav-button symptom-nav-button--outline" 
+                      onClick={() => navigate('/')}
+                      style={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white',
+                        border: 'none',
+                        padding: '12px 16px',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        boxShadow: '0 4px 6px -1px rgba(102, 126, 234, 0.4)',
+                        transition: 'all 0.3s ease',
+                      }}
+                    >
+                      <Home size={16} />
+                      Home
+                    </button>
+                  )}
+                  <h1><Brain size={24} /> HospiTrack AI Chatbot</h1>
+                </div>
+                <p>Get preliminary health guidance with HospiTrack's AI-powered symptom assessment</p>
+              </div>
+            </div>
+            <div className="symptom-checker-header-right">
+              <div className="ai-status">
+                <div className="ai-indicator">
+                  <Bot size={20} />
+                  <span>HospiTrack AI Online</span>
+                </div>
+              </div>
+            </div>
+          </div>      {/* Warning Notice */}
       <div className="medical-disclaimer">
         <AlertTriangle size={20} />
         <div className="disclaimer-content">
@@ -784,6 +912,8 @@ Do NOT include any text before or after the JSON. Do NOT use markdown formatting
               </button>
             </div>
           </div>
+        </div>
+      </div>
         </div>
       </div>
     </div>

@@ -1043,3 +1043,43 @@
     padding: 20px;
   }
 }
+
+/* Lab Tests-specific sidebar and layout styles */
+.lab-title-with-sidebar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Sidebar Toggle Button for Lab Tests - More specific selector to avoid conflicts */
+.patient-dashboard-wrapper .lab-tests-page .patient-sidebar-toggle-main {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(102, 126, 234, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: none;
+}
+
+.patient-dashboard-wrapper .lab-tests-page .patient-sidebar-toggle-main:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px -1px rgba(102, 126, 234, 0.5);
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+  border-color: transparent;
+}
+
+.patient-dashboard-wrapper .lab-tests-page .patient-sidebar-toggle-main:active {
+  transform: translateY(0);
+}
+
+/* Full width layout for lab tests page */
+.patient-dashboard-wrapper .lab-tests-page {
+  width: 100%;
+  min-height: 100vh;
+}

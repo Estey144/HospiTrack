@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { 
   Shield, 
-  ArrowLeft, 
   Home, 
   Calendar, 
   User, 
@@ -23,9 +22,17 @@ import {
   Filter,
   RefreshCw,
   ExternalLink,
-  Info
+  Info,
+  Menu,
+  X,
+  Ambulance,
+  Video,
+  TestTube,
+  Brain,
+  MessageSquare
 } from 'lucide-react';
 import './Insurance.css';
+import './PatientDashboard.css';
 
 const Insurance = ({ currentUser }) => {
   const navigate = useNavigate();
@@ -69,13 +76,13 @@ const Insurance = ({ currentUser }) => {
     }
   }, [location.state, searchParams]);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [showAddInsurance, setShowAddInsurance] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
-  const [showClaimsModal, setShowClaimsModal] = useState(false);
   const [selectedClaim, setSelectedClaim] = useState(null);
   const [showClaimDetails, setShowClaimDetails] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Mock insurance providers (from Insurance_Providers table)
   const [insuranceProviders] = useState([
@@ -244,45 +251,26 @@ const Insurance = ({ currentUser }) => {
     }
   ]);
 
-  const [benefits] = useState([
-    {
-      category: 'Medical Services',
-      items: [
-        { service: 'Primary Care Visits', coverage: '80% after deductible', copay: '$25' },
-        { service: 'Specialist Visits', coverage: '80% after deductible', copay: '$50' },
-        { service: 'Emergency Room', coverage: '80% after deductible', copay: '$200' },
-        { service: 'Urgent Care', coverage: '80% after deductible', copay: '$75' },
-        { service: 'Preventive Care', coverage: '100%', copay: '$0' },
-        { service: 'Laboratory Tests', coverage: '80% after deductible', copay: 'Varies' },
-        { service: 'Imaging (X-ray, MRI)', coverage: '80% after deductible', copay: 'Varies' }
-      ]
-    },
-    {
-      category: 'Prescription Drugs',
-      items: [
-        { service: 'Generic Drugs (Tier 1)', coverage: '75% after deductible', copay: '$10' },
-        { service: 'Brand Name (Tier 2)', coverage: '75% after deductible', copay: '$35' },
-        { service: 'Specialty Drugs (Tier 3)', coverage: '75% after deductible', copay: '$75' }
-      ]
-    },
-    {
-      category: 'Mental Health',
-      items: [
-        { service: 'Therapy Sessions', coverage: '80% after deductible', copay: '$50' },
-        { service: 'Psychiatrist Visits', coverage: '80% after deductible', copay: '$50' },
-        { service: 'Inpatient Mental Health', coverage: '80% after deductible', copay: 'Varies' }
-      ]
-    }
-  ]);
+  const navigationItems = [
+    { path: '/patient-dashboard', label: 'Patient Dashboard', icon: User, color: 'text-blue-600' },
+    { path: '/appointments', label: 'Appointments', icon: Calendar, color: 'text-purple-600' },
+    { path: '/prescriptions', label: 'Prescriptions', icon: FileText, color: 'text-cyan-600' },
+    { path: '/bills', label: 'Bills', icon: DollarSign, color: 'text-yellow-600' },
+    { path: '/medical-history', label: 'Medical History', icon: FileText, color: 'text-lime-600' },
+    { path: '/insurance', label: 'Insurance', icon: Shield, color: 'text-sky-600' },
+    { path: '/ambulance', label: 'Ambulance', icon: Ambulance, color: 'text-rose-600' },
+    { path: '/video-sessions', label: 'Video Sessions', icon: Video, color: 'text-indigo-600' },
+    { path: '/lab-tests', label: 'Lab Tests', icon: TestTube, color: 'text-fuchsia-600' },
+    { path: '/symptom-checker', label: 'AI Symptom Checker', icon: Brain, color: 'text-emerald-600' },
+    { path: '/feedback', label: 'Feedback', icon: MessageSquare, color: 'text-violet-600' }
+  ];
 
-  useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
+  const handleSidebarNavigation = (path) => {
+    const separator = path.includes('?') ? '&' : '?';
+    const pathWithUserId = `${path}${separator}userId=${user?.id}`;
+    navigate(pathWithUserId, { state: { user } });
+    setSidebarOpen(false); // Close sidebar after navigation
+  };
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -353,38 +341,122 @@ const Insurance = ({ currentUser }) => {
     setShowClaimDetails(true);
   };
 
+  const [benefits] = useState([
+    {
+      category: 'Medical Services',
+      items: [
+        { service: 'Primary Care Visits', coverage: '80% after deductible', copay: '$25' },
+        { service: 'Specialist Visits', coverage: '80% after deductible', copay: '$50' },
+        { service: 'Emergency Room', coverage: '80% after deductible', copay: '$200' },
+        { service: 'Urgent Care', coverage: '80% after deductible', copay: '$75' },
+        { service: 'Preventive Care', coverage: '100%', copay: '$0' },
+        { service: 'Laboratory Tests', coverage: '80% after deductible', copay: 'Varies' },
+        { service: 'Imaging (X-ray, MRI)', coverage: '80% after deductible', copay: 'Varies' }
+      ]
+    },
+    {
+      category: 'Prescription Drugs',
+      items: [
+        { service: 'Generic Drugs (Tier 1)', coverage: '75% after deductible', copay: '$10' },
+        { service: 'Brand Name (Tier 2)', coverage: '75% after deductible', copay: '$35' },
+        { service: 'Specialty Drugs (Tier 3)', coverage: '75% after deductible', copay: '$75' }
+      ]
+    },
+    {
+      category: 'Mental Health',
+      items: [
+        { service: 'Therapy Sessions', coverage: '80% after deductible', copay: '$50' },
+        { service: 'Psychiatrist Visits', coverage: '80% after deductible', copay: '$50' },
+        { service: 'Inpatient Mental Health', coverage: '80% after deductible', copay: 'Varies' }
+      ]
+    }
+  ]);
+
   const handleAddInsurance = () => {
     setShowAddInsurance(true);
   };
 
-  if (loading) {
-    return (
-      <div className="insurance-page">
-        <div className="loading">
-          <div className="loading-spinner"></div>
-          <p>Loading insurance information...</p>
+  return (
+    <div className="patient-dashboard-wrapper">
+      {/* Sidebar Overlay for mobile */}
+      {sidebarOpen && (
+        <div 
+          className="patient-sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`patient-sidebar ${sidebarOpen ? 'patient-sidebar--open' : ''}`}>
+        <div className="patient-sidebar-header">
+          <div className="patient-sidebar-title">
+            <User size={24} className="patient-sidebar-logo" />
+            <span className="patient-sidebar-title-text">Patient Portal</span>
+          </div>
+          <button 
+            className="patient-sidebar-close"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="patient-sidebar-user">
+          <div className="patient-sidebar-user-avatar">
+            {user?.name?.charAt(0)?.toUpperCase() || 'P'}
+          </div>
+          <div className="patient-sidebar-user-info">
+            <div className="patient-sidebar-user-name">{user?.name || 'Patient'}</div>
+            <div className="patient-sidebar-user-id">ID: {user?.id || 'N/A'}</div>
+          </div>
+        </div>
+
+        <nav className="patient-sidebar-nav">
+          {navigationItems.map((item) => {
+            const IconComponent = item.icon;
+            const isActive = window.location.pathname === item.path;
+            
+            return (
+              <button
+                key={item.path}
+                onClick={() => handleSidebarNavigation(item.path)}
+                className={`patient-nav-item ${isActive ? 'patient-nav-item--active' : ''}`}
+              >
+                <IconComponent size={20} className={`patient-nav-icon ${item.color}`} />
+                <span className="patient-nav-label">{item.label}</span>
+                {isActive && <div className="patient-nav-indicator" />}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="patient-sidebar-footer">
+          <button 
+            onClick={() => navigate('/')}
+            className="patient-home-button"
+          >
+            <Home size={16} />
+            <span>Back to Homepage</span>
+          </button>
         </div>
       </div>
-    );
-  }
 
-  return (
-    <div className="insurance-page">
+      {/* Main Content */}
+      <div className="patient-main">
+        <div className="insurance-page">
       {/* Header */}
       <div className="insurance-header">
         <div className="insurance-header-left">
-          <div className="navigation-buttons">
-            <button className="insurance-nav-button insurance-nav-button--secondary" onClick={() => navigate('/patient-dashboard', { state: { user } })}>
-              <ArrowLeft size={16} />
-              Patient Dashboard
-            </button>
-            <button className="insurance-nav-button insurance-nav-button--outline" onClick={() => navigate('/', { state: { user } })}>
-              <Home size={16} />
-              Home
-            </button>
-          </div>
           <div className="insurance-page-title">
-            <h1><Shield size={24} /> Insurance & Benefits</h1>
+            <div className="insurance-title-with-sidebar">
+              <button 
+                className="patient-sidebar-toggle-main"
+                onClick={() => setSidebarOpen(true)}
+              >
+                <Menu size={20} />
+              </button>
+              <h1><Shield size={24} /> Insurance & Benefits</h1>
+            </div>
             <p>Manage your insurance plans and view coverage details</p>
           </div>
         </div>
@@ -999,6 +1071,8 @@ const Insurance = ({ currentUser }) => {
           </div>
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 };

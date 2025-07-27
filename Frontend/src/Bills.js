@@ -11,7 +11,18 @@ import {
   Clock,
   Search,
   Filter,
+  FileText,
+  Shield,
+  Ambulance,
+  Video,
+  TestTube,
+  Brain,
+  MessageSquare,
+  Menu,
+  X,
+  User
 } from 'lucide-react';
+import './PatientDashboard.css';
 import './Bills.css';
 
 const Bills = ({ currentUser }) => {
@@ -31,6 +42,31 @@ const Bills = ({ currentUser }) => {
   };
 
   const [user, setUser] = useState(getUserFromParams());
+  
+  // Sidebar state
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Navigation items
+  const navigationItems = [
+    { path: '/patient-dashboard', label: 'Patient Dashboard', icon: User, color: 'text-blue-600' },
+    { path: '/appointments', label: 'Appointments', icon: Calendar, color: 'text-purple-600' },
+    { path: '/prescriptions', label: 'Prescriptions', icon: FileText, color: 'text-cyan-600' },
+    { path: '/bills', label: 'Bills', icon: DollarSign, color: 'text-emerald-600' },
+    { path: '/medical-history', label: 'Medical History', icon: FileText, color: 'text-lime-600' },
+    { path: '/insurance', label: 'Insurance', icon: Shield, color: 'text-sky-600' },
+    { path: '/ambulance', label: 'Ambulance', icon: Ambulance, color: 'text-rose-600' },
+    { path: '/video-sessions', label: 'Video Sessions', icon: Video, color: 'text-indigo-600' },
+    { path: '/lab-tests', label: 'Lab Tests', icon: TestTube, color: 'text-fuchsia-600' },
+    { path: '/symptom-checker', label: 'AI Symptom Checker', icon: Brain, color: 'text-emerald-600' },
+    { path: '/feedback', label: 'Feedback', icon: MessageSquare, color: 'text-violet-600' }
+  ];
+
+  const handleSidebarNavigation = (path) => {
+    const separator = path.includes('?') ? '&' : '?';
+    const pathWithUserId = `${path}${separator}userId=${user?.id}`;
+    navigate(pathWithUserId, { state: { user } });
+    setSidebarOpen(false); // Close sidebar after navigation
+  };
   const [bills, setBills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -130,9 +166,9 @@ const Bills = ({ currentUser }) => {
 
   const getStatusIcon = (status) => {
     switch (status?.toLowerCase()) {
-      case 'paid': return <CheckCircle size={16} color="#28a745" />;
-      case 'pending': return <Clock size={16} color="#ffc107" />;
-      case 'overdue': return <AlertCircle size={16} color="#dc3545" />;
+      case 'paid': return <CheckCircle size={16} />;
+      case 'pending': return <Clock size={16} />;
+      case 'overdue': return <AlertCircle size={16} />;
       default: return <Receipt size={16} />;
     }
   };
@@ -184,25 +220,81 @@ const Bills = ({ currentUser }) => {
   }
 
   return (
-    <div className="bills-page">
+    <div className="patient-dashboard-wrapper">
+      {/* Sidebar Overlay for mobile */}
+      {sidebarOpen && (
+        <div 
+          className="patient-sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`patient-sidebar ${sidebarOpen ? 'patient-sidebar--open' : ''}`}>
+        <div className="patient-sidebar-header">
+          <div className="patient-sidebar-title">
+            <User size={24} className="patient-sidebar-logo" />
+            <span className="patient-sidebar-title-text">Patient Portal</span>
+          </div>
+          <button 
+            className="patient-sidebar-close"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="patient-sidebar-user">
+          <div className="patient-sidebar-user-avatar">
+            {user?.name?.charAt(0)?.toUpperCase() || 'P'}
+          </div>
+          <div className="patient-sidebar-user-info">
+            <div className="patient-sidebar-user-name">{user?.name || 'Patient'}</div>
+            <div className="patient-sidebar-user-id">ID: {user?.id || 'N/A'}</div>
+          </div>
+        </div>
+
+        <nav className="patient-sidebar-nav">
+          {navigationItems.map((item) => {
+            const IconComponent = item.icon;
+            const isActive = window.location.pathname === item.path;
+            
+            return (
+              <button
+                key={item.path}
+                onClick={() => handleSidebarNavigation(item.path)}
+                className={`patient-nav-item ${isActive ? 'patient-nav-item--active' : ''}`}
+              >
+                <IconComponent size={20} className={`patient-nav-icon ${item.color}`} />
+                <span className="patient-nav-label">{item.label}</span>
+                {isActive && <div className="patient-nav-indicator" />}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="patient-sidebar-footer">
+          <button 
+            onClick={() => navigate('/')}
+            className="patient-home-button"
+          >
+            <Home size={16} />
+            <span>Back to Homepage</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="patient-main">
+        <div className="bills-page">
       <div className="bills-header">
         <div className="bills-header-left">
-          <div className="navigation-buttons">
-            <button
-              className="bills-nav-button bills-nav-button--secondary"
-              onClick={() => navigate('/patient-dashboard', { state: { user } })}
-            >
-              <ArrowLeft size={16} />
-              Patient Dashboard
-            </button>
-            <button
-              className="bills-nav-button bills-nav-button--outline"
-              onClick={() => navigate('/', { state: { user } })}
-            >
-              <Home size={16} />
-              Home
-            </button>
-          </div>
+          <button 
+            className="sidebar-toggle-btn"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
+            <Menu size={20} />
+          </button>
           <div className="bills-page-title">
             <h1><Receipt size={28} /> My Bills & Payments</h1>
             <p>View and manage your medical bills and payment history</p>
@@ -332,6 +424,8 @@ const Bills = ({ currentUser }) => {
             </article>
           ))
         )}
+      </div>
+        </div>
       </div>
     </div>
   );

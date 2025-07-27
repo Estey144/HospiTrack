@@ -1,11 +1,11 @@
 /* Page container */
 .bills-page {
-  max-width: 1100px;
-  margin: 0 auto;
+  width: 100%;
   padding: 24px 20px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #333;
   background-color: #f9f9f9;
+  min-height: 100vh;
 }
 
 /* Header */
@@ -18,13 +18,67 @@
 }
 
 .bills-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   max-width: 65%;
+}
+
+/* Sidebar Toggle Button */
+.sidebar-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #198754 0%, #157347 100%);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
+}
+
+.sidebar-toggle-btn:hover {
+  background: linear-gradient(135deg, #157347 0%, #146c43 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(25, 135, 84, 0.4);
+}
+
+.sidebar-toggle-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3);
 }
 
 .navigation-buttons {
   display: flex;
   gap: 12px;
   margin-bottom: 12px;
+  align-items: center;
+}
+
+.patient-sidebar-toggle-main {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.patient-sidebar-toggle-main:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.patient-sidebar-toggle-main:active {
+  transform: translateY(0);
 }
 
 .bills-nav-button {
@@ -63,7 +117,7 @@
   gap: 10px;
   font-weight: 700;
   font-size: 1.8rem;
-  color: #0d6efd;
+  color: #198754;
   margin-bottom: 4px;
 }
 
@@ -122,20 +176,24 @@
   flex: 1 1 300px;
   position: relative;
   max-width: 400px;
+  display: flex;
+  align-items: center;
 }
 
 .search-box input {
   width: 100%;
-  padding: 10px 12px 10px 38px;
+  padding: 12px 12px 12px 38px;
   font-size: 1rem;
   border: 1.5px solid #ccc;
   border-radius: 8px;
   outline: none;
   transition: border-color 0.3s ease;
+  height: 44px;
+  box-sizing: border-box;
 }
 
 .search-box input:focus {
-  border-color: #0d6efd;
+  border-color: #198754;
 }
 
 .search-box svg {
@@ -144,6 +202,8 @@
   top: 50%;
   transform: translateY(-50%);
   color: #888;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .filters {
@@ -294,9 +354,17 @@
   color: #0f5132;
 }
 
+.bill-badge.bill-badge--success svg {
+  color: #198754 !important;
+}
+
 .bill-badge--warning {
   background-color: #fff3cd;
   color: #664d03;
+}
+
+.bill-badge.bill-badge--warning svg {
+  color: #ffc107 !important;
 }
 
 .bill-badge--danger {
@@ -304,9 +372,17 @@
   color: #842029;
 }
 
+.bill-badge.bill-badge--danger svg {
+  color: #dc3545 !important;
+}
+
 .bill-badge--default {
   background-color: #e2e3e5;
   color: #41464b;
+}
+
+.bill-badge.bill-badge--default svg {
+  color: #6c757d !important;
 }
 
 /* No data & error display */
@@ -355,6 +431,15 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .sidebar-toggle-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .bills-header-left {
+    gap: 0.75rem;
+  }
+
   .bill-details {
     flex-direction: column;
     gap: 12px;
@@ -368,6 +453,23 @@
   .bills-header-left,
   .bills-header-right {
     max-width: 100%;
+    justify-content: center;
+  }
+
+  .navigation-buttons {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 15px;
+  }
+
+  .patient-sidebar-toggle-main {
+    align-self: flex-start;
+    margin-bottom: 8px;
+  }
+
+  .bills-nav-button {
+    width: 100%;
     justify-content: center;
   }
 

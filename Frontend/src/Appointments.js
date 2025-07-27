@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Calendar, DollarSign, FileText, Shield, Ambulance, Video, TestTube, Brain, MessageSquare, Menu, X, User, Home } from 'lucide-react';
 import './Appointments.css';
+import './PatientDashboard.css';
 
 const Appointments = ({ currentUser }) => {
   const navigate = useNavigate();
@@ -28,6 +30,31 @@ const Appointments = ({ currentUser }) => {
   };
 
   const [user, setUser] = useState(getUserFromParams());
+
+  // Sidebar state
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Navigation items
+  const navigationItems = [
+    { path: '/patient-dashboard', label: 'Patient Dashboard', icon: User, color: 'text-blue-600' },
+    { path: '/appointments', label: 'Appointments', icon: Calendar, color: 'text-purple-600' },
+    { path: '/prescriptions', label: 'Prescriptions', icon: FileText, color: 'text-cyan-600' },
+    { path: '/bills', label: 'Bills', icon: DollarSign, color: 'text-yellow-600' },
+    { path: '/medical-history', label: 'Medical History', icon: FileText, color: 'text-lime-600' },
+    { path: '/insurance', label: 'Insurance', icon: Shield, color: 'text-sky-600' },
+    { path: '/ambulance', label: 'Ambulance', icon: Ambulance, color: 'text-rose-600' },
+    { path: '/video-sessions', label: 'Video Sessions', icon: Video, color: 'text-indigo-600' },
+    { path: '/lab-tests', label: 'Lab Tests', icon: TestTube, color: 'text-fuchsia-600' },
+    { path: '/symptom-checker', label: 'AI Symptom Checker', icon: Brain, color: 'text-emerald-600' },
+    { path: '/feedback', label: 'Feedback', icon: MessageSquare, color: 'text-violet-600' }
+  ];
+
+  const handleSidebarNavigation = (path) => {
+    const separator = path.includes('?') ? '&' : '?';
+    const pathWithUserId = `${path}${separator}userId=${user?.id}`;
+    navigate(pathWithUserId, { state: { user } });
+    setSidebarOpen(false); // Close sidebar after navigation
+  };
 
   // Debug logging to verify user ID is received
   useEffect(() => {
@@ -306,20 +333,80 @@ const Appointments = ({ currentUser }) => {
   };
 
   return (
-    <div className="patient-appointments-wrapper">
+    <div className="patient-dashboard-wrapper">
+      {/* Sidebar Overlay for mobile */}
+      {sidebarOpen && (
+        <div 
+          className="patient-sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`patient-sidebar ${sidebarOpen ? 'patient-sidebar--open' : ''}`}>
+        <div className="patient-sidebar-header">
+          <div className="patient-sidebar-title">
+            <User size={24} className="patient-sidebar-logo" />
+            <span className="patient-sidebar-title-text">Patient Portal</span>
+          </div>
+          <button 
+            className="patient-sidebar-close"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="patient-sidebar-user">
+          <div className="patient-sidebar-user-avatar">
+            {user?.name?.charAt(0)?.toUpperCase() || 'P'}
+          </div>
+          <div className="patient-sidebar-user-info">
+            <div className="patient-sidebar-user-name">{user?.name || 'Patient'}</div>
+            <div className="patient-sidebar-user-id">ID: {user?.id || 'N/A'}</div>
+          </div>
+        </div>
+
+        <nav className="patient-sidebar-nav">
+          {navigationItems.map((item) => {
+            const IconComponent = item.icon;
+            const isActive = window.location.pathname === item.path;
+            
+            return (
+              <button
+                key={item.path}
+                onClick={() => handleSidebarNavigation(item.path)}
+                className={`patient-nav-item ${isActive ? 'patient-nav-item--active' : ''}`}
+              >
+                <IconComponent size={20} className={`patient-nav-icon ${item.color}`} />
+                <span className="patient-nav-label">{item.label}</span>
+                {isActive && <div className="patient-nav-indicator" />}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="patient-sidebar-footer">
+          <button 
+            onClick={() => navigate('/')}
+            className="patient-home-button"
+          >
+            <Home size={16} />
+            <span>Back to Homepage</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="patient-main">
+        <div className="patient-appointments-wrapper">
       <div className="patient-appointments-header">
         <div className="patient-appointments-nav-buttons">
-          <button
-            className="patient-appointments-nav-btn patient-appointments-nav-btn--secondary"
-            onClick={() => navigate('/patient-dashboard')}
+          <button 
+            className="patient-sidebar-toggle-main"
+            onClick={() => setSidebarOpen(true)}
           >
-            ← Patient Dashboard
-          </button>
-          <button
-            className="patient-appointments-nav-btn patient-appointments-nav-btn--outline"
-            onClick={() => navigate('/')}
-          >
-            🏠 Home
+            <Menu size={20} />
           </button>
         </div>
         <div className="patient-appointments-header-content">
@@ -575,6 +662,8 @@ const Appointments = ({ currentUser }) => {
           </div>
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 };
