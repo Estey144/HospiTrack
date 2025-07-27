@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api")
 public class FeedbackController {
@@ -24,6 +26,17 @@ public class FeedbackController {
         } catch (RuntimeException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to submit feedback: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/feedback")
+    public ResponseEntity<List<Feedback>> getAllFeedback() {
+        try {
+            List<Feedback> feedbackList = feedbackService.getAllFeedback();
+            return ResponseEntity.ok(feedbackList);
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 }

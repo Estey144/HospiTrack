@@ -131,8 +131,9 @@
   padding: 15px 20px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 15px;
-  color: white;
+  color: #ffffff !important;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .stat-number {
@@ -140,13 +141,13 @@
   font-size: 2rem;
   font-weight: bold;
   margin-bottom: 4px;
-  color: white;
+  color: #ffffff !important;
 }
 
 .stat-label {
   font-size: 0.9rem;
-  opacity: 0.95;
-  color: white;
+  color: #ffffff !important;
+  opacity: 1;
 }
 
 /* Error Banner */

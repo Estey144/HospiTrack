@@ -11,6 +11,7 @@ public class Feedback {
     private String comments;
     private Date dateSubmitted;
     private String targetName;
+    private String patientName;
 
 
     public String getTargetName() { return targetName; }
@@ -37,4 +38,7 @@ public class Feedback {
 
     public Date getDateSubmitted() { return dateSubmitted; }
     public void setDateSubmitted(Date dateSubmitted) { this.dateSubmitted = dateSubmitted; }
+
+    public String getPatientName() { return patientName; }
+    public void setPatientName(String patientName) { this.patientName = patientName; }
 }

@@ -14,6 +14,8 @@ const Branches = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [searching, setSearching] = useState(false);
+  const [selectedBranch, setSelectedBranch] = useState(null);
+  const [showBranchModal, setShowBranchModal] = useState(false);
 
   useEffect(() => {
     fetchBranches();
@@ -87,6 +89,21 @@ const Branches = () => {
     }
   };
 
+  const openBranchModal = (branch) => {
+    setSelectedBranch(branch);
+    setShowBranchModal(true);
+  };
+
+  const closeBranchModal = () => {
+    setSelectedBranch(null);
+    setShowBranchModal(false);
+  };
+
+  const getEmergencyContact = (contacts) => {
+    if (!contacts || contacts.length === 0) return null;
+    return contacts.find(contact => contact.type?.toLowerCase() === 'emergency') || contacts[0];
+  };
+
   if (loading) {
     return (
       <div className="branches-page">
@@ -102,8 +119,7 @@ const Branches = () => {
     <div className="branches-page">
       <div className="branch-page-header">
         <div className="header-main">
-          <h1>Hospital Branches</h1>
-          <p className="page-subtitle">Find and explore our hospital network</p>
+          <h1>Discover Our Healthcare Network</h1>
           <button onClick={() => navigate('/')} className="homepage-btn">
             <svg className="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -160,47 +176,113 @@ const Branches = () => {
             <p>Try adjusting your search terms or browse all branches</p>
           </div>
         ) : (
-          filteredBranches.map(branch => (
-            <div key={branch.id} className="branch-card">
-              <div className="branch-header">
-                <h2 className="branch-name">{branch.name}</h2>
-              </div>
+          filteredBranches.map(branch => {
+            const emergencyContact = getEmergencyContact(branch.contacts);
+            return (
+              <div key={branch.id} className="branch-card">
+                <div className="branch-header">
+                  <h2 className="branch-name">{branch.name}</h2>
+                </div>
 
-              <div className="branch-content">
-                <div className="branch-info">
-                  <div className="info-item">
-                    <span className="info-icon">📍</span>
-                    <span className="info-text">{branch.address}</span>
+                <div className="branch-content">
+                  <div className="branch-info">
+                    <div className="info-item">
+                      <span className="info-icon">📍</span>
+                      <span className="info-text">{branch.address}</span>
+                    </div>
+
+                    {emergencyContact && (
+                      <div className="info-item emergency-contact">
+                        <span className="info-icon">🚨</span>
+                        <div className="contact-info">
+                          <span className="contact-label">Emergency Contact:</span>
+                          <span className="contact-number">{emergencyContact.contactNumber}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <button 
+                      className="view-details-btn"
+                      onClick={() => openBranchModal(branch)}
+                    >
+                      <svg className="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      View Full Details
+                    </button>
                   </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
 
-                  <div className="contacts-section">
-                    <span className="section-title">Contact Information</span>
-                    {branch.contacts && branch.contacts.length > 0 ? (
-                      <div className="contacts-list">
-                        {branch.contacts.map(contact => (
-                          <div key={contact.id} className="contact-item">
+      {/* Branch Detail Modal */}
+      {showBranchModal && selectedBranch && (
+        <div className="modal-overlay" onClick={closeBranchModal}>
+          <div className="branch-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{selectedBranch.name}</h2>
+              <button className="modal-close" onClick={closeBranchModal}>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="modal-content">
+              <div className="modal-info-grid">
+                <div className="modal-info-item">
+                  <div className="modal-info-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <div className="modal-info-text">
+                    <h4>Address</h4>
+                    <p>{selectedBranch.address}</p>
+                  </div>
+                </div>
+
+                <div className="modal-info-item">
+                  <div className="modal-info-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div className="modal-info-text">
+                    <h4>Established</h4>
+                    <p>{formatDate(selectedBranch.establishedDate)}</p>
+                  </div>
+                </div>
+
+                {selectedBranch.contacts && selectedBranch.contacts.length > 0 && (
+                  <div className="modal-info-item full-width">
+                    <div className="modal-info-icon">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                    </div>
+                    <div className="modal-info-text">
+                      <h4>Contact Information</h4>
+                      <div className="contacts-grid">
+                        {selectedBranch.contacts.map(contact => (
+                          <div key={contact.id} className="contact-detail">
                             <span className="contact-type">{formatContactType(contact.type)}:</span>
                             <span className="contact-number">{contact.contactNumber}</span>
                           </div>
                         ))}
                       </div>
-                    ) : (
-                      <div className="no-contacts">
-                        <span className="info-text">No contact information available</span>
-                      </div>
-                    )}
+                    </div>
                   </div>
-
-                  <div className="info-item establishment-date">
-                    <span className="info-icon">🏥</span>
-                    <span className="info-text">Established: {formatDate(branch.establishedDate)}</span>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
-          ))
-        )}
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

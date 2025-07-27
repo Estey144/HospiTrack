@@ -17,6 +17,12 @@ const Homepage = () => {
   const dropdownRef = useRef(null);
   const feedbackContainerRef = useRef(null);
   const [isPaused, setIsPaused] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [isAutoScrolling, setIsAutoScrolling] = useState(true);
+  const autoScrollTimeoutRef = useRef(null);
+  const [animationKey, setAnimationKey] = useState(0);
 
   useEffect(() => {
     setUser(JSON.parse(localStorage.getItem('user')));
@@ -42,20 +48,32 @@ const Homepage = () => {
         });
       }).catch(() => setError('Failed to load COVID-19 data.')),
       axios.get(`${API_BASE_URL}/api/feedback`).then(res => {
-        // Filter for positive feedback (rating >= 4) and limit to recent ones
-        const positiveFeedback = res.data
-          .filter(f => f.rating >= 4 && f.comments && f.comments.trim().length > 0)
+        // Filter for feedback (rating >= 3) to show variety in star ratings
+        const goodFeedback = res.data
+          .filter(f => f.rating >= 3 && f.comments && f.comments.trim().length > 0)
           .sort((a, b) => new Date(b.date_submitted) - new Date(a.date_submitted))
-          .slice(0, 20); // Get top 20 recent positive feedback
-        setFeedback(positiveFeedback);
+          .slice(0, 20); // Get top 20 recent feedback
+        
+        // If no feedback found, use fallback testimonials
+        if (goodFeedback.length === 0) {
+          setFeedback([
+            { id: 1, comments: "Excellent service and caring staff. My recovery was smooth thanks to their dedication.", rating: 5, patientName: "Anonymous Patient" },
+            { id: 2, comments: "The doctors here are very knowledgeable and the facilities are top-notch.", rating: 5, patientName: "Happy Patient" },
+            { id: 3, comments: "Quick appointment booking and professional treatment. Highly recommended!", rating: 4, patientName: "Satisfied Customer" },
+            { id: 4, comments: "Clean environment and friendly staff made my visit comfortable.", rating: 4, patientName: "Grateful Patient" },
+            { id: 5, comments: "Good experience overall, room for improvement in waiting times.", rating: 3, patientName: "Honest Patient" }
+          ]);
+        } else {
+          setFeedback(goodFeedback);
+        }
       }).catch(() => {
         // Fallback testimonials if API fails
         setFeedback([
-          { id: 1, comments: "Excellent service and caring staff. My recovery was smooth thanks to their dedication.", rating: 5, patient_name: "Anonymous Patient" },
-          { id: 2, comments: "The doctors here are very knowledgeable and the facilities are top-notch.", rating: 5, patient_name: "Happy Patient" },
-          { id: 3, comments: "Quick appointment booking and professional treatment. Highly recommended!", rating: 5, patient_name: "Satisfied Customer" },
-          { id: 4, comments: "Clean environment and friendly staff made my visit comfortable.", rating: 4, patient_name: "Grateful Patient" },
-          { id: 5, comments: "State-of-the-art equipment and skilled medical professionals.", rating: 5, patient_name: "Impressed Visitor" }
+          { id: 1, comments: "Excellent service and caring staff. My recovery was smooth thanks to their dedication.", rating: 5, patientName: "Anonymous Patient" },
+          { id: 2, comments: "The doctors here are very knowledgeable and the facilities are top-notch.", rating: 5, patientName: "Happy Patient" },
+          { id: 3, comments: "Quick appointment booking and professional treatment. Highly recommended!", rating: 4, patientName: "Satisfied Customer" },
+          { id: 4, comments: "Clean environment and friendly staff made my visit comfortable.", rating: 4, patientName: "Grateful Patient" },
+          { id: 5, comments: "Good experience overall, room for improvement in waiting times.", rating: 3, patientName: "Honest Patient" }
         ]);
       })
     ]);
@@ -68,7 +86,13 @@ const Homepage = () => {
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      // Clear timeout on cleanup
+      if (autoScrollTimeoutRef.current) {
+        clearTimeout(autoScrollTimeoutRef.current);
+      }
+    };
   }, []);
 
   const handleLogout = () => {
@@ -83,6 +107,62 @@ const Homepage = () => {
 
   const handleMouseLeave = () => {
     setIsPaused(false);
+    setIsDragging(false);
+    if (feedbackContainerRef.current) {
+      feedbackContainerRef.current.style.cursor = 'grab';
+    }
+    // Clear any existing timeout and resume auto-scroll after a short delay
+    if (autoScrollTimeoutRef.current) {
+      clearTimeout(autoScrollTimeoutRef.current);
+    }
+    autoScrollTimeoutRef.current = setTimeout(() => {
+      setIsAutoScrolling(true);
+    }, 1000);
+  };
+
+  // Drag scroll functionality
+  const handleMouseDown = (e) => {
+    if (!feedbackContainerRef.current) return;
+    setIsDragging(true);
+    setIsAutoScrolling(false); // Disable auto-scroll when dragging
+    
+    // Clear any existing timeout
+    if (autoScrollTimeoutRef.current) {
+      clearTimeout(autoScrollTimeoutRef.current);
+    }
+    
+    setStartX(e.pageX - feedbackContainerRef.current.offsetLeft);
+    setScrollLeft(feedbackContainerRef.current.scrollLeft);
+    feedbackContainerRef.current.style.cursor = 'grabbing';
+    e.preventDefault();
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging || !feedbackContainerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - feedbackContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 0.8; // Reduced from 2 to 0.8 for slower dragging
+    feedbackContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleMouseUp = () => {
+    if (!feedbackContainerRef.current) return;
+    setIsDragging(false);
+    feedbackContainerRef.current.style.cursor = 'grab';
+    
+    // Clear any existing timeout and set a new one
+    if (autoScrollTimeoutRef.current) {
+      clearTimeout(autoScrollTimeoutRef.current);
+    }
+    
+    // Re-enable auto-scroll after a delay, but force a restart
+    autoScrollTimeoutRef.current = setTimeout(() => {
+      setIsAutoScrolling(false); // First disable
+      setAnimationKey(prev => prev + 1); // Force re-render to restart animation
+      setTimeout(() => {
+        setIsAutoScrolling(true); // Then enable to restart animation
+      }, 50); // Small delay to force restart
+    }, 2000); // 2 seconds delay before auto-scroll resumes
   };
 
   if (loading) {
@@ -290,8 +370,12 @@ const Homepage = () => {
             ref={feedbackContainerRef}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
           >
-            <div className={`testimonials-track ${isPaused ? 'paused' : ''}`}>
+            <div key={animationKey} className={`testimonials-track ${isPaused || !isAutoScrolling ? 'paused' : ''}`}>
               {[...feedback, ...feedback].map((item, index) => (
                 <div key={`${item.id}-${index}`} className="testimonial-card">
                   <div className="testimonial-content">
@@ -300,11 +384,13 @@ const Homepage = () => {
                     <div className="testimonial-footer">
                       <div className="testimonial-rating">
                         {[...Array(5)].map((_, i) => (
-                          <span key={i} className={`star ${i < item.rating ? 'filled' : ''}`}>⭐</span>
+                          <span key={i} className={`star ${i < item.rating ? 'filled' : ''}`}>
+                            {i < item.rating ? '★' : '☆'}
+                          </span>
                         ))}
                       </div>
                       <p className="testimonial-author">
-                        - {item.patient_name || 'Anonymous Patient'}
+                        - {item.patientName || 'Anonymous Patient'}
                       </p>
                     </div>
                   </div>

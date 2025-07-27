@@ -978,19 +978,43 @@ body.homepage-body {
 }
 
 .testimonials-container {
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   position: relative;
   margin-top: 2rem;
+  cursor: grab;
+  user-select: none;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.testimonials-container::-webkit-scrollbar {
+  display: none; /* WebKit browsers */
+}
+
+.testimonials-container:active {
+  cursor: grabbing;
 }
 
 .testimonials-track {
   display: flex;
-  animation: scroll 30s linear infinite;
-  gap: 2rem;
+  gap: 1.5rem; /* Reduced from 2rem to 1.5rem */
+  width: max-content;
+  padding: 1rem 0;
+  animation: scroll 60s linear infinite; /* Increased from 40s to 60s for slower animation */
+  transition: transform 0.3s ease;
 }
 
 .testimonials-track.paused {
   animation-play-state: paused;
+}
+
+.testimonials-track.restart {
+  animation: none;
+}
+
+.testimonials-track.restart.running {
+  animation: scroll 60s linear infinite; /* Updated to match the main animation duration */
 }
 
 @keyframes scroll {
@@ -1004,13 +1028,23 @@ body.homepage-body {
 
 .testimonial-card {
   background: rgba(255, 255, 255, 0.95);
-  padding: 2rem;
+  padding: 1.5rem;
   border-radius: 20px;
-  min-width: 350px;
+  min-width: 280px; /* Reduced from 350px to 280px to fit 3-4 cards */
+  max-width: 300px; /* Added max-width for better control */
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
+  flex-shrink: 0; /* Prevent cards from shrinking */
+  pointer-events: auto;
+  user-select: none; /* Prevent text selection during drag */
+  cursor: inherit; /* Inherit cursor from parent */
+}
+
+.testimonial-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
 }
 
 .testimonial-card:hover {
@@ -1034,10 +1068,10 @@ body.homepage-body {
 }
 
 .testimonial-text {
-  font-size: 1.1rem;
-  line-height: 1.6;
+  font-size: 0.95rem; /* Reduced from 1.1rem to fit smaller cards */
+  line-height: 1.5; /* Reduced from 1.6 for tighter spacing */
   color: #333;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem; /* Reduced from 1.5rem */
   position: relative;
   z-index: 2;
   padding-left: 1rem;
@@ -1058,10 +1092,12 @@ body.homepage-body {
 .star {
   font-size: 1.2rem;
   color: #ddd;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .star.filled {
   color: #ffd93d;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 .testimonial-author {
