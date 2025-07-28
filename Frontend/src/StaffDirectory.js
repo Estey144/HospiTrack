@@ -2,20 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
-  Users, 
-  Search, 
-  Filter, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  Award,
-  ArrowLeft,
-  Home,
-  User,
-  Building2,
-  Briefcase,
-  Clock,
-  Star
+  Users, Search, Filter, Phone, Mail, MapPin, Award,
+  ArrowLeft, Building2, Clock, Star 
 } from 'lucide-react';
 import './StaffDirectory.css';
 
@@ -36,121 +24,25 @@ const StaffDirectory = () => {
     setLoading(true);
     axios.get(`${API_BASE_URL}/api/staff`)
       .then(res => {
-        const normalizedStaff = res.data.map(staff => ({
-          id: staff.id || staff.STAFFID,
-          name: staff.name || staff.STAFFNAME || `${staff.firstName || ''} ${staff.lastName || ''}`.trim(),
-          position: staff.position || staff.POSITION || staff.jobTitle,
-          department: staff.department || staff.DEPARTMENT,
-          contact: staff.contact || staff.PHONE || staff.phoneNumber,
-          email: staff.email || staff.EMAIL,
-          experience: staff.experience || staff.EXPERIENCE || Math.floor(Math.random() * 15) + 1,
-          shift: staff.shift || staff.SHIFT || ['Morning', 'Evening', 'Night'][Math.floor(Math.random() * 3)],
-          location: staff.location || staff.LOCATION || staff.branchName || 'Main Hospital',
-          imageUrl: staff.imageUrl || staff.IMAGEURL,
-          rating: staff.rating || (4 + Math.random()).toFixed(1)
-        }));
-        setStaffList(normalizedStaff);
-        setFilteredStaff(normalizedStaff);
+        setStaffList(res.data);
+        setFilteredStaff(res.data);
         setError('');
       })
-      .catch(() => {
-        // Mock data for demonstration when API fails
-        const mockStaff = [
-          {
-            id: 1,
-            name: 'Sarah Johnson',
-            position: 'Head Nurse',
-            department: 'Emergency',
-            contact: '+1 (555) 123-4567',
-            email: 'sarah.johnson@hospital.com',
-            experience: 8,
-            shift: 'Morning',
-            location: 'Main Hospital',
-            imageUrl: null,
-            rating: '4.8'
-          },
-          {
-            id: 2,
-            name: 'Michael Chen',
-            position: 'Lab Technician',
-            department: 'Laboratory',
-            contact: '+1 (555) 234-5678',
-            email: 'michael.chen@hospital.com',
-            experience: 5,
-            shift: 'Evening',
-            location: 'North Branch',
-            imageUrl: null,
-            rating: '4.6'
-          },
-          {
-            id: 3,
-            name: 'Emily Rodriguez',
-            position: 'Pharmacist',
-            department: 'Pharmacy',
-            contact: '+1 (555) 345-6789',
-            email: 'emily.rodriguez@hospital.com',
-            experience: 12,
-            shift: 'Morning',
-            location: 'Main Hospital',
-            imageUrl: null,
-            rating: '4.9'
-          },
-          {
-            id: 4,
-            name: 'David Thompson',
-            position: 'Security Officer',
-            department: 'Security',
-            contact: '+1 (555) 456-7890',
-            email: 'david.thompson@hospital.com',
-            experience: 6,
-            shift: 'Night',
-            location: 'South Branch',
-            imageUrl: null,
-            rating: '4.5'
-          },
-          {
-            id: 5,
-            name: 'Lisa Park',
-            position: 'Administrator',
-            department: 'Administration',
-            contact: '+1 (555) 567-8901',
-            email: 'lisa.park@hospital.com',
-            experience: 10,
-            shift: 'Morning',
-            location: 'Main Hospital',
-            imageUrl: null,
-            rating: '4.7'
-          },
-          {
-            id: 6,
-            name: 'James Wilson',
-            position: 'Maintenance',
-            department: 'Facilities',
-            contact: '+1 (555) 678-9012',
-            email: 'james.wilson@hospital.com',
-            experience: 4,
-            shift: 'Evening',
-            location: 'All Locations',
-            imageUrl: null,
-            rating: '4.4'
-          }
-        ];
-        setStaffList(mockStaff);
-        setFilteredStaff(mockStaff);
-        setError('');
+      .catch(err => {
+        console.error('Error fetching staff:', err);
+        setError('Failed to load staff directory.');
       })
       .finally(() => setLoading(false));
   }, []);
 
-  // Filter staff based on search and filters
   useEffect(() => {
     let filtered = staffList;
 
     if (searchTerm) {
       filtered = filtered.filter(staff =>
-        staff.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        staff.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        staff.department.toLowerCase().includes(searchTerm.toLowerCase())
+        staff.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        staff.position?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        staff.department?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -166,16 +58,17 @@ const StaffDirectory = () => {
   }, [searchTerm, selectedDepartment, selectedPosition, staffList]);
 
   const getRandomAvatar = (name) => {
+    const seed = encodeURIComponent(name || 'staff');
     const avatars = [
-      "https://api.dicebear.com/7.x/avataaars/svg?seed=" + encodeURIComponent(name),
-      "https://api.dicebear.com/7.x/personas/svg?seed=" + encodeURIComponent(name),
-      "https://api.dicebear.com/7.x/initials/svg?seed=" + encodeURIComponent(name)
+      `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`,
+      `https://api.dicebear.com/7.x/personas/svg?seed=${seed}`,
+      `https://api.dicebear.com/7.x/initials/svg?seed=${seed}`
     ];
     return avatars[Math.floor(Math.random() * avatars.length)];
   };
 
   const getShiftBadgeClass = (shift) => {
-    switch (shift?.toLowerCase()) {
+    switch ((shift || '').toLowerCase()) {
       case 'morning': return 'shift-morning';
       case 'evening': return 'shift-evening';
       case 'night': return 'shift-night';
@@ -197,20 +90,8 @@ const StaffDirectory = () => {
     );
   }
 
-  if (loading) {
-    return (
-      <div className="staff-loading-container">
-        <div className="staff-loading-content">
-          <div className="staff-spinner"></div>
-          <p>Loading staff directory...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="staff-directory-page">
-      {/* Header */}
       <div className="staff-directory-header">
         <div className="staff-header-left">
           <div className="staff-navigation-buttons">
@@ -241,7 +122,6 @@ const StaffDirectory = () => {
         </div>
       </div>
 
-      {/* Search and Filters */}
       <div className="staff-search-section">
         <div className="staff-search-container">
           <div className="staff-search-input-wrapper">
@@ -309,7 +189,6 @@ const StaffDirectory = () => {
         )}
       </div>
 
-      {/* Staff Grid */}
       <div className="staff-content">
         {filteredStaff.length === 0 ? (
           <div className="staff-no-results">
