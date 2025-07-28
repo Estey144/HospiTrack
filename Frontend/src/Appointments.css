@@ -403,6 +403,45 @@
   flex: none;
 }
 
+/* Submit and Cancel Button Styles */
+.patient-appointment-submit-btn {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+
+.patient-appointment-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2980b9, #1f5582);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+}
+
+.patient-appointment-cancel-btn {
+  background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(149, 165, 166, 0.3);
+}
+
+.patient-appointment-cancel-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7f8c8d, #5d6d6e);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(149, 165, 166, 0.4);
+}
+
 /* Enhanced Form Validation and Visual Feedback */
 .patient-appointment-form-group.error input,
 .patient-appointment-form-group.error select,

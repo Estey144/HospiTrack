@@ -70,6 +70,7 @@ const Appointments = ({ currentUser }) => {
   const [showNewAppointmentModal, setShowNewAppointmentModal] = useState(false);
   const [doctors, setDoctors] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [branches, setBranches] = useState([]);
   const [availableSlots, setAvailableSlots] = useState([]);
   const [isBooking, setIsBooking] = useState(false);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
@@ -77,11 +78,12 @@ const Appointments = ({ currentUser }) => {
   const [isLoadingDoctorsDepts, setIsLoadingDoctorsDepts] = useState(false);
 
   const [newAppointment, setNewAppointment] = useState({
+    branchId: '',
     departmentId: '',
     doctorId: '',
     date: '',
     time: '',
-    reason: ''
+    type: ''
   });
 
   const showBookingForm = new URLSearchParams(location.search).get('book') === 'true';
@@ -130,55 +132,93 @@ const Appointments = ({ currentUser }) => {
     setIsLoadingDoctorsDepts(true);
     try {
       // Try to fetch from API first
-      const [doctorsRes, departmentsRes] = await Promise.all([
+      const [doctorsRes, departmentsRes, branchesRes] = await Promise.all([
         axios.get('http://localhost:8080/api/doctors', { withCredentials: true }),
-        axios.get('http://localhost:8080/api/departments', { withCredentials: true })
+        axios.get('http://localhost:8080/api/departments', { withCredentials: true }),
+        axios.get('http://localhost:8080/api/branches', { withCredentials: true })
       ]);
 
       console.log('Doctors API response:', doctorsRes.data);
+      console.log('Raw first doctor:', doctorsRes.data[0]);
       console.log('Departments API response:', departmentsRes.data);
+      console.log('Branches API response:', branchesRes.data);
 
-      const normalizedDoctors = doctorsRes.data.map((d) => ({
-        doctorId: d.doctorId ?? d.DOCTORID ?? d.id,
-        doctorName: d.doctorName ?? d.DOCTORNAME ?? `${d.firstName ?? ''} ${d.lastName ?? ''}`.trim(),
-        specialization: d.specialization ?? d.SPECIALIZATION,
-        departmentId: d.departmentId ?? d.DEPARTMENTID,
-        experienceYears: d.experienceYears ?? d.EXPERIENCEYEARS,
-        branchName: d.branchName ?? d.BRANCHNAME,
-        imageUrl: d.imageUrl ?? d.IMAGEURL
-      }));
+      const normalizedDoctors = doctorsRes.data
+        .map((d) => {
+          // Find the branch ID by matching branch name
+          const branch = branchesRes.data.find(b => b.name === (d.branchName ?? d.BRANCHNAME));
+          
+          return {
+            doctorId: d.doctorId ?? d.DOCTORID ?? d.id,
+            doctorName: d.doctorName ?? d.DOCTORNAME ?? `${d.firstName ?? ''} ${d.lastName ?? ''}`.trim(),
+            specialization: d.specialization ?? d.SPECIALIZATION ?? d.departmentName ?? d.DEPARTMENTNAME,
+            departmentId: d.departmentId ?? d.DEPARTMENTID,
+            experienceYears: d.experienceYears ?? d.EXPERIENCEYEARS,
+            branchName: d.branchName ?? d.BRANCHNAME,
+            branchId: branch?.id, // Map branch name to branch ID
+            imageUrl: d.imageUrl ?? d.IMAGEURL
+          };
+        })
+        .filter(doctor => 
+          doctor.doctorId && 
+          doctor.doctorName && 
+          doctor.doctorName.trim() !== ''
+        );
 
       const normalizedDepartments = departmentsRes.data.map((dept) => ({
         id: dept.id ?? dept.DEPARTMENTID,
         name: dept.name ?? dept.DEPARTMENTNAME ?? dept.SPECIALIZATION,
+        branchId: dept.branchId ?? dept.BRANCHID ?? dept.branch_id
+      }));
+
+      const normalizedBranches = branchesRes.data.map((branch) => ({
+        id: branch.id ?? branch.BRANCHID ?? branch.branch_id,
+        name: branch.name ?? branch.BRANCHNAME ?? branch.branch_name,
+        location: branch.location ?? branch.LOCATION,
+        address: branch.address ?? branch.ADDRESS
       }));
 
       console.log('Normalized doctors:', normalizedDoctors);
+      console.log('First normalized doctor:', normalizedDoctors[0]);
       console.log('Normalized departments:', normalizedDepartments);
+      console.log('Normalized branches:', normalizedBranches);
 
       setDoctors(normalizedDoctors);
       setDepartments(normalizedDepartments);
+      setBranches(normalizedBranches);
 
     } catch (error) {
       console.error('Failed to fetch doctors/departments:', error);
       console.log('Using mock data for testing...');
       
       // Use mock data when API fails
+      const mockBranches = [
+        { id: 'b001', name: 'Dhaka Medical Branch', address: 'Azimpur, Dhaka' },
+        { id: 'b002', name: 'Mirpur Branch', address: 'Mirpur-10, Dhaka' },
+        { id: 'b003', name: 'Gulshan Branch', address: 'Gulshan-2, Dhaka' },
+        { id: 'b004', name: 'Rajshahi Branch', address: 'Kazla, Rajshahi' },
+      ];
+
       const mockDepartments = [
-        { id: '1', name: 'Cardiology' },
-        { id: '2', name: 'Neurology' },
-        { id: '3', name: 'Pediatrics' },
-        { id: '4', name: 'Orthopedics' },
+        { id: '1', name: 'Cardiology', branchId: 'b001' },
+        { id: '2', name: 'Neurology', branchId: 'b001' },
+        { id: '3', name: 'Pediatrics', branchId: 'b002' },
+        { id: '4', name: 'Orthopedics', branchId: 'b002' },
+        { id: '5', name: 'Emergency Medicine', branchId: 'b003' },
+        { id: '6', name: 'Surgery', branchId: 'b004' },
       ];
 
       const mockDoctors = [
-        { doctorId: 'doc1', doctorName: 'Dr. John Smith', specialization: 'Cardiology', departmentId: '1' },
-        { doctorId: 'doc2', doctorName: 'Dr. Sarah Johnson', specialization: 'Cardiology', departmentId: '1' },
-        { doctorId: 'doc3', doctorName: 'Dr. Michael Brown', specialization: 'Neurology', departmentId: '2' },
-        { doctorId: 'doc4', doctorName: 'Dr. Emily Davis', specialization: 'Pediatrics', departmentId: '3' },
-        { doctorId: 'doc5', doctorName: 'Dr. Robert Wilson', specialization: 'Orthopedics', departmentId: '4' },
+        { doctorId: 'doc1', doctorName: 'Dr. John Smith', specialization: 'Cardiology', departmentId: '1', branchId: 'b001', branchName: 'Dhaka Medical Branch' },
+        { doctorId: 'doc2', doctorName: 'Dr. Sarah Johnson', specialization: 'Cardiology', departmentId: '1', branchId: 'b001', branchName: 'Dhaka Medical Branch' },
+        { doctorId: 'doc3', doctorName: 'Dr. Michael Brown', specialization: 'Neurology', departmentId: '2', branchId: 'b001', branchName: 'Dhaka Medical Branch' },
+        { doctorId: 'doc4', doctorName: 'Dr. Emily Davis', specialization: 'Pediatrics', departmentId: '3', branchId: 'b002', branchName: 'Mirpur Branch' },
+        { doctorId: 'doc5', doctorName: 'Dr. Robert Wilson', specialization: 'Orthopedics', departmentId: '4', branchId: 'b002', branchName: 'Mirpur Branch' },
+        { doctorId: 'doc6', doctorName: 'Dr. Jane Cooper', specialization: 'Emergency Medicine', departmentId: '5', branchId: 'b003', branchName: 'Gulshan Branch' },
+        { doctorId: 'doc7', doctorName: 'Dr. Ahmed Hassan', specialization: 'Surgery', departmentId: '6', branchId: 'b004', branchName: 'Rajshahi Branch' },
       ];
 
+      setBranches(mockBranches);
       setDepartments(mockDepartments);
       setDoctors(mockDoctors);
       setAppointmentError('Using demo data - please check your backend server.');
@@ -215,11 +255,12 @@ const Appointments = ({ currentUser }) => {
     setAppointmentError('');
     setShowNewAppointmentModal(true);
     setNewAppointment({
+      branchId: '',
       departmentId: '',
       doctorId: '',
       date: '',
       time: '',
-      reason: ''
+      type: ''
     });
     setAvailableSlots([]);
     setFormErrors({});
@@ -232,16 +273,27 @@ const Appointments = ({ currentUser }) => {
     setSuccessMessage('');
     setFormErrors(prev => ({ ...prev, [field]: '' }));
 
-    if (field === 'departmentId') {
+    if (field === 'branchId') {
+      setNewAppointment(prev => ({
+        ...prev,
+        branchId: value,
+        departmentId: '',
+        doctorId: '',
+        time: '',
+        type: ''
+      }));
+      setAvailableSlots([]);
+    } else if (field === 'departmentId') {
       setNewAppointment(prev => ({
         ...prev,
         departmentId: value,
         doctorId: '',
-        time: ''
+        time: '',
+        type: ''
       }));
       setAvailableSlots([]);
     } else if (field === 'doctorId' || field === 'date') {
-      const updated = { ...newAppointment, [field]: value, time: '' };
+      const updated = { ...newAppointment, [field]: value, time: '', type: field === 'doctorId' ? '' : newAppointment.type };
       setNewAppointment(updated);
       if (updated.doctorId && updated.date) {
         fetchAvailableSlots(updated.doctorId, updated.date);
@@ -259,11 +311,12 @@ const Appointments = ({ currentUser }) => {
     setAppointmentError('');
 
     const errors = {};
+    if (!newAppointment.branchId) errors.branchId = 'Please select a branch';
     if (!newAppointment.departmentId) errors.departmentId = 'Please select a department';
     if (!newAppointment.doctorId) errors.doctorId = 'Please select a doctor';
     if (!newAppointment.date) errors.date = 'Please select a date';
     if (!newAppointment.time) errors.time = 'Please select a time slot';
-    if (!newAppointment.reason.trim()) errors.reason = 'Please provide a reason for the visit';
+    if (!newAppointment.type) errors.type = 'Please select appointment type';
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -276,10 +329,11 @@ const Appointments = ({ currentUser }) => {
       await axios.post('http://localhost:8080/api/appointments', {
         doctorId: newAppointment.doctorId,
         departmentId: newAppointment.departmentId,
+        branchId: newAppointment.branchId,
         patientId: user.id,
         date: newAppointment.date,
         time: newAppointment.time,
-        reason: newAppointment.reason
+        type: newAppointment.type
       }, {
         withCredentials: true
       });
@@ -324,12 +378,72 @@ const Appointments = ({ currentUser }) => {
     });
   };
 
+  // Get filtered departments based on selected branch
+  const getFilteredDepartments = () => {
+    console.log('getFilteredDepartments called with branchId:', newAppointment.branchId);
+    console.log('Available departments:', departments);
+    console.log('Available doctors:', doctors);
+    
+    if (!newAppointment.branchId) return [];
+    
+    // Find doctors that belong to the selected branch
+    const doctorsInBranch = doctors.filter(doctor => {
+      // Check if doctor has branchId or if their branchName matches the selected branch
+      const selectedBranch = branches.find(b => b.id === newAppointment.branchId);
+      const branchMatch = doctor.branchId === newAppointment.branchId || 
+                         doctor.branchId === parseInt(newAppointment.branchId) ||
+                         (selectedBranch && doctor.branchName === selectedBranch.name);
+      
+      console.log(`Doctor ${doctor.doctorName} - branchId: ${doctor.branchId}, branchName: ${doctor.branchName}, matches branch: ${branchMatch}`);
+      return branchMatch;
+    });
+    
+    console.log('Doctors in selected branch:', doctorsInBranch);
+    
+    // Get unique department names from doctors in this branch
+    const departmentNamesInBranch = [...new Set(doctorsInBranch.map(doctor => doctor.specialization))];
+    console.log('Department names in branch:', departmentNamesInBranch);
+    
+    // Filter departments by matching names
+    const filtered = departments.filter(dept => 
+      departmentNamesInBranch.includes(dept.name)
+    );
+    
+    console.log('Filtered departments:', filtered);
+    return filtered;
+  };
+
   // Get filtered doctors based on selected department
   const getFilteredDoctors = () => {
-    if (!newAppointment.departmentId) return [];
-    return doctors.filter(doctor => 
-      String(doctor.departmentId) === String(newAppointment.departmentId)
-    );
+    console.log('getFilteredDoctors called with departmentId:', newAppointment.departmentId);
+    console.log('getFilteredDoctors called with branchId:', newAppointment.branchId);
+    
+    if (!newAppointment.departmentId || !newAppointment.branchId) return [];
+    
+    // Find the selected department name
+    const selectedDept = departments.find(dept => dept.id === newAppointment.departmentId);
+    const selectedBranch = branches.find(b => b.id === newAppointment.branchId);
+    
+    if (!selectedDept || !selectedBranch) return [];
+    
+    console.log('Selected department:', selectedDept);
+    console.log('Selected branch:', selectedBranch);
+    
+    // Filter doctors by matching both department name AND branch
+    const filtered = doctors.filter(doctor => {
+      const departmentMatch = doctor.specialization && 
+        doctor.specialization.toLowerCase() === selectedDept.name.toLowerCase();
+      
+      const branchMatch = doctor.branchId === newAppointment.branchId || 
+                         doctor.branchId === parseInt(newAppointment.branchId) ||
+                         doctor.branchName === selectedBranch.name;
+      
+      console.log(`Doctor ${doctor.doctorName}: dept match = ${departmentMatch}, branch match = ${branchMatch}`);
+      return departmentMatch && branchMatch;
+    });
+    
+    console.log('Filtered doctors:', filtered);
+    return filtered;
   };
 
   return (
@@ -543,6 +657,26 @@ const Appointments = ({ currentUser }) => {
                   </div>
                 )}
 
+                <div className={`patient-appointment-form-group ${formErrors.branchId ? 'error' : ''}`}>
+                  <label htmlFor="branch-select">Branch</label>
+                  <select
+                    id="branch-select"
+                    value={newAppointment.branchId}
+                    onChange={(e) => handleNewAppointmentChange('branchId', e.target.value)}
+                    required
+                  >
+                    <option value="">Select Branch</option>
+                    {branches.map(branch => (
+                      <option key={branch.id} value={branch.id}>
+                        {branch.name} {branch.location || branch.address ? ` - ${branch.location || branch.address}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  {formErrors.branchId && (
+                    <span className="patient-appointment-form-error" role="alert">{formErrors.branchId}</span>
+                  )}
+                </div>
+
                 <div className={`patient-appointment-form-group ${formErrors.departmentId ? 'error' : ''}`}>
                   <label htmlFor="department-select">Department</label>
                   <select
@@ -550,9 +684,12 @@ const Appointments = ({ currentUser }) => {
                     value={newAppointment.departmentId}
                     onChange={(e) => handleNewAppointmentChange('departmentId', e.target.value)}
                     required
+                    disabled={!newAppointment.branchId}
                   >
-                    <option value="">Select Department</option>
-                    {departments.map(dept => (
+                    <option value="">
+                      {!newAppointment.branchId ? 'Select Branch First' : 'Select Department'}
+                    </option>
+                    {getFilteredDepartments().map(dept => (
                       <option key={dept.id} value={dept.id}>{dept.name}</option>
                     ))}
                   </select>
@@ -581,6 +718,30 @@ const Appointments = ({ currentUser }) => {
                   </select>
                   {formErrors.doctorId && (
                     <span className="patient-appointment-form-error" role="alert">{formErrors.doctorId}</span>
+                  )}
+                </div>
+
+                <div className={`patient-appointment-form-group ${formErrors.type ? 'error' : ''}`}>
+                  <label htmlFor="type-select">Appointment Type</label>
+                  <select
+                    id="type-select"
+                    value={newAppointment.type}
+                    onChange={(e) => handleNewAppointmentChange('type', e.target.value)}
+                    required
+                    disabled={!newAppointment.doctorId}
+                  >
+                    <option value="">
+                      {!newAppointment.doctorId ? 'Select Doctor First' : 'Select Appointment Type'}
+                    </option>
+                    <option value="Consultation">Consultation</option>
+                    <option value="Follow-up">Follow-up</option>
+                    <option value="Surgery">Surgery</option>
+                    <option value="Screening">Screening</option>
+                    <option value="Treatment">Treatment</option>
+                    <option value="Emergency">Emergency</option>
+                  </select>
+                  {formErrors.type && (
+                    <span className="patient-appointment-form-error" role="alert">{formErrors.type}</span>
                   )}
                 </div>
 
@@ -624,25 +785,10 @@ const Appointments = ({ currentUser }) => {
                   </div>
                 </div>
 
-                <div className={`patient-appointment-form-group ${formErrors.reason ? 'error' : ''}`}>
-                  <label htmlFor="reason-textarea">Reason for Visit</label>
-                  <textarea
-                    id="reason-textarea"
-                    value={newAppointment.reason}
-                    onChange={(e) => handleNewAppointmentChange('reason', e.target.value)}
-                    placeholder="Briefly describe your symptoms or reason for the appointment"
-                    rows="3"
-                    required
-                  />
-                  {formErrors.reason && (
-                    <span className="patient-appointment-form-error" role="alert">{formErrors.reason}</span>
-                  )}
-                </div>
-
                 <div className="patient-appointment-form-actions">
                   <button
                     type="submit"
-                    className="patient-appointment-submit-btn"
+                    className="patient-appointment-btn patient-appointment-submit-btn"
                     disabled={isBooking}
                     aria-busy={isBooking}
                   >
@@ -650,7 +796,7 @@ const Appointments = ({ currentUser }) => {
                   </button>
                   <button
                     type="button"
-                    className="patient-appointment-cancel-btn"
+                    className="patient-appointment-btn patient-appointment-cancel-btn"
                     onClick={() => setShowNewAppointmentModal(false)}
                     disabled={isBooking}
                   >

@@ -97,17 +97,21 @@ const Feedback = () => {
 
   const fetchDoctorsAndBranches = async () => {
     try {
+      console.log('Fetching doctors and branches...');
       const [doctorsRes, branchesRes] = await Promise.all([
         axios.get(`${API_BASE_URL}/api/doctors`),
         axios.get(`${API_BASE_URL}/api/branches`)
       ]);
 
-      // Transform doctors data - backend already returns correct field names
+      console.log('Raw doctors response:', doctorsRes.data);
+      console.log('Raw branches response:', branchesRes.data);
+
+      // Transform doctors data - handle both camelCase and uppercase field names
       const doctorsData = doctorsRes.data
         .map(d => ({
-          doctorId: d.doctorId,
-          doctorName: d.doctorName,
-          specialization: d.departmentName || ''
+          doctorId: d.doctorId || d.DOCTORID,
+          doctorName: d.doctorName || d.DOCTORNAME,
+          specialization: d.departmentName || d.DEPARTMENTNAME || ''
         }))
         .filter(doctor => 
           doctor.doctorId && 
@@ -121,6 +125,9 @@ const Feedback = () => {
       setBranches(branchesRes.data);
     } catch (error) {
       console.error('Failed to fetch doctors/branches:', error);
+      // Set empty arrays on error instead of leaving undefined
+      setDoctors([]);
+      setBranches([]);
     }
   };
 
@@ -155,10 +162,10 @@ const Feedback = () => {
     if (name === 'targetId') {
       let targetName = '';
       if (formData.targetType === 'Doctor') {
-        const doctor = doctors.find(d => d.doctorId.toString() === value.toString());
-        targetName = doctor ? `Dr. ${doctor.doctorName}` : '';
+        const doctor = doctors.find(d => String(d.doctorId) === String(value));
+        targetName = doctor ? doctor.doctorName : '';
       } else if (formData.targetType === 'Branch') {
-        const branch = branches.find(b => b.id.toString() === value.toString());
+        const branch = branches.find(b => String(b.id) === String(value));
         targetName = branch ? branch.name : '';
       }
       setFormData(prev => ({ ...prev, targetName }));
@@ -541,7 +548,7 @@ const Feedback = () => {
                     ) : (
                       doctors.map(doctor => (
                         <option key={doctor.doctorId} value={doctor.doctorId}>
-                          Dr. {doctor.doctorName}
+                          {doctor.doctorName}
                           {doctor.specialization && ` - ${doctor.specialization}`}
                         </option>
                       ))
