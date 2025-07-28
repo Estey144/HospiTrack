@@ -87,12 +87,6 @@
   margin: 0;
 }
 
-.page-title p {
-  color: #64748b;
-  margin: 0.5rem 0 0 0;
-  font-size: 1rem;
-}
-
 /* Emergency Notice */
 .emergency-notice {
   display: flex;
@@ -230,18 +224,38 @@
   font-size: 0.75rem;
 }
 
-/* Submit Button */
-.form-submit {
+/* Submit Button - Ambulance Specific */
+.ambulance-page .form-submit {
   margin-top: 2rem;
   padding-top: 2rem;
   border-top: 1px solid #e2e8f0;
   text-align: center;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-radius: 1rem;
+  padding: 2.5rem 2rem;
+  margin: 2rem -2rem -2rem -2rem;
+}
+
+.ambulance-page .form-submit .btn-primary {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+  color: white !important;
+  box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.4) !important;
+  border: none !important;
+}
+
+.ambulance-page .form-submit .btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 12px -1px rgba(5, 150, 105, 0.5) !important;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
 }
 
 .btn-large {
-  padding: 1rem 2rem;
-  font-size: 1rem;
-  min-width: 250px;
+  padding: 1.25rem 2.5rem;
+  font-size: 1.1rem;
+  min-width: 280px;
+  font-weight: 600;
+  border-radius: 1rem;
+  transition: all 0.3s ease;
 }
 
 .loading-spinner-small {
@@ -431,21 +445,25 @@
   text-decoration: none;
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  color: white;
-  box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.4);
+/* Ambulance Page Buttons - Higher Specificity */
+.ambulance-page .btn-primary {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+  color: white !important;
+  box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.4) !important;
+  border: none !important;
 }
 
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px -1px rgba(220, 38, 38, 0.5);
+.ambulance-page .btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 12px -1px rgba(5, 150, 105, 0.5) !important;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
 }
 
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
+.ambulance-page .btn-primary:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
 }
 
 .btn-secondary {
@@ -836,15 +854,18 @@
   text-decoration: none;
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  color: white;
-  box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.4);
+/* Ambulance Page Buttons - Duplicate Styles with Higher Specificity */
+.ambulance-page .btn-primary {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+  color: white !important;
+  box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.4) !important;
+  border: none !important;
 }
 
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px -1px rgba(220, 38, 38, 0.5);
+.ambulance-page .btn-primary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 12px -1px rgba(5, 150, 105, 0.5) !important;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
 }
 
 .btn-secondary {

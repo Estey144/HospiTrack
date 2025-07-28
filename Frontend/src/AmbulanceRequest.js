@@ -347,7 +347,6 @@ const AmbulanceRequest = ({ currentUser }) => {
                     Request Ambulance
                   </h1>
                 </div>
-                <p>Emergency and non-emergency ambulance service requests</p>
               </div>
             </div>
             <div className="ambulance-header-right">
