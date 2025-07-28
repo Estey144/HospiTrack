@@ -6,7 +6,6 @@ import {
   Search, 
   Filter, 
   MapPin, 
-  ArrowLeft, 
   Home,
   User,
   Clock,
@@ -43,142 +42,33 @@ const Rooms = () => {
     axios.get(`${API_BASE_URL}/api/rooms`)
       .then(res => {
         const normalizedRooms = res.data.map(room => ({
-          id: room.id || room.ROOMID,
-          roomNumber: room.room_number || room.ROOMNUMBER || room.roomNumber,
-          type: room.type || room.ROOMTYPE || room.roomType,
-          status: room.status || room.STATUS,
-          floor: room.floor || room.FLOOR || Math.floor(parseInt(room.room_number || room.ROOMNUMBER || room.roomNumber) / 100) || 1,
-          capacity: room.capacity || room.CAPACITY || (room.type?.toLowerCase().includes('icu') ? 1 : 2),
-          doctorName: room.doctor_name || room.DOCTORNAME || room.doctorName,
-          department: room.department || room.DEPARTMENT,
-          price: room.price || room.PRICE || Math.floor(Math.random() * 500) + 100,
-          amenities: room.amenities || room.AMENITIES || [],
-          lastUpdated: room.last_updated || room.LASTUPDATED || new Date().toISOString()
+          id: room.id,
+          roomNumber: room.roomNumber || room.room_number,
+          type: room.type,
+          status: room.status,
+          floor: room.floor || Math.floor(parseInt(room.roomNumber || room.room_number) / 100) || 1,
+          capacity: room.capacity || (room.type?.toLowerCase().includes('icu') ? 1 : 2),
+          doctorName: room.doctorName || room.doctor_name,
+          department: room.department,
+          price: room.price || 0,
+          amenities: room.amenities || [],
+          lastUpdated: room.lastUpdated || new Date().toISOString()
         }));
         setRooms(normalizedRooms);
         setFilteredRooms(normalizedRooms);
         setError('');
       })
       .catch(() => {
-        // Mock data for demonstration when API fails
-        const mockRooms = [
-          {
-            id: 1,
-            roomNumber: '101',
-            type: 'General Ward',
-            status: 'Available',
-            floor: 1,
-            capacity: 2,
-            doctorName: 'Dr. Sarah Johnson',
-            department: 'General Medicine',
-            price: 150,
-            amenities: ['AC', 'TV', 'WiFi'],
-            lastUpdated: new Date().toISOString()
-          },
-          {
-            id: 2,
-            roomNumber: '102',
-            type: 'Private Room',
-            status: 'Occupied',
-            floor: 1,
-            capacity: 1,
-            doctorName: 'Dr. Michael Chen',
-            department: 'Cardiology',
-            price: 300,
-            amenities: ['AC', 'TV', 'WiFi', 'Bathroom'],
-            lastUpdated: new Date().toISOString()
-          },
-          {
-            id: 3,
-            roomNumber: '201',
-            type: 'ICU',
-            status: 'Available',
-            floor: 2,
-            capacity: 1,
-            doctorName: 'Dr. Emily Rodriguez',
-            department: 'Critical Care',
-            price: 800,
-            amenities: ['Life Support', 'Monitoring', 'AC'],
-            lastUpdated: new Date().toISOString()
-          },
-          {
-            id: 4,
-            roomNumber: '202',
-            type: 'Surgery Suite',
-            status: 'In Use',
-            floor: 2,
-            capacity: 1,
-            doctorName: 'Dr. David Thompson',
-            department: 'Surgery',
-            price: 1200,
-            amenities: ['Surgical Equipment', 'AC', 'Monitoring'],
-            lastUpdated: new Date().toISOString()
-          },
-          {
-            id: 5,
-            roomNumber: '301',
-            type: 'Maternity Room',
-            status: 'Available',
-            floor: 3,
-            capacity: 2,
-            doctorName: 'Dr. Lisa Park',
-            department: 'Obstetrics',
-            price: 400,
-            amenities: ['Baby Care', 'AC', 'TV', 'WiFi'],
-            lastUpdated: new Date().toISOString()
-          },
-          {
-            id: 6,
-            roomNumber: '302',
-            type: 'Pediatric Room',
-            status: 'Available',
-            floor: 3,
-            capacity: 2,
-            doctorName: 'Dr. James Wilson',
-            department: 'Pediatrics',
-            price: 250,
-            amenities: ['Child Friendly', 'AC', 'TV', 'Play Area'],
-            lastUpdated: new Date().toISOString()
-          },
-          {
-            id: 7,
-            roomNumber: '401',
-            type: 'VIP Suite',
-            status: 'Occupied',
-            floor: 4,
-            capacity: 1,
-            doctorName: 'Dr. Robert Davis',
-            department: 'Internal Medicine',
-            price: 1500,
-            amenities: ['Premium Care', 'AC', 'TV', 'WiFi', 'Kitchenette', 'Bathroom'],
-            lastUpdated: new Date().toISOString()
-          },
-          {
-            id: 8,
-            roomNumber: '203',
-            type: 'Emergency Room',
-            status: 'Available',
-            floor: 2,
-            capacity: 1,
-            doctorName: 'Dr. Anna Martinez',
-            department: 'Emergency',
-            price: 500,
-            amenities: ['Emergency Equipment', 'Monitoring', 'AC'],
-            lastUpdated: new Date().toISOString()
-          }
-        ];
-        setRooms(mockRooms);
-        setFilteredRooms(mockRooms);
-        setError('');
+        setError('Failed to fetch room data from the server.');
+        setRooms([]);
+        setFilteredRooms([]);
       })
       .finally(() => setLoading(false));
   }, []);
 
-    // Filter rooms based on search and filters
   useEffect(() => {
     let filtered = rooms;
 
-    // Search filter
     if (searchTerm) {
       filtered = filtered.filter(room =>
         room.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -188,17 +78,14 @@ const Rooms = () => {
       );
     }
 
-    // Status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter(room => room.status.toLowerCase() === statusFilter);
     }
 
-    // Type filter
     if (typeFilter !== 'all') {
-      filtered = filtered.filter(room => room.type.toLowerCase().includes(typeFilter.toLowerCase()));
+      filtered = filtered.filter(room => room.type.toLowerCase() === typeFilter);
     }
 
-    // Floor filter
     if (floorFilter !== 'all') {
       filtered = filtered.filter(room => room.floor.toString() === floorFilter);
     }
@@ -225,12 +112,14 @@ const Rooms = () => {
       case 'icu':
         return <Heart className="type-icon" />;
       case 'surgery suite':
+      case 'emergency':
       case 'emergency room':
         return <Activity className="type-icon" />;
       case 'maternity room':
         return <Users className="type-icon" />;
       case 'pediatric room':
         return <Shield className="type-icon" />;
+      case 'vip':
       case 'vip suite':
         return <Zap className="type-icon" />;
       default:
@@ -282,7 +171,7 @@ const Rooms = () => {
         <div className="stat-card occupied">
           <XCircle className="stat-icon" />
           <div className="stat-content">
-            <h3>{filteredRooms.filter(room => room.status.toLowerCase() === 'occupied' || room.status.toLowerCase() === 'in use').length}</h3>
+            <h3>{filteredRooms.filter(room => ['occupied', 'in use'].includes(room.status.toLowerCase())).length}</h3>
             <p>Occupied Rooms</p>
           </div>
         </div>
@@ -338,14 +227,12 @@ const Rooms = () => {
             <label>Type:</label>
             <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
               <option value="all">All Types</option>
-              <option value="general">General Ward</option>
-              <option value="private">Private Room</option>
+              <option value="standard">Standard</option>
+              <option value="deluxe">Deluxe</option>
               <option value="icu">ICU</option>
-              <option value="surgery">Surgery Suite</option>
-              <option value="maternity">Maternity Room</option>
-              <option value="pediatric">Pediatric Room</option>
-              <option value="vip">VIP Suite</option>
-              <option value="emergency">Emergency Room</option>
+              <option value="emergency">Emergency</option>
+              <option value="premium">Premium</option>
+              <option value="vip">VIP</option>
             </select>
           </div>
           <div className="filter-group">
@@ -356,6 +243,7 @@ const Rooms = () => {
               <option value="2">Floor 2</option>
               <option value="3">Floor 3</option>
               <option value="4">Floor 4</option>
+              <option value="5">Floor 5</option>
             </select>
           </div>
           <button
