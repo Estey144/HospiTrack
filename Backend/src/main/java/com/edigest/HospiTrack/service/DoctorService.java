@@ -72,7 +72,7 @@ public class DoctorService {
         return jdbc.queryForList(sql);
     }
 
-    // New method specifically for feedback form
+    // method specifically for feedback form
     public List<Map<String, Object>> getDoctorsForFeedback() {
         String sql = """
             SELECT d.id AS doctorId,
@@ -82,7 +82,7 @@ public class DoctorService {
             INNER JOIN Users u ON d.user_id = u.id
             INNER JOIN Departments dep ON d.department_id = dep.id
             WHERE u.name IS NOT NULL 
-            AND TRIM(u.name) != ''
+           -- AND TRIM(u.name) != ''--made life hell for feedback form
             ORDER BY u.name
         """;
 

@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Calendar, DollarSign, FileText, Shield, Ambulance, Video, TestTube, Brain, MessageSquare, Menu, X, User, Home } from 'lucide-react';
 import './Appointments.css';
 import './PatientDashboard.css';
+  import { v4 as uuidv4 } from 'uuid'; 
 
 const Appointments = ({ currentUser }) => {
   const navigate = useNavigate();
@@ -305,53 +306,56 @@ const Appointments = ({ currentUser }) => {
     }
   };
 
-  const handleBookAppointment = async (e) => {
-    e.preventDefault();
-    setFormErrors({});
-    setAppointmentError('');
 
-    const errors = {};
-    if (!newAppointment.branchId) errors.branchId = 'Please select a branch';
-    if (!newAppointment.departmentId) errors.departmentId = 'Please select a department';
-    if (!newAppointment.doctorId) errors.doctorId = 'Please select a doctor';
-    if (!newAppointment.date) errors.date = 'Please select a date';
-    if (!newAppointment.time) errors.time = 'Please select a time slot';
-    if (!newAppointment.type) errors.type = 'Please select appointment type';
+const handleBookAppointment = async (e) => {
+  e.preventDefault();
+  setFormErrors({});
+  setAppointmentError('');
 
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      return;
-    }
+  const errors = {};
+  if (!newAppointment.branchId) errors.branchId = 'Please select a branch';
+  if (!newAppointment.departmentId) errors.departmentId = 'Please select a department';
+  if (!newAppointment.doctorId) errors.doctorId = 'Please select a doctor';
+  if (!newAppointment.date) errors.date = 'Please select a date';
+  if (!newAppointment.time) errors.time = 'Please select a time slot';
+  if (!newAppointment.type) errors.type = 'Please select appointment type';
 
-    setIsBooking(true);
+  if (Object.keys(errors).length > 0) {
+    setFormErrors(errors);
+    return;
+  }
 
-    try {
-      await axios.post('http://localhost:8080/api/appointments', {
-        doctorId: newAppointment.doctorId,
-        departmentId: newAppointment.departmentId,
-        branchId: newAppointment.branchId,
-        patientId: user.id,
-        date: newAppointment.date,
-        time: newAppointment.time,
-        type: newAppointment.type
-      }, {
-        withCredentials: true
-      });
+  setIsBooking(true);
 
-      setSuccessMessage('Appointment booked successfully!');
-      await fetchAppointments();
-      setShowNewAppointmentModal(false);
-      setTimeout(() => setSuccessMessage(''), 3000);
+  try {
+    const appointmentId = uuidv4();
 
-    } catch (error) {
-      console.error('Failed to book appointment:', error);
-      setAppointmentError(
-        error.response?.data?.message || 'Failed to book appointment. Please try again.'
-      );
-    } finally {
-      setIsBooking(false);
-    }
-  };
+    // POST to /api/appointments/user/{userId}, backend will map to patientId
+    await axios.post(`http://localhost:8080/api/appointments/user/${user.id}`, {
+      id: appointmentId,
+      doctorId: newAppointment.doctorId,
+      appointmentDate: newAppointment.date,
+      timeSlot: newAppointment.time,
+      type: newAppointment.type,
+      status: 'pending'
+    }, {
+      withCredentials: true
+    });
+
+    setSuccessMessage('Appointment booked successfully!');
+    await fetchAppointments();
+    setShowNewAppointmentModal(false);
+    setTimeout(() => setSuccessMessage(''), 3000);
+
+  } catch (error) {
+    console.error('Failed to book appointment:', error);
+    setAppointmentError(
+      error.response?.data?.message || 'Failed to book appointment. Please try again.'
+    );
+  } finally {
+    setIsBooking(false);
+  }
+};
 
   const getStatusBadgeClass = (status) => {
     switch ((status || '').toLowerCase()) {

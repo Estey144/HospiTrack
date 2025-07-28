@@ -69,14 +69,13 @@ public class AppointmentService {
         return jdbc.query(sql, new Object[]{patientId}, new BeanPropertyRowMapper<>(AppointmentResponseDTO.class));
     }
 
-    // New method to get patientId from userId
+
     public String getPatientIdByUserId(String userId) {
         String sql = "SELECT id FROM Patients WHERE user_id = ?";
         List<String> ids = jdbc.query(sql, new Object[]{userId}, (rs, rowNum) -> rs.getString("id"));
         return ids.isEmpty() ? null : ids.get(0);
     }
 
-    // New method to get appointments by userId
     public List<Appointment> getByUserId(String userId) {
         String patientId = getPatientIdByUserId(userId);
         if (patientId == null) {
