@@ -6,7 +6,7 @@ import './PatientDashboard.css';
 const PatientDashboard = () => {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user'));
-  
+
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
   const [pendingBills, setPendingBills] = useState([]);
   const [loading, setLoading] = useState({ appointments: true, bills: true });
@@ -37,24 +37,35 @@ const PatientDashboard = () => {
 
   useEffect(() => {
     const fetchPendingBills = async () => {
+      if (!user?.id) return;
+
       try {
-        const response = await fetch(`http://localhost:8080/api/bills/pending/${user?.id}`, {
+        const response = await fetch(`http://localhost:8080/api/bills?userId=${user.id}`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
             'Content-Type': 'application/json'
           }
         });
+
         if (!response.ok) throw new Error('Failed to fetch bills');
+
         const data = await response.json();
-        setPendingBills(data);
+
+        // Filter only pending bills here (or you can filter on backend)
+        const pending = data.filter(bill => bill.status?.toLowerCase() === 'pending');
+        setPendingBills(pending);
+
+        setError(prev => ({ ...prev, bills: null }));
       } catch (err) {
         setError(prev => ({ ...prev, bills: err.message }));
       } finally {
         setLoading(prev => ({ ...prev, bills: false }));
       }
     };
-    if (user?.id) fetchPendingBills();
+
+    fetchPendingBills();
   }, [user?.id]);
+
 
   const goTo = (path) => {
     // Add user ID as URL parameter if not already present
@@ -102,7 +113,7 @@ const PatientDashboard = () => {
       weekday: 'short', month: 'short', day: 'numeric'
     });
 
-  const totalPendingAmount = pendingBills.reduce((sum, bill) => sum + bill.amount, 0);
+  const totalPendingAmount = pendingBills.reduce((sum, bill) => sum + bill.totalAmount, 0);
 
   const LoadingSpinner = () => (
     <div className="patient-dash-loading">
@@ -122,7 +133,7 @@ const PatientDashboard = () => {
     <div className="patient-dashboard-wrapper">
       {/* Sidebar Overlay for mobile */}
       {sidebarOpen && (
-        <div 
+        <div
           className="patient-sidebar-overlay"
           onClick={() => setSidebarOpen(false)}
         />
@@ -135,7 +146,7 @@ const PatientDashboard = () => {
             <User size={24} className="patient-sidebar-logo" />
             <span className="patient-sidebar-title-text">Patient Portal</span>
           </div>
-          <button 
+          <button
             className="patient-sidebar-close"
             onClick={() => setSidebarOpen(false)}
           >
@@ -157,7 +168,7 @@ const PatientDashboard = () => {
           {navigationItems.map((item) => {
             const IconComponent = item.icon;
             const isActive = window.location.pathname === item.path;
-            
+
             return (
               <button
                 key={item.path}
@@ -173,7 +184,7 @@ const PatientDashboard = () => {
         </nav>
 
         <div className="patient-sidebar-footer">
-          <button 
+          <button
             onClick={() => navigate('/')}
             className="patient-home-button"
           >
@@ -187,186 +198,194 @@ const PatientDashboard = () => {
       <div className="patient-main">
         {/* Existing Dashboard Content */}
         <div className="patient-dash-container">
-      <div className="patient-dash-header">
-        <div className="patient-dash-welcome">
-          <div className="patient-dash-header-left">
-            <button 
-              className="patient-sidebar-toggle-main"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <Menu size={20} />
-            </button>
-            <div className="patient-dash-title-section">
-              <h1 className="patient-dash-title">Patient Dashboard</h1>
-              <p className="patient-dash-greeting">Welcome back, <span className="patient-dash-name">{user?.name}</span></p>
+          <div className="patient-dash-header">
+            <div className="patient-dash-welcome">
+              <div className="patient-dash-header-left">
+                <button
+                  className="patient-sidebar-toggle-main"
+                  onClick={() => setSidebarOpen(true)}
+                >
+                  <Menu size={20} />
+                </button>
+                <div className="patient-dash-title-section">
+                  <h1 className="patient-dash-title">Patient Dashboard</h1>
+                  <p className="patient-dash-greeting">Welcome back, <span className="patient-dash-name">{user?.name}</span></p>
+                </div>
+              </div>
+            </div>
+            <div className="patient-dash-header-actions">
+              <div className="patient-dash-id">
+                <span className="patient-dash-id-label">Patient ID:</span>
+                <span className="patient-dash-id-value">{user?.id}</span>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="patient-dash-header-actions">
-          <div className="patient-dash-id">
-            <span className="patient-dash-id-label">Patient ID:</span>
-            <span className="patient-dash-id-value">{user?.id}</span>
-          </div>
-        </div>
-      </div>
 
-      <div className="patient-dash-content">
+          <div className="patient-dash-content">
 
-        {/* Quick Stats */}
-        <div className="patient-dash-stats">
-          <div className="patient-dash-stat-card">
-            <div className="patient-dash-stat-icon patient-dash-stat-blue">
-              <Calendar size={24} />
+            {/* Quick Stats */}
+            <div className="patient-dash-stats">
+              <div className="patient-dash-stat-card">
+                <div className="patient-dash-stat-icon patient-dash-stat-blue">
+                  <Calendar size={24} />
+                </div>
+                <div className="patient-dash-stat-info">
+                  <h3 className="patient-dash-stat-number">
+                    {loading.appointments ? '-' : upcomingAppointments.length}
+                  </h3>
+                  <p className="patient-dash-stat-label">Upcoming Appointments</p>
+                </div>
+              </div>
+              <div className="patient-dash-stat-card">
+                <div className="patient-dash-stat-icon patient-dash-stat-orange">
+                  <DollarSign size={24} />
+                </div>
+                <div className="patient-dash-stat-info">
+                  <h3 className="patient-dash-stat-number">
+                    {loading.bills ? '-' : `$${totalPendingAmount.toFixed(2)}`}
+                  </h3>
+                  <p className="patient-dash-stat-label">Pending Bills</p>
+                </div>
+              </div>
             </div>
-            <div className="patient-dash-stat-info">
-              <h3 className="patient-dash-stat-number">
-                {loading.appointments ? '-' : upcomingAppointments.length}
-              </h3>
-              <p className="patient-dash-stat-label">Upcoming Appointments</p>
-            </div>
-          </div>
-          <div className="patient-dash-stat-card">
-            <div className="patient-dash-stat-icon patient-dash-stat-orange">
-              <DollarSign size={24} />
-            </div>
-            <div className="patient-dash-stat-info">
-              <h3 className="patient-dash-stat-number">
-                {loading.bills ? '-' : `$${totalPendingAmount.toFixed(2)}`}
-              </h3>
-              <p className="patient-dash-stat-label">Pending Bills</p>
-            </div>
-          </div>
-        </div>
 
-        {/* Upcoming Appointments */}
-        <div className="patient-dash-section">
-          <div className="patient-dash-section-header">
-            <h2 className="patient-dash-section-title">Upcoming Appointments</h2>
-            <button onClick={() => goTo('/appointments')} className="patient-dash-view-all">
-              View All <ChevronRight size={16} />
-            </button>
-          </div>
-          <div className="patient-dash-card">
-            {loading.appointments ? (
-              <LoadingSpinner />
-            ) : error.appointments ? (
-              <ErrorMessage message={error.appointments} />
-            ) : upcomingAppointments.length === 0 ? (
-              <div className="patient-dash-empty">
-                <Calendar size={48} className="patient-dash-empty-icon" />
-                <p className="patient-dash-empty-text">No upcoming appointments</p>
-                <button onClick={() => goTo('/appointments')} className="patient-dash-empty-button">
-                  Book Your First Appointment
+            {/* Upcoming Appointments */}
+            <div className="patient-dash-section">
+              <div className="patient-dash-section-header">
+                <h2 className="patient-dash-section-title">Upcoming Appointments</h2>
+                <button onClick={() => goTo('/appointments')} className="patient-dash-view-all">
+                  View All <ChevronRight size={16} />
                 </button>
               </div>
-            ) : (
-              <div className="patient-dash-appointments-list">
-                {upcomingAppointments.slice(0, 3).map((appointment) => (
-                  <div key={appointment.id} className="patient-dash-appointment-item">
-                    <div className="patient-dash-appointment-date">
-                      <div className="patient-dash-date-day">{formatDate(appointment.appointmentDate)}</div>
-                      <div className="patient-dash-date-time">{appointment.appointmentTime}</div>
-                    </div>
-                    <div className="patient-dash-appointment-details">
-                      <h4 className="patient-dash-appointment-doctor">{appointment.doctorName || 'Unknown Doctor'}</h4>
-                      <p className="patient-dash-appointment-specialty">{appointment.specialty || 'Unknown Specialty'}</p>
-                    </div>
-                    <div className={`patient-dash-appointment-status patient-dash-status-${appointment.status}`}>
-                      {appointment.status}
-                    </div>
+              <div className="patient-dash-card">
+                {loading.appointments ? (
+                  <LoadingSpinner />
+                ) : error.appointments ? (
+                  <ErrorMessage message={error.appointments} />
+                ) : upcomingAppointments.length === 0 ? (
+                  <div className="patient-dash-empty">
+                    <Calendar size={48} className="patient-dash-empty-icon" />
+                    <p className="patient-dash-empty-text">No upcoming appointments</p>
+                    <button onClick={() => goTo('/appointments')} className="patient-dash-empty-button">
+                      Book Your First Appointment
+                    </button>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Pending Bills */}
-        <div className="patient-dash-section">
-          <div className="patient-dash-section-header">
-            <h2 className="patient-dash-section-title">Pending Bills</h2>
-            <button onClick={() => goTo('/bills')} className="patient-dash-view-all">
-              View All <ChevronRight size={16} />
-            </button>
-          </div>
-          <div className="patient-dash-card">
-            {loading.bills ? (
-              <LoadingSpinner />
-            ) : error.bills ? (
-              <ErrorMessage message={error.bills} />
-            ) : pendingBills.length === 0 ? (
-              <div className="patient-dash-empty">
-                <DollarSign size={48} className="patient-dash-empty-icon" />
-                <p className="patient-dash-empty-text">No pending bills</p>
-                <p className="patient-dash-empty-subtext">You're all caught up!</p>
-              </div>
-            ) : (
-              <div className="patient-dash-bills-list">
-                {pendingBills.slice(0, 3).map((bill) => (
-                  <div key={bill.id} className="patient-dash-bill-item">
-                    <div className="patient-dash-bill-info">
-                      <h4 className="patient-dash-bill-service">{bill.serviceName}</h4>
-                      <p className="patient-dash-bill-date">Service Date: {formatDate(bill.serviceDate)}</p>
-                      <p className="patient-dash-bill-due">Due: {formatDate(bill.dueDate)}</p>
-                    </div>
-                    <div className="patient-dash-bill-amount">
-                      <span className="patient-dash-amount">${bill.amount.toFixed(2)}</span>
-                    </div>
-                  </div>
-                ))}
-                {pendingBills.length > 3 && (
-                  <div className="patient-dash-bills-more">
-                    +{pendingBills.length - 3} more bills
+                ) : (
+                  <div className="patient-dash-appointments-list">
+                    {upcomingAppointments.slice(0, 3).map((appointment) => (
+                      <div key={appointment.id} className="patient-dash-appointment-item">
+                        <div className="patient-dash-appointment-date">
+                          <div className="patient-dash-date-day">{formatDate(appointment.appointmentDate)}</div>
+                          <div className="patient-dash-date-time">{appointment.appointmentTime}</div>
+                        </div>
+                        <div className="patient-dash-appointment-details">
+                          <h4 className="patient-dash-appointment-doctor">{appointment.doctorName || 'Unknown Doctor'}</h4>
+                          <p className="patient-dash-appointment-specialty">{appointment.specialty || 'Unknown Specialty'}</p>
+                        </div>
+                        <div className={`patient-dash-appointment-status patient-dash-status-${appointment.status}`}>
+                          {appointment.status}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
-            )}
-          </div>
-        </div>
+            </div>
 
-        {/* Quick Actions */}
-        <div className="patient-dash-section">
-          <h2 className="patient-dash-section-title">Quick Actions</h2>
-          <div className="patient-dash-actions-grid">
-            {dashboardActions.map((action) => {
-              const IconComponent = action.icon;
-
-              if (action.path === '/lab-tests') {
-                return (
-                  <button
-                    key={action.path}
-                    onClick={() => navigate(action.path, { state: { userId: user?.id } })}
-                    className={`patient-dash-action-card ${action.color}`}
-                  >
-                    <IconComponent size={24} className="patient-dash-action-icon" />
-                    <span className="patient-dash-action-label">{action.label}</span>
-                  </button>
-                );
-              }
-
-              return (
-                <button
-                  key={action.path}
-                  onClick={() => goTo(action.path)}
-                  className={`patient-dash-action-card ${action.color}`}
-                >
-                  <IconComponent size={24} className="patient-dash-action-icon" />
-                  <span className="patient-dash-action-label">{action.label}</span>
+            {/* Pending Bills */}
+            <div className="patient-dash-section">
+              <div className="patient-dash-section-header">
+                <h2 className="patient-dash-section-title">Pending Bills</h2>
+                <button onClick={() => goTo('/bills')} className="patient-dash-view-all">
+                  View All <ChevronRight size={16} />
                 </button>
-              );
-            })}
+              </div>
+              <div className="patient-dash-card">
+                {loading.bills ? (
+                  <LoadingSpinner />
+                ) : error.bills ? (
+                  <ErrorMessage message={error.bills} />
+                ) : pendingBills.length === 0 ? (
+                  <div className="patient-dash-empty">
+                    <DollarSign size={48} className="patient-dash-empty-icon" />
+                    <p className="patient-dash-empty-text">No pending bills</p>
+                    <p className="patient-dash-empty-subtext">You're all caught up!</p>
+                  </div>
+                ) : (
+                  <div className="patient-dash-bills-list">
+                    {pendingBills.slice(0, 3).map((bill) => (
+                      <div key={bill.id} className="patient-dash-bill-item">
+                        <div className="patient-dash-bill-info">
+                          <h4 className="patient-dash-bill-service">{bill.department || 'Department N/A'}</h4>
+                          <p className="patient-dash-bill-date">
+                            Service Date: {bill.visitDate ? formatDate(bill.visitDate) : 'N/A'}
+                          </p>
+                          <p className="patient-dash-bill-due">
+                            Due: ${bill.totalAmount !== undefined ? bill.totalAmount.toFixed(2) : '0.00'}
+                          </p>
 
-            {/* Custom Medical History button passing userId */}
-            <button
-              onClick={() => navigate('/medical-history', { state: { userId: user?.id } })}
-              className="patient-dash-action-card bg-lime-600 hover:bg-lime-700"
-            >
-              <FileText size={24} className="patient-dash-action-icon" />
-              <span className="patient-dash-action-label">Medical History</span>
-            </button>
+                        </div>
+                        <div className="patient-dash-bill-amount">
+                          <span className="patient-dash-amount">
+                            ${bill.totalAmount !== undefined ? bill.totalAmount.toFixed(2) : '0.00'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+
+                    {pendingBills.length > 3 && (
+                      <div className="patient-dash-bills-more">
+                        +{pendingBills.length - 3} more bills
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="patient-dash-section">
+              <h2 className="patient-dash-section-title">Quick Actions</h2>
+              <div className="patient-dash-actions-grid">
+                {dashboardActions.map((action) => {
+                  const IconComponent = action.icon;
+
+                  if (action.path === '/lab-tests') {
+                    return (
+                      <button
+                        key={action.path}
+                        onClick={() => navigate(action.path, { state: { userId: user?.id } })}
+                        className={`patient-dash-action-card ${action.color}`}
+                      >
+                        <IconComponent size={24} className="patient-dash-action-icon" />
+                        <span className="patient-dash-action-label">{action.label}</span>
+                      </button>
+                    );
+                  }
+
+                  return (
+                    <button
+                      key={action.path}
+                      onClick={() => goTo(action.path)}
+                      className={`patient-dash-action-card ${action.color}`}
+                    >
+                      <IconComponent size={24} className="patient-dash-action-icon" />
+                      <span className="patient-dash-action-label">{action.label}</span>
+                    </button>
+                  );
+                })}
+
+                {/* Custom Medical History button passing userId */}
+                <button
+                  onClick={() => navigate('/medical-history', { state: { userId: user?.id } })}
+                  className="patient-dash-action-card bg-lime-600 hover:bg-lime-700"
+                >
+                  <FileText size={24} className="patient-dash-action-icon" />
+                  <span className="patient-dash-action-label">Medical History</span>
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
         </div>
       </div>
     </div>

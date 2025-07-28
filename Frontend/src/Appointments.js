@@ -375,12 +375,33 @@ const handleBookAppointment = async (e) => {
   };
 
   const formatTime = (timeString) => {
-    if (/^\d{1,2}:\d{2}\s?(AM|PM)$/i.test(timeString)) return timeString;
-    const time = new Date(`2000-01-01T${timeString}`);
-    return time.toLocaleTimeString('en-US', {
-      hour: 'numeric', minute: '2-digit', hour12: true
-    });
-  };
+  if (!timeString) return 'N/A';
+
+  // If already in 12-hour format with AM/PM, just return it
+  if (/^\d{1,2}:\d{2}\s?(AM|PM)$/i.test(timeString.trim())) {
+    return timeString.trim();
+  }
+
+  // Parse times like "16:00" or "16:00:00"
+  const parts = timeString.split(':');
+  if (parts.length < 2) return 'Invalid time';
+
+  let hour = parseInt(parts[0], 10);
+  const minute = parseInt(parts[1], 10);
+
+  if (isNaN(hour) || isNaN(minute)) return 'Invalid time';
+
+  // Convert 24h to 12h
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  hour = hour % 12 || 12; // converts 0 to 12
+
+  // Format minutes with leading zero
+  const minuteStr = minute.toString().padStart(2, '0');
+
+  return `${hour}:${minuteStr} ${ampm}`;
+};
+
+
 
   // Get filtered departments based on selected branch
   const getFilteredDepartments = () => {
@@ -586,8 +607,9 @@ const handleBookAppointment = async (e) => {
                   <div className="patient-appointment-detail-content">
                     <span className="patient-appointment-detail-label">Department</span>
                     <span className="patient-appointment-detail-value">
-                      {appointment.department || appointment.SPECIALIZATION}
-                    </span>
+  {appointment.department || appointment.SPECIALIZATION || appointment.specialty}
+</span>
+
                   </div>
                 </div>
 
@@ -603,7 +625,8 @@ const handleBookAppointment = async (e) => {
                   <div className="patient-appointment-detail-icon" aria-hidden="true">⏰</div>
                   <div className="patient-appointment-detail-content">
                     <span className="patient-appointment-detail-label">Time</span>
-                    <span className="patient-appointment-detail-value">{formatTime(appointment.time)}</span>
+                   <span className="patient-appointment-detail-value">{formatTime(appointment.appointmentTime)}</span>
+
                   </div>
                 </div>
               </div>
