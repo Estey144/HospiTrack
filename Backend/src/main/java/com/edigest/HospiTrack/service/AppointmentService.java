@@ -1,13 +1,12 @@
 package com.edigest.HospiTrack.service;
 
-import com.edigest.HospiTrack.payload.AppointmentResponseDTO;
+import com.edigest.HospiTrack.payload.AmbulanceRequestDTO;
 import com.edigest.HospiTrack.entity.Appointment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.sql.Date;
 import java.util.List;
 @Service
 public class AppointmentService {
@@ -45,7 +44,7 @@ public class AppointmentService {
         return jdbc.query(sql, new Object[]{patientId}, new BeanPropertyRowMapper<>(Appointment.class));
     }
 
-    public List<AppointmentResponseDTO> getAppointmentDetailsByPatientId(String patientId) {
+    public List<AmbulanceRequestDTO> getAppointmentDetailsByPatientId(String patientId) {
         String sql = """
         SELECT a.id,
                a.doctor_id AS doctorId,
@@ -66,7 +65,7 @@ public class AppointmentService {
         ORDER BY a.appointment_date DESC, a.time_slot
     """;
 
-        return jdbc.query(sql, new Object[]{patientId}, new BeanPropertyRowMapper<>(AppointmentResponseDTO.class));
+        return jdbc.query(sql, new Object[]{patientId}, new BeanPropertyRowMapper<>(AmbulanceRequestDTO.class));
     }
 
 

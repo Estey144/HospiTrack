@@ -4,7 +4,7 @@ import com.edigest.HospiTrack.entity.Appointment;
 import com.edigest.HospiTrack.entity.Department;
 import com.edigest.HospiTrack.entity.Doctor;
 import com.edigest.HospiTrack.entity.Users;
-import com.edigest.HospiTrack.payload.AppointmentResponseDTO;
+import com.edigest.HospiTrack.payload.AmbulanceRequestDTO;
 import com.edigest.HospiTrack.service.AppointmentService;
 import com.edigest.HospiTrack.service.DepartmentService;
 import com.edigest.HospiTrack.service.DoctorService;
@@ -102,7 +102,7 @@ public class AppointmentController {
     }
 
     @PostMapping("/patient/{patientId}")
-    public List<AppointmentResponseDTO> getAppointmentDetailsByPatientId(@PathVariable String patientId) {
+    public List<AmbulanceRequestDTO> getAppointmentDetailsByPatientId(@PathVariable String patientId) {
         return service.getAppointmentDetailsByPatientId(patientId);
     }
     @PostMapping("/user/{userId}")
