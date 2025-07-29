@@ -1,9 +1,14 @@
 package com.edigest.HospiTrack.controller;
-import com.edigest.HospiTrack.payload.LabTestDTO;
-import com.edigest.HospiTrack.service.LabTestService;
-import org.springframework.web.bind.annotation.*;
 import java.sql.SQLException;
 import java.util.List;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.edigest.HospiTrack.payload.LabTestDTO;
+import com.edigest.HospiTrack.service.LabTestService;
 
 @RestController
 @RequestMapping("/api/lab-tests")

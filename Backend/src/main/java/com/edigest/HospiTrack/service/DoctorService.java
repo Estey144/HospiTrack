@@ -1,13 +1,14 @@
 package com.edigest.HospiTrack.service;
 
-import com.edigest.HospiTrack.entity.Doctor;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
+import com.edigest.HospiTrack.entity.Doctor;
 
 @Service
 public class DoctorService {
@@ -86,17 +87,6 @@ public class DoctorService {
             ORDER BY u.name
         """;
 
-        List<Map<String, Object>> result = jdbc.queryForList(sql);
-        System.out.println("Doctors query returned " + result.size() + " records");
-
-        // Debug: Print first few records
-        for (int i = 0; i < Math.min(3, result.size()); i++) {
-            Map<String, Object> doctor = result.get(i);
-            System.out.println("Doctor " + i + ": ID=" + doctor.get("doctorId") +
-                    ", Name=" + doctor.get("doctorName") +
-                    ", Dept=" + doctor.get("departmentName"));
-        }
-
-        return result;
+        return jdbc.queryForList(sql);
     }
 }

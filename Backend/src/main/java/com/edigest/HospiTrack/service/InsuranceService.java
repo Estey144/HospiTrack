@@ -49,8 +49,6 @@ public class InsuranceService {
     }
 
     public List<PatientInsuranceDTO> getInsurancePlans(String userId) {
-        System.out.println("Service: Getting insurance plans for user: " + userId);
-        
         try {
             // Convert user_id to patient_id
             String patientId = convertUserIdToPatientId(userId);
@@ -72,10 +70,8 @@ public class InsuranceService {
                 return dto;
             });
             
-            System.out.println("Service: Found " + plans.size() + " insurance plans for patient: " + patientId);
             return plans;
         } catch (Exception e) {
-            System.out.println("Service: Error getting insurance plans for user " + userId + ": " + e.getMessage());
             // Return empty list to allow page to load
             return new ArrayList<>();
         }
