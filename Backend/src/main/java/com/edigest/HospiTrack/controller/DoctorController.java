@@ -315,4 +315,33 @@ public class DoctorController {
         }
     }
 
+    // Get doctor ID from user ID
+    @GetMapping("/users/{userId}/doctor")
+    public Map<String, Object> getDoctorByUserId(@PathVariable String userId) {
+        try {
+            String sql = "SELECT d.id as doctorId, d.user_id as userId " +
+                        "FROM Doctors d " +
+                        "WHERE d.user_id = ?";
+            
+            List<Map<String, Object>> results = jdbc.query(sql, ps -> ps.setString(1, userId), (rs, rowNum) -> {
+                Map<String, Object> doctor = new HashMap<>();
+                doctor.put("doctorId", rs.getString("doctorId"));
+                doctor.put("userId", rs.getString("userId"));
+                return doctor;
+            });
+            
+            if (!results.isEmpty()) {
+                return results.get(0);
+            } else {
+                Map<String, Object> response = new HashMap<>();
+                response.put("error", "Doctor not found for user ID: " + userId);
+                return response;
+            }
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("error", "Failed to fetch doctor: " + e.getMessage());
+            return response;
+        }
+    }
+
 }

@@ -37,6 +37,7 @@ const DoctorDashboard = () => {
   const [prescriptions, setPrescriptions] = useState([]);
   const [testsToAdd, setTestsToAdd] = useState([]);
   const [availableHours, setAvailableHours] = useState("");
+  const [doctorId, setDoctorId] = useState(null); // Store the actual doctor ID
   const [newPrescription, setNewPrescription] = useState({
     appointmentId: "",
     patientId: "",
@@ -60,19 +61,40 @@ const DoctorDashboard = () => {
 
   const goTo = (path) => navigate(path);
 
+  // Helper function to get doctor ID from user ID
+  const getDoctorId = async () => {
+    try {
+      const doctorRes = await axios.get(`http://localhost:8080/api/users/${user.id}/doctor`);
+      if (doctorRes.data.error) {
+        throw new Error(doctorRes.data.error);
+      }
+      return doctorRes.data.doctorId;
+    } catch (error) {
+      console.error("Error getting doctor ID:", error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     if (!user?.id) return;
 
     const fetchData = async () => {
       try {
         setLoading(true);
-        console.log("Fetching data for doctor:", user.id);
+        console.log("Fetching data for user:", user.id);
         
+        // First, get the doctor ID from the user ID
+        const fetchedDoctorId = await getDoctorId();
+        setDoctorId(fetchedDoctorId);
+        
+        console.log("Found doctor ID:", fetchedDoctorId, "for user ID:", user.id);
+        
+        // Now fetch all doctor data using the correct doctor ID
         const [appRes, patRes, labRes, prescRes] = await Promise.all([
-          axios.get(`http://localhost:8080/api/doctors/${user.id}/appointments`),
-          axios.get(`http://localhost:8080/api/doctors/${user.id}/patients`),
-          axios.get(`http://localhost:8080/api/doctors/${user.id}/labreports`),
-          axios.get(`http://localhost:8080/api/doctors/${user.id}/prescriptions`),
+          axios.get(`http://localhost:8080/api/doctors/${fetchedDoctorId}/appointments`),
+          axios.get(`http://localhost:8080/api/doctors/${fetchedDoctorId}/patients`),
+          axios.get(`http://localhost:8080/api/doctors/${fetchedDoctorId}/labreports`),
+          axios.get(`http://localhost:8080/api/doctors/${fetchedDoctorId}/prescriptions`),
         ]);
         
         console.log("Appointments response:", appRes.data);
@@ -92,7 +114,7 @@ const DoctorDashboard = () => {
         console.error("Error status:", err.response?.status);
         
         if (err.response?.status === 404) {
-          setError("Doctor dashboard endpoints not found. Please contact support.");
+          setError("Doctor not found or dashboard endpoints not available. Please contact support.");
         } else if (err.response?.status === 500) {
           setError("Server error occurred. Please try again later.");
         } else {
@@ -144,7 +166,7 @@ const DoctorDashboard = () => {
       // Add doctorId to the prescription data
       const prescriptionData = {
         ...newPrescription,
-        doctorId: user.id
+        doctorId: doctorId || user.id // Use the stored doctorId, fallback to user.id
       };
       
       const response = await axios.post("http://localhost:8080/api/prescriptions", prescriptionData);
@@ -169,7 +191,7 @@ const DoctorDashboard = () => {
       
       // Refresh prescriptions data to show the new prescription
       try {
-        const prescRes = await axios.get(`http://localhost:8080/api/doctors/${user.id}/prescriptions`);
+        const prescRes = await axios.get(`http://localhost:8080/api/doctors/${doctorId || user.id}/prescriptions`);
         setPrescriptions(prescRes.data);
         console.log("Prescriptions refreshed:", prescRes.data);
       } catch (refreshErr) {
@@ -220,7 +242,7 @@ const DoctorDashboard = () => {
         patientId: newTest.patientId,
         testType: newTest.testType,
         testDate: new Date(),
-        doctorId: user.id,
+        doctorId: doctorId || user.id, // Use the stored doctorId, fallback to user.id
       };
       console.log("Submitting lab test:", testData);
       const response = await axios.post("http://localhost:8080/api/labtests", testData);
@@ -245,7 +267,7 @@ const DoctorDashboard = () => {
       
       // Refresh lab reports data
       try {
-        const labRes = await axios.get(`http://localhost:8080/api/doctors/${user.id}/labreports`);
+        const labRes = await axios.get(`http://localhost:8080/api/doctors/${doctorId || user.id}/labreports`);
         setLabReports(labRes.data);
       } catch (refreshErr) {
         console.warn("Could not refresh lab reports:", refreshErr);
@@ -277,8 +299,8 @@ const DoctorDashboard = () => {
     
     try {
       setLoading(true);
-      console.log("Updating available hours for doctor:", user.id, "to:", availableHours);
-      const response = await axios.put(`http://localhost:8080/api/doctors/${user.id}/availablehours`, {
+      console.log("Updating available hours for doctor:", doctorId || user.id, "to:", availableHours);
+      const response = await axios.put(`http://localhost:8080/api/doctors/${doctorId || user.id}/availablehours`, {
         availableHours,
       });
       console.log("Update hours response:", response.data);
