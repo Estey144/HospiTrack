@@ -376,16 +376,34 @@ const Insurance = ({ currentUser }) => {
       const provider = insuranceProviders.find(p => p.id === insurance.providerId);
       
       // Parse coverage details if it's a string, otherwise use as-is
-      const coverageDetails = typeof insurance.coverageDetails === 'string' 
-        ? JSON.parse(insurance.coverageDetails) 
-        : insurance.coverageDetails || {};
+      let coverageDetails = {};
+      if (typeof insurance.coverageDetails === 'string') {
+        try {
+          coverageDetails = JSON.parse(insurance.coverageDetails);
+        } catch (error) {
+          console.warn('Coverage details is not valid JSON, treating as plain text:', insurance.coverageDetails);
+          // If it's not valid JSON, treat it as a description
+          coverageDetails = { description: insurance.coverageDetails };
+        }
+      } else {
+        coverageDetails = insurance.coverageDetails || {};
+      }
       
       // Parse contact info if provider exists and has contact info
-      const contactInfo = provider && provider.contactInfo 
-        ? (typeof provider.contactInfo === 'string' 
-           ? JSON.parse(provider.contactInfo) 
-           : provider.contactInfo)
-        : {};
+      let contactInfo = {};
+      if (provider && provider.contactInfo) {
+        if (typeof provider.contactInfo === 'string') {
+          try {
+            contactInfo = JSON.parse(provider.contactInfo);
+          } catch (error) {
+            console.warn('Contact info is not valid JSON, treating as plain text:', provider.contactInfo);
+            // If it's not valid JSON, treat it as a description
+            contactInfo = { description: provider.contactInfo };
+          }
+        } else {
+          contactInfo = provider.contactInfo;
+        }
+      }
       
       return {
         id: insurance.id,

@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,13 +24,6 @@ public class InsuranceController {
 
     @Autowired
     private InsuranceService insuranceService;
-
-    // Test endpoint for debugging
-    @GetMapping("/insurance/test")
-    public ResponseEntity<String> testEndpoint() {
-        System.out.println("Controller: Test endpoint called");
-        return ResponseEntity.ok("Insurance API is working!");
-    }
 
     // Frontend calls: /api/insurance/plans?patientId=${user.id}
     @GetMapping("/insurance/plans")

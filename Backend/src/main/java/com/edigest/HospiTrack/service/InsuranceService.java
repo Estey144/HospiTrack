@@ -19,63 +19,112 @@ public class InsuranceService {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    public List<PatientInsuranceDTO> getInsurancePlans(String patientId) {
-        System.out.println("Getting insurance plans for patient: " + patientId);
-        String sql = "SELECT pi.id, pi.patient_id, pi.provider_id, ip.name AS providerName, " +
-                "pi.policy_number, pi.coverage_details " +
-                "FROM Patient_Insurance pi " +
-                "JOIN Insurance_Providers ip ON pi.provider_id = ip.id " +
-                "WHERE pi.patient_id = ?";
-        
-        List<PatientInsuranceDTO> plans = jdbcTemplate.query(sql, new Object[]{patientId}, (rs, rowNum) -> {
-            PatientInsuranceDTO dto = new PatientInsuranceDTO();
-            dto.setId(rs.getString("id"));
-            dto.setPatientId(rs.getString("patient_id"));
-            dto.setProviderId(rs.getString("provider_id"));
-            dto.setProviderName(rs.getString("providerName"));
-            dto.setPolicyNumber(rs.getString("policy_number"));
-            dto.setCoverageDetails(rs.getString("coverage_details"));
-            return dto;
-        });
-        
-        System.out.println("Found " + plans.size() + " insurance plans");
-        return plans;
+    // Helper method to convert user_id to patient_id
+    private String convertUserIdToPatientId(String userId) {
+        System.out.println("Service: Converting user_id " + userId + " to patient_id");
+        try {
+            String sql = "SELECT p.id FROM Patients p WHERE p.user_id = ?";
+            String patientId = jdbcTemplate.queryForObject(sql, String.class, userId);
+            System.out.println("Service: Successfully converted user_id " + userId + " to patient_id " + patientId);
+            return patientId;
+        } catch (Exception e) {
+            System.out.println("Service: ERROR - No patient record found for user_id: " + userId);
+            System.out.println("Service: Exception details: " + e.getMessage());
+            
+            // Create a helpful error message for the frontend
+            throw new RuntimeException("Patient profile not found. Please contact administration to set up your patient profile before accessing insurance services.");
+        }
     }
 
-    public List<ClaimDTO> getClaimsForPatient(String patientId) {
-        System.out.println("Getting claims for patient: " + patientId);
-        String sql = "SELECT c.id, c.claim_status, c.claim_amount, " +
-                "TO_CHAR(c.submitted_on, 'YYYY-MM-DD') as submitted_on, " +
-                "COALESCE(u.name, 'Unknown Provider') as provider, " +
-                "'Medical Service' as service, " +
-                "COALESCE(c.claim_amount * 0.8, 0) as paid, " +
-                "COALESCE(c.claim_amount * 0.8, 0) as approved, " +
-                "COALESCE(c.claim_amount * 0.2, 0) as patientResponsibility, " +
-                "'Primary Insurance' as insurancePlan " +
-                "FROM Claims c " +
-                "JOIN Appointments a ON c.appointment_id = a.id " +
-                "LEFT JOIN Doctors d ON a.doctor_id = d.id " +
-                "LEFT JOIN Users u ON d.user_id = u.id " +
-                "WHERE a.patient_id = ? " +
-                "ORDER BY c.submitted_on DESC";
+    // Helper method to check if user has patient record (non-blocking)
+    private boolean hasPatientRecord(String userId) {
+        try {
+            String sql = "SELECT COUNT(*) FROM Patients p WHERE p.user_id = ?";
+            Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId);
+            return count != null && count > 0;
+        } catch (Exception e) {
+            System.out.println("Service: Error checking patient record for user: " + userId);
+            return false;
+        }
+    }
+
+    public List<PatientInsuranceDTO> getInsurancePlans(String userId) {
+        System.out.println("Service: Getting insurance plans for user: " + userId);
         
-        List<ClaimDTO> claims = jdbcTemplate.query(sql, new Object[]{patientId}, (rs, rowNum) -> {
-            ClaimDTO dto = new ClaimDTO();
-            dto.setId(rs.getString("id"));
-            dto.setClaimStatus(rs.getString("claim_status"));
-            dto.setClaimAmount(rs.getDouble("claim_amount"));
-            dto.setSubmittedOn(rs.getString("submitted_on"));
-            dto.setProvider(rs.getString("provider"));
-            dto.setService(rs.getString("service"));
-            dto.setPaid(rs.getDouble("paid"));
-            dto.setApproved(rs.getDouble("approved"));
-            dto.setPatientResponsibility(rs.getDouble("patientResponsibility"));
-            dto.setInsurancePlan(rs.getString("insurancePlan"));
-            return dto;
-        });
+        try {
+            // Convert user_id to patient_id
+            String patientId = convertUserIdToPatientId(userId);
+            
+            String sql = "SELECT pi.id, pi.patient_id, pi.provider_id, ip.name AS providerName, " +
+                    "pi.policy_number, pi.coverage_details " +
+                    "FROM Patient_Insurance pi " +
+                    "JOIN Insurance_Providers ip ON pi.provider_id = ip.id " +
+                    "WHERE pi.patient_id = ?";
+            
+            List<PatientInsuranceDTO> plans = jdbcTemplate.query(sql, new Object[]{patientId}, (rs, rowNum) -> {
+                PatientInsuranceDTO dto = new PatientInsuranceDTO();
+                dto.setId(rs.getString("id"));
+                dto.setPatientId(rs.getString("patient_id"));
+                dto.setProviderId(rs.getString("provider_id"));
+                dto.setProviderName(rs.getString("providerName"));
+                dto.setPolicyNumber(rs.getString("policy_number"));
+                dto.setCoverageDetails(rs.getString("coverage_details"));
+                return dto;
+            });
+            
+            System.out.println("Service: Found " + plans.size() + " insurance plans for patient: " + patientId);
+            return plans;
+        } catch (Exception e) {
+            System.out.println("Service: Error getting insurance plans for user " + userId + ": " + e.getMessage());
+            // Return empty list to allow page to load
+            return new ArrayList<>();
+        }
+    }
+
+    public List<ClaimDTO> getClaimsForPatient(String userId) {
+        System.out.println("Service: Getting claims for user: " + userId);
         
-        System.out.println("Found " + claims.size() + " claims");
-        return claims;
+        try {
+            // Convert user_id to patient_id
+            String patientId = convertUserIdToPatientId(userId);
+            
+            String sql = "SELECT c.id, c.claim_status, c.claim_amount, " +
+                    "TO_CHAR(c.submitted_on, 'YYYY-MM-DD') as submitted_on, " +
+                    "COALESCE(u.name, 'Unknown Provider') as provider, " +
+                    "'Medical Service' as service, " +
+                    "COALESCE(c.claim_amount * 0.8, 0) as paid, " +
+                    "COALESCE(c.claim_amount * 0.8, 0) as approved, " +
+                    "COALESCE(c.claim_amount * 0.2, 0) as patientResponsibility, " +
+                    "'Primary Insurance' as insurancePlan " +
+                    "FROM Claims c " +
+                    "JOIN Appointments a ON c.appointment_id = a.id " +
+                    "LEFT JOIN Doctors d ON a.doctor_id = d.id " +
+                    "LEFT JOIN Users u ON d.user_id = u.id " +
+                    "WHERE a.patient_id = ? " +
+                    "ORDER BY c.submitted_on DESC";
+            
+            List<ClaimDTO> claims = jdbcTemplate.query(sql, new Object[]{patientId}, (rs, rowNum) -> {
+                ClaimDTO dto = new ClaimDTO();
+                dto.setId(rs.getString("id"));
+                dto.setClaimStatus(rs.getString("claim_status"));
+                dto.setClaimAmount(rs.getDouble("claim_amount"));
+                dto.setSubmittedOn(rs.getString("submitted_on"));
+                dto.setProvider(rs.getString("provider"));
+                dto.setService(rs.getString("service"));
+                dto.setPaid(rs.getDouble("paid"));
+                dto.setApproved(rs.getDouble("approved"));
+                dto.setPatientResponsibility(rs.getDouble("patientResponsibility"));
+                dto.setInsurancePlan(rs.getString("insurancePlan"));
+                return dto;
+            });
+            
+            System.out.println("Service: Found " + claims.size() + " claims for patient: " + patientId);
+            return claims;
+        } catch (Exception e) {
+            System.out.println("Service: Error getting claims for user " + userId + ": " + e.getMessage());
+            // Return empty list to allow page to load
+            return new ArrayList<>();
+        }
     }
 
     public List<InsuranceProviderDTO> getAllInsuranceProviders() {
@@ -94,23 +143,39 @@ public class InsuranceService {
     }
 
     public PatientInsuranceDTO addInsurancePlan(PatientInsuranceDTO dto) {
+        System.out.println("Service: Adding insurance plan for user: " + dto.getPatientId());
+        
+        // Convert user_id to patient_id
+        String actualPatientId = convertUserIdToPatientId(dto.getPatientId());
+        
         String newId = UUID.randomUUID().toString();
         String sql = "INSERT INTO Patient_Insurance (id, patient_id, provider_id, policy_number, coverage_details) " +
                 "VALUES (?, ?, ?, ?, ?)";
         jdbcTemplate.update(sql,
                 newId,
-                dto.getPatientId(),
+                actualPatientId,  // Use the actual patient_id from the database
                 dto.getProviderId(),
                 dto.getPolicyNumber(),
                 dto.getCoverageDetails());
 
+        System.out.println("Service: Successfully added insurance plan with ID: " + newId + " for patient: " + actualPatientId);
         // Return the created plan with ID
         dto.setId(newId);
         return dto;
     }
 
-    public List<BenefitDTO> getBenefitsForPatient(String patientId) {
-        // For now, return static benefits data
+    public List<BenefitDTO> getBenefitsForPatient(String userId) {
+        System.out.println("Service: Getting benefits for user: " + userId);
+        
+        try {
+            // Convert user_id to patient_id (for future use with dynamic benefits)
+            String patientId = convertUserIdToPatientId(userId);
+            System.out.println("Service: Converted to patient_id: " + patientId + " for benefits lookup");
+        } catch (Exception e) {
+            System.out.println("Service: Warning - No patient record for user " + userId + ", returning default benefits");
+        }
+        
+        // For now, return static benefits data (works regardless of patient record)
         // You can later implement dynamic benefits based on patient's insurance plans
         List<BenefitDTO> benefits = new ArrayList<>();
 
