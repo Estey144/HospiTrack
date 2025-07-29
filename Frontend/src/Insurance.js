@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
@@ -62,11 +63,31 @@ const Insurance = ({ currentUser }) => {
 
   const [user, setUser] = useState(getUserFromParams());
   
+  // State variables for backend data
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [showAddInsurance, setShowAddInsurance] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [selectedClaim, setSelectedClaim] = useState(null);
+  const [showClaimDetails, setShowClaimDetails] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Backend data state
+  const [insuranceProviders, setInsuranceProviders] = useState([]);
+  const [patientInsurance, setPatientInsurance] = useState([]);
+  const [recentClaims, setRecentClaims] = useState([]);
+  const [benefits, setBenefits] = useState([]);
+  const [error, setError] = useState(null);
+
+  // API Base URL - adjust this to your backend URL
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+
   // Debug logging to verify user ID is received
   useEffect(() => {
     console.log('Insurance page - User ID from params:', searchParams.get('userId'));
     console.log('Insurance page - User from state:', location.state?.user);
     console.log('Insurance page - Current user:', user);
+    console.log('Insurance page - API Base URL:', API_BASE_URL);
   }, [searchParams, location.state, user]);
 
   // Update user state when navigation state or URL params change
@@ -78,180 +99,210 @@ const Insurance = ({ currentUser }) => {
     }
   }, [location.state, searchParams]);
 
-  const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [showAddInsurance, setShowAddInsurance] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [selectedClaim, setSelectedClaim] = useState(null);
-  const [showClaimDetails, setShowClaimDetails] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  // Mock insurance providers (from Insurance_Providers table)
-  const [insuranceProviders] = useState([
-    {
-      id: 'PROV-001',
-      name: 'Blue Cross Blue Shield',
-      contact_info: JSON.stringify({
-        phone: '1-800-BCBS-123',
-        website: 'www.bcbs.com',
-        memberServices: '1-800-MEMBER-1',
-        address: '123 Healthcare Blvd, Chicago, IL 60601'
-      })
-    },
-    {
-      id: 'PROV-002',
-      name: 'Aetna',
-      contact_info: JSON.stringify({
-        phone: '1-800-AETNA-DT',
-        website: 'www.aetna.com',
-        memberServices: '1-800-DENTAL-1',
-        address: '151 Farmington Ave, Hartford, CT 06156'
-      })
+  // Fetch data from backend when component mounts or user changes
+  useEffect(() => {
+    if (user?.id) {
+      fetchInsuranceData();
     }
-  ]);
+  }, [user?.id]);
 
-  // Mock patient insurance data (from Patient_Insurance table)
-  const [patientInsurance] = useState([
-    {
-      id: 'PI-001',
-      patient_id: user?.id || 'PAT-001', // Use actual user ID
-      provider_id: 'PROV-001',
-      policy_number: 'BC123456789',
-      coverage_details: JSON.stringify({
-        planName: 'Premium Health Plan',
-        groupNumber: 'GRP789012',
-        memberID: 'MEM456789',
-        effectiveDate: '2024-01-01',
-        expirationDate: '2024-12-31',
-        status: 'active',
-        isPrimary: true,
-        deductible: {
-          individual: 500.00,
-          family: 1500.00,
-          met: 350.00,
-          remaining: 150.00
-        },
-        outOfPocketMax: {
-          individual: 3000.00,
-          family: 9000.00,
-          met: 850.00,
-          remaining: 2150.00
-        },
-        copays: {
-          primaryCare: 25.00,
-          specialist: 50.00,
-          emergency: 200.00,
-          urgentCare: 75.00
-        },
-        coverage: {
-          medical: 80,
-          prescription: 75,
-          dental: 70,
-          vision: 60,
-          mentalHealth: 80
-        },
-        employer: 'TechCorp Solutions',
-        rxBIN: '610014',
-        rxPCN: 'BCBS',
-        rxGroup: 'RX12345'
-      })
-    },
-    {
-      id: 'PI-002',
-      patient_id: user?.id || 'PAT-001', // Use actual user ID
-      provider_id: 'PROV-002',
-      policy_number: 'AET987654321',
-      coverage_details: JSON.stringify({
-        planName: 'Dental Plus Coverage',
-        groupNumber: 'DENT456',
-        memberID: 'DEN789012',
-        effectiveDate: '2024-01-01',
-        expirationDate: '2024-12-31',
-        status: 'active',
-        isPrimary: false,
-        deductible: {
-          individual: 100.00,
-          family: 300.00,
-          met: 75.00,
-          remaining: 25.00
-        },
-        outOfPocketMax: {
-          individual: 1500.00,
-          family: 4500.00,
-          met: 300.00,
-          remaining: 1200.00
-        },
-        coverage: {
-          preventive: 100,
-          basic: 80,
-          major: 50,
-          orthodontics: 50
-        },
-        employer: 'TechCorp Solutions'
-      })
+  // API Functions
+  const fetchInsuranceData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log('Starting to fetch insurance data for user:', user);
+      console.log('API Base URL:', API_BASE_URL);
+      
+      // Test basic connectivity first
+      const testResponse = await fetch(`${API_BASE_URL}/insurance/providers`);
+      console.log('Providers endpoint test status:', testResponse.status);
+      
+      await Promise.all([
+        fetchInsuranceProviders(),
+        fetchPatientInsurance(),
+        fetchRecentClaims(),
+        fetchBenefitsData()
+      ]);
+    } catch (error) {
+      console.error('Error fetching insurance data:', error);
+      setError('Failed to load insurance data. Please check your connection and try again. Error: ' + error.message);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
-  // Mock claims data (from Claims table)
-  const [recentClaims] = useState([
-    {
-      id: 'CLM-2024-0087',
-      appointment_id: 'APT-2024-0156',
-      insurance_id: 'PI-001',
-      claim_status: 'processed',
-      claim_amount: 425.00,
-      submitted_on: '2024-12-15',
-      // Additional fields for display (would come from joins with other tables)
-      provider: 'Dr. Sarah Johnson',
-      service: 'Cardiology Consultation',
-      approved: 340.00,
-      paid: 340.00,
-      patientResponsibility: 85.00,
-      insurancePlan: 'Blue Cross Blue Shield'
-    },
-    {
-      id: 'CLM-2024-0078',
-      appointment_id: 'APT-2024-0145',
-      insurance_id: 'PI-001',
-      claim_status: 'processed',
-      claim_amount: 1250.00,
-      submitted_on: '2024-11-28',
-      provider: 'Emergency Medical Center',
-      service: 'Emergency Room Visit',
-      approved: 1000.00,
-      paid: 1000.00,
-      patientResponsibility: 250.00,
-      insurancePlan: 'Blue Cross Blue Shield'
-    },
-    {
-      id: 'CLM-2024-0065',
-      appointment_id: 'APT-2024-0134',
-      insurance_id: 'PI-001',
-      claim_status: 'processed',
-      claim_amount: 320.00,
-      submitted_on: '2024-10-10',
-      provider: 'Dr. Emily Rodriguez',
-      service: 'Annual Physical',
-      approved: 256.00,
-      paid: 256.00,
-      patientResponsibility: 64.00,
-      insurancePlan: 'Blue Cross Blue Shield'
-    },
-    {
-      id: 'CLM-2024-0052',
-      appointment_id: 'APT-2024-0123',
-      insurance_id: 'PI-002',
-      claim_status: 'processed',
-      claim_amount: 150.00,
-      submitted_on: '2024-09-05',
-      provider: 'Dental Care Center',
-      service: 'Dental Cleaning',
-      approved: 150.00,
-      paid: 150.00,
-      patientResponsibility: 0.00,
-      insurancePlan: 'Aetna Dental'
+  const fetchInsuranceProviders = async () => {
+    try {
+      console.log('Fetching insurance providers...');
+      const response = await fetch(`${API_BASE_URL}/insurance/providers`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+          // Remove Authorization header if not using JWT authentication
+        }
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to fetch insurance providers:', response.status, response.statusText);
+        throw new Error(`Failed to fetch insurance providers: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Insurance providers data received:', data);
+      setInsuranceProviders(data);
+    } catch (error) {
+      console.error('Error fetching insurance providers:', error);
+      // Set empty array on error to prevent UI crashes
+      setInsuranceProviders([]);
+      throw error;
     }
-  ]);
+  };
+
+  const fetchPatientInsurance = async () => {
+    try {
+      console.log('Fetching patient insurance for user ID:', user.id);
+      const response = await fetch(`${API_BASE_URL}/insurance/plans?patientId=${user.id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+          // Remove Authorization header if not using JWT authentication
+        }
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to fetch patient insurance:', response.status, response.statusText);
+        throw new Error(`Failed to fetch patient insurance: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Patient insurance data received:', data);
+      setPatientInsurance(data);
+    } catch (error) {
+      console.error('Error fetching patient insurance:', error);
+      // Set empty array on error to prevent UI crashes
+      setPatientInsurance([]);
+      throw error;
+    }
+  };
+
+  const fetchRecentClaims = async () => {
+    try {
+      console.log('Fetching claims for user ID:', user.id);
+      const response = await fetch(`${API_BASE_URL}/insurance/claims?patientId=${user.id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+          // Remove Authorization header if not using JWT authentication
+        }
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to fetch claims:', response.status, response.statusText);
+        throw new Error(`Failed to fetch claims: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Claims data received:', data);
+      setRecentClaims(data);
+    } catch (error) {
+      console.error('Error fetching claims:', error);
+      // Set empty array on error to prevent UI crashes
+      setRecentClaims([]);
+      throw error;
+    }
+  };
+
+  const fetchBenefitsData = async () => {
+    try {
+      console.log('Fetching benefits for user ID:', user.id);
+      const response = await fetch(`${API_BASE_URL}/benefits/${user.id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+          // Remove Authorization header if not using JWT authentication
+        }
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to fetch benefits:', response.status, response.statusText);
+        throw new Error(`Failed to fetch benefits: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Benefits data received:', data);
+      setBenefits(data);
+    } catch (error) {
+      console.error('Error fetching benefits:', error);
+      // Set default benefits structure if API fails
+      setBenefits([
+        {
+          category: 'Medical Services',
+          items: [
+            { service: 'Primary Care Visits', coverage: '80% after deductible', copay: '$25' },
+            { service: 'Specialist Visits', coverage: '80% after deductible', copay: '$50' },
+            { service: 'Emergency Room', coverage: '80% after deductible', copay: '$200' },
+            { service: 'Urgent Care', coverage: '80% after deductible', copay: '$75' },
+            { service: 'Preventive Care', coverage: '100%', copay: '$0' },
+            { service: 'Laboratory Tests', coverage: '80% after deductible', copay: 'Varies' },
+            { service: 'Imaging (X-ray, MRI)', coverage: '80% after deductible', copay: 'Varies' }
+          ]
+        },
+        {
+          category: 'Prescription Drugs',
+          items: [
+            { service: 'Generic Drugs (Tier 1)', coverage: '75% after deductible', copay: '$10' },
+            { service: 'Brand Name (Tier 2)', coverage: '75% after deductible', copay: '$35' },
+            { service: 'Specialty Drugs (Tier 3)', coverage: '75% after deductible', copay: '$75' }
+          ]
+        },
+        {
+          category: 'Mental Health',
+          items: [
+            { service: 'Therapy Sessions', coverage: '80% after deductible', copay: '$50' },
+            { service: 'Psychiatrist Visits', coverage: '80% after deductible', copay: '$50' },
+            { service: 'Inpatient Mental Health', coverage: '80% after deductible', copay: 'Varies' }
+          ]
+        }
+      ]);
+    }
+  };
+
+  const addNewInsurance = async (insuranceData) => {
+    try {
+      console.log('Adding insurance with data:', insuranceData);
+      const response = await fetch(`${API_BASE_URL}/patient-insurance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+          // Remove Authorization header if not using JWT authentication
+        },
+        body: JSON.stringify({
+          patientId: user.id, // Fixed: use patientId instead of patient_id to match backend DTO
+          providerId: insuranceData.providerId, // Fixed: use providerId instead of provider_id
+          policyNumber: insuranceData.policyNumber, // Fixed: use policyNumber instead of policy_number
+          coverageDetails: insuranceData.coverageDetails // This should be a JSON string
+        })
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to add insurance:', response.status, response.statusText);
+        throw new Error(`Failed to add insurance: ${response.status}`);
+      }
+      
+      const newInsurance = await response.json();
+      console.log('Insurance added successfully:', newInsurance);
+      setPatientInsurance(prev => [...prev, newInsurance]);
+      setShowAddInsurance(false);
+      
+      // Show success message
+      alert('Insurance plan added successfully!');
+    } catch (error) {
+      console.error('Error adding insurance:', error);
+      alert('Failed to add insurance plan: ' + error.message);
+    }
+  };
 
   const navigationItems = [
     { path: '/patient-dashboard', label: 'Patient Dashboard', icon: User, color: 'text-blue-600' },
@@ -308,8 +359,8 @@ const Insurance = ({ currentUser }) => {
     }
   };
 
-  const getClaimStatusBadgeClass = (claim_status) => {
-    switch(claim_status) {
+  const getClaimStatusBadgeClass = (claimStatus) => {
+    switch(claimStatus) {
       case 'processed': return 'claim-badge--success';
       case 'pending': return 'claim-badge--warning';
       case 'denied': return 'claim-badge--danger';
@@ -321,15 +372,36 @@ const Insurance = ({ currentUser }) => {
   // Helper function to get insurance plans with provider info
   const getInsurancePlansWithProviders = () => {
     return patientInsurance.map(insurance => {
-      const provider = insuranceProviders.find(p => p.id === insurance.provider_id);
-      const coverageDetails = JSON.parse(insurance.coverage_details);
-      const contactInfo = provider ? JSON.parse(provider.contact_info) : {};
+      // Find the provider based on providerId from the backend
+      const provider = insuranceProviders.find(p => p.id === insurance.providerId);
+      
+      // Parse coverage details if it's a string, otherwise use as-is
+      const coverageDetails = typeof insurance.coverageDetails === 'string' 
+        ? JSON.parse(insurance.coverageDetails) 
+        : insurance.coverageDetails || {};
+      
+      // Parse contact info if provider exists and has contact info
+      const contactInfo = provider && provider.contactInfo 
+        ? (typeof provider.contactInfo === 'string' 
+           ? JSON.parse(provider.contactInfo) 
+           : provider.contactInfo)
+        : {};
       
       return {
         id: insurance.id,
-        provider: provider?.name || 'Unknown Provider',
-        policyNumber: insurance.policy_number,
-        ...coverageDetails,
+        provider: insurance.providerName || provider?.name || 'Unknown Provider', // Use providerName from DTO
+        policyNumber: insurance.policyNumber, // Fixed: use correct field name
+        status: coverageDetails.status || 'active',
+        planName: coverageDetails.planName || 'Insurance Plan',
+        memberID: coverageDetails.memberID || insurance.policyNumber,
+        groupNumber: coverageDetails.groupNumber || '',
+        effectiveDate: coverageDetails.effectiveDate || new Date().toISOString().split('T')[0],
+        expirationDate: coverageDetails.expirationDate || '',
+        employer: coverageDetails.employer || '',
+        isPrimary: coverageDetails.isPrimary || false,
+        deductible: coverageDetails.deductible || { individual: 1000, met: 0 },
+        outOfPocketMax: coverageDetails.outOfPocketMax || { individual: 5000, met: 0 },
+        coverage: coverageDetails.coverage || { medical: 80, dental: 70, vision: 60 },
         contact: contactInfo
       };
     });
@@ -343,39 +415,36 @@ const Insurance = ({ currentUser }) => {
     setShowClaimDetails(true);
   };
 
-  const [benefits] = useState([
-    {
-      category: 'Medical Services',
-      items: [
-        { service: 'Primary Care Visits', coverage: '80% after deductible', copay: '$25' },
-        { service: 'Specialist Visits', coverage: '80% after deductible', copay: '$50' },
-        { service: 'Emergency Room', coverage: '80% after deductible', copay: '$200' },
-        { service: 'Urgent Care', coverage: '80% after deductible', copay: '$75' },
-        { service: 'Preventive Care', coverage: '100%', copay: '$0' },
-        { service: 'Laboratory Tests', coverage: '80% after deductible', copay: 'Varies' },
-        { service: 'Imaging (X-ray, MRI)', coverage: '80% after deductible', copay: 'Varies' }
-      ]
-    },
-    {
-      category: 'Prescription Drugs',
-      items: [
-        { service: 'Generic Drugs (Tier 1)', coverage: '75% after deductible', copay: '$10' },
-        { service: 'Brand Name (Tier 2)', coverage: '75% after deductible', copay: '$35' },
-        { service: 'Specialty Drugs (Tier 3)', coverage: '75% after deductible', copay: '$75' }
-      ]
-    },
-    {
-      category: 'Mental Health',
-      items: [
-        { service: 'Therapy Sessions', coverage: '80% after deductible', copay: '$50' },
-        { service: 'Psychiatrist Visits', coverage: '80% after deductible', copay: '$50' },
-        { service: 'Inpatient Mental Health', coverage: '80% after deductible', copay: 'Varies' }
-      ]
-    }
-  ]);
-
   const handleAddInsurance = () => {
     setShowAddInsurance(true);
+  };
+
+  const handleSubmitInsurance = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    
+    const insuranceData = {
+      providerId: formData.get('provider_id'), // Fixed: use correct field name
+      policyNumber: formData.get('policy_number'), // Fixed: use correct field name
+      coverageDetails: JSON.stringify({
+        planName: formData.get('plan_name'),
+        groupNumber: formData.get('group_number'),
+        memberID: formData.get('member_id'),
+        effectiveDate: formData.get('effective_date'),
+        expirationDate: formData.get('expiration_date'),
+        status: 'active',
+        isPrimary: formData.get('priority') === 'primary',
+        employer: formData.get('employer'),
+        rxBIN: formData.get('rx_bin'),
+        rxPCN: formData.get('rx_pcn'),
+        rxGroup: formData.get('rx_group'),
+        deductible: { individual: 1000, met: 0 }, // Default values
+        outOfPocketMax: { individual: 5000, met: 0 }, // Default values
+        coverage: { medical: 80, dental: 70, vision: 60 } // Default coverage percentages
+      })
+    };
+    
+    await addNewInsurance(insuranceData);
   };
 
   // Export insurance cards to PDF
@@ -467,6 +536,42 @@ const Insurance = ({ currentUser }) => {
       alert('Failed to export PDF. Please make sure you are on the Plans or Overview tab.');
     });
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="patient-dashboard-wrapper">
+        <div className="patient-main">
+          <div className="insurance-page-container">
+            <div className="loading-container">
+              <RefreshCw size={24} className="loading-spinner" />
+              <p>Loading insurance data...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="patient-dashboard-wrapper">
+        <div className="patient-main">
+          <div className="insurance-page-container">
+            <div className="error-container">
+              <AlertCircle size={24} className="error-icon" />
+              <p>{error}</p>
+              <button onClick={fetchInsuranceData} className="btn btn-primary">
+                <RefreshCw size={16} />
+                Retry
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="patient-dashboard-wrapper">
@@ -582,7 +687,7 @@ const Insurance = ({ currentUser }) => {
           </div>
           <div className="stat-info">
             <span className="stat-label">Deductible Met</span>
-            <span className="stat-value">{formatCurrency(primaryInsurance?.deductible.met || 0)}</span>
+            <span className="stat-value">{formatCurrency(primaryInsurance?.deductible?.met || 0)}</span>
           </div>
         </div>
         <div className="stat-card">
@@ -600,7 +705,7 @@ const Insurance = ({ currentUser }) => {
           </div>
           <div className="stat-info">
             <span className="stat-label">Out-of-Pocket</span>
-            <span className="stat-value">{formatCurrency(primaryInsurance?.outOfPocketMax.met || 0)}</span>
+            <span className="stat-value">{formatCurrency(primaryInsurance?.outOfPocketMax?.met || 0)}</span>
           </div>
         </div>
       </div>
@@ -651,7 +756,7 @@ const Insurance = ({ currentUser }) => {
                     <span>Primary Insurance</span>
                     <span className={`insurance-badge ${getStatusBadgeClass(primaryInsurance.status)}`}>
                       {getStatusIcon(primaryInsurance.status)}
-                      {primaryInsurance.status.charAt(0).toUpperCase() + primaryInsurance.status.slice(1)}
+                      {primaryInsurance.status?.charAt(0).toUpperCase() + primaryInsurance.status?.slice(1)}
                     </span>
                   </div>
                 </div>
@@ -678,21 +783,21 @@ const Insurance = ({ currentUser }) => {
                     <div className="summary-grid">
                       <div className="summary-item">
                         <span className="summary-label">Deductible</span>
-                        <span className="summary-value">{formatCurrency(primaryInsurance.deductible.met)} / {formatCurrency(primaryInsurance.deductible.individual)}</span>
+                        <span className="summary-value">{formatCurrency(primaryInsurance.deductible?.met || 0)} / {formatCurrency(primaryInsurance.deductible?.individual || 0)}</span>
                         <div className="progress-bar">
                           <div 
                             className="progress-fill" 
-                            style={{width: `${(primaryInsurance.deductible.met / primaryInsurance.deductible.individual) * 100}%`}}
+                            style={{width: `${((primaryInsurance.deductible?.met || 0) / (primaryInsurance.deductible?.individual || 1)) * 100}%`}}
                           ></div>
                         </div>
                       </div>
                       <div className="summary-item">
                         <span className="summary-label">Out-of-Pocket Max</span>
-                        <span className="summary-value">{formatCurrency(primaryInsurance.outOfPocketMax.met)} / {formatCurrency(primaryInsurance.outOfPocketMax.individual)}</span>
+                        <span className="summary-value">{formatCurrency(primaryInsurance.outOfPocketMax?.met || 0)} / {formatCurrency(primaryInsurance.outOfPocketMax?.individual || 0)}</span>
                         <div className="progress-bar">
                           <div 
                             className="progress-fill" 
-                            style={{width: `${(primaryInsurance.outOfPocketMax.met / primaryInsurance.outOfPocketMax.individual) * 100}%`}}
+                            style={{width: `${((primaryInsurance.outOfPocketMax?.met || 0) / (primaryInsurance.outOfPocketMax?.individual || 1)) * 100}%`}}
                           ></div>
                         </div>
                       </div>
@@ -706,7 +811,7 @@ const Insurance = ({ currentUser }) => {
             <div className="coverage-summary">
               <h3>Coverage Summary</h3>
               <div className="coverage-grid">
-                {primaryInsurance && Object.entries(primaryInsurance.coverage).map(([type, percentage]) => (
+                {primaryInsurance && primaryInsurance.coverage && Object.entries(primaryInsurance.coverage).map(([type, percentage]) => (
                   <div key={type} className="coverage-item">
                     <span className="coverage-type">{type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1')}</span>
                     <span className="coverage-percentage">{percentage}%</span>
@@ -738,11 +843,11 @@ const Insurance = ({ currentUser }) => {
                       <span className="claim-provider">{claim.provider}</span>
                     </div>
                     <div className="claim-amounts">
-                      <span className="claim-amount">Billed: {formatCurrency(claim.claim_amount)}</span>
+                      <span className="claim-amount">Billed: {formatCurrency(claim.claimAmount)}</span>
                       <span className="claim-paid">Paid: {formatCurrency(claim.paid)}</span>
                     </div>
-                    <span className={`claim-badge ${getClaimStatusBadgeClass(claim.claim_status)}`}>
-                      {claim.claim_status.charAt(0).toUpperCase() + claim.claim_status.slice(1)}
+                    <span className={`claim-badge ${getClaimStatusBadgeClass(claim.claimStatus)}`}>
+                      {claim.claimStatus.charAt(0).toUpperCase() + claim.claimStatus.slice(1)}
                     </span>
                   </div>
                 ))}
@@ -765,7 +870,7 @@ const Insurance = ({ currentUser }) => {
                     </div>
                     <span className={`insurance-badge ${getStatusBadgeClass(plan.status)}`}>
                       {getStatusIcon(plan.status)}
-                      {plan.status.charAt(0).toUpperCase() + plan.status.slice(1)}
+                      {plan.status?.charAt(0).toUpperCase() + plan.status?.slice(1)}
                     </span>
                   </div>
                   <div className="plan-content">
@@ -888,13 +993,13 @@ const Insurance = ({ currentUser }) => {
               {recentClaims.map((claim) => (
                 <div key={claim.id} className="claim-row">
                   <span className="claim-id">{claim.id}</span>
-                  <span className="claim-date">{formatDate(claim.submitted_on)}</span>
+                  <span className="claim-date">{formatDate(claim.submittedOn)}</span>
                   <span className="claim-provider">{claim.provider}</span>
                   <span className="claim-service">{claim.service}</span>
-                  <span className="claim-amount">{formatCurrency(claim.claim_amount)}</span>
+                  <span className="claim-amount">{formatCurrency(claim.claimAmount)}</span>
                   <span className="claim-paid">{formatCurrency(claim.paid)}</span>
-                  <span className={`claim-badge ${getClaimStatusBadgeClass(claim.claim_status)}`}>
-                    {claim.claim_status.charAt(0).toUpperCase() + claim.claim_status.slice(1)}
+                  <span className={`claim-badge ${getClaimStatusBadgeClass(claim.claimStatus)}`}>
+                    {claim.claimStatus.charAt(0).toUpperCase() + claim.claimStatus.slice(1)}
                   </span>
                   <div className="claim-actions">
                     <button className="btn btn-outline btn-sm" onClick={() => handleViewClaim(claim)}>
@@ -920,13 +1025,13 @@ const Insurance = ({ currentUser }) => {
               <button className="modal-close" onClick={() => setShowAddInsurance(false)}>×</button>
             </div>
             <div className="modal-body">
-              <div className="insurance-form">
+              <form className="insurance-form" onSubmit={handleSubmitInsurance}>
                 <div className="form-section">
                   <h4>Insurance Provider Information</h4>
                   <div className="form-grid">
                     <div className="form-group">
                       <label>Insurance Provider *</label>
-                      <select required>
+                      <select name="provider_id" required>
                         <option value="">Select Provider</option>
                         {insuranceProviders.map(provider => (
                           <option key={provider.id} value={provider.id}>{provider.name}</option>
@@ -936,11 +1041,11 @@ const Insurance = ({ currentUser }) => {
                     </div>
                     <div className="form-group">
                       <label>Plan Name *</label>
-                      <input type="text" placeholder="e.g., Premium Health Plan" required />
+                      <input name="plan_name" type="text" placeholder="e.g., Premium Health Plan" required />
                     </div>
                     <div className="form-group">
                       <label>Plan Type *</label>
-                      <select required>
+                      <select name="plan_type" required>
                         <option value="">Select Type</option>
                         <option value="medical">Medical</option>
                         <option value="dental">Dental</option>
@@ -950,7 +1055,7 @@ const Insurance = ({ currentUser }) => {
                     </div>
                     <div className="form-group">
                       <label>Priority</label>
-                      <select>
+                      <select name="priority">
                         <option value="primary">Primary Insurance</option>
                         <option value="secondary">Secondary Insurance</option>
                       </select>
@@ -963,27 +1068,27 @@ const Insurance = ({ currentUser }) => {
                   <div className="form-grid">
                     <div className="form-group">
                       <label>Policy Number *</label>
-                      <input type="text" placeholder="Policy Number" required />
+                      <input name="policy_number" type="text" placeholder="Policy Number" required />
                     </div>
                     <div className="form-group">
                       <label>Member ID *</label>
-                      <input type="text" placeholder="Member ID" required />
+                      <input name="member_id" type="text" placeholder="Member ID" required />
                     </div>
                     <div className="form-group">
                       <label>Group Number</label>
-                      <input type="text" placeholder="Group Number" />
+                      <input name="group_number" type="text" placeholder="Group Number" />
                     </div>
                     <div className="form-group">
                       <label>Employer/Sponsor</label>
-                      <input type="text" placeholder="Employer Name" />
+                      <input name="employer" type="text" placeholder="Employer Name" />
                     </div>
                     <div className="form-group">
                       <label>Effective Date *</label>
-                      <input type="date" required />
+                      <input name="effective_date" type="date" required />
                     </div>
                     <div className="form-group">
                       <label>Expiration Date</label>
-                      <input type="date" />
+                      <input name="expiration_date" type="date" />
                     </div>
                   </div>
                 </div>
@@ -993,15 +1098,15 @@ const Insurance = ({ currentUser }) => {
                   <div className="form-grid">
                     <div className="form-group">
                       <label>Phone Number</label>
-                      <input type="tel" placeholder="1-800-XXX-XXXX" />
+                      <input name="phone" type="tel" placeholder="1-800-XXX-XXXX" />
                     </div>
                     <div className="form-group">
                       <label>Website</label>
-                      <input type="url" placeholder="www.example.com" />
+                      <input name="website" type="url" placeholder="www.example.com" />
                     </div>
                     <div className="form-group">
                       <label>Member Services Phone</label>
-                      <input type="tel" placeholder="1-800-XXX-XXXX" />
+                      <input name="member_services" type="tel" placeholder="1-800-XXX-XXXX" />
                     </div>
                   </div>
                 </div>
@@ -1011,28 +1116,29 @@ const Insurance = ({ currentUser }) => {
                   <div className="form-grid">
                     <div className="form-group">
                       <label>RX BIN</label>
-                      <input type="text" placeholder="RX BIN Number" />
+                      <input name="rx_bin" type="text" placeholder="RX BIN Number" />
                     </div>
                     <div className="form-group">
                       <label>RX PCN</label>
-                      <input type="text" placeholder="RX PCN" />
+                      <input name="rx_pcn" type="text" placeholder="RX PCN" />
                     </div>
                     <div className="form-group">
                       <label>RX Group</label>
-                      <input type="text" placeholder="RX Group Number" />
+                      <input name="rx_group" type="text" placeholder="RX Group Number" />
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-outline" onClick={() => setShowAddInsurance(false)}>
-                Cancel
-              </button>
-              <button className="btn btn-primary">
-                <Plus size={16} />
-                Add Insurance Plan
-              </button>
+
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-outline" onClick={() => setShowAddInsurance(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    <Plus size={16} />
+                    Add Insurance Plan
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
@@ -1050,10 +1156,10 @@ const Insurance = ({ currentUser }) => {
               <div className="claim-details-content">
                 <div className="claim-overview">
                   <div className="claim-status-header">
-                    <span className={`claim-badge ${getClaimStatusBadgeClass(selectedClaim.claim_status)}`}>
-                      {selectedClaim.claim_status.charAt(0).toUpperCase() + selectedClaim.claim_status.slice(1)}
+                    <span className={`claim-badge ${getClaimStatusBadgeClass(selectedClaim.claimStatus)}`}>
+                      {selectedClaim.claimStatus.charAt(0).toUpperCase() + selectedClaim.claimStatus.slice(1)}
                     </span>
-                    <span className="claim-date">Submitted: {formatDate(selectedClaim.submitted_on)}</span>
+                    <span className="claim-date">Submitted: {formatDate(selectedClaim.submittedOn)}</span>
                   </div>
                   
                   <div className="claim-summary-grid">
@@ -1070,7 +1176,7 @@ const Insurance = ({ currentUser }) => {
                         </div>
                         <div className="info-item">
                           <span className="info-label">Date of Service:</span>
-                          <span className="info-value">{formatDate(selectedClaim.submitted_on)}</span>
+                          <span className="info-value">{formatDate(selectedClaim.submittedOn)}</span>
                         </div>
                         <div className="info-item">
                           <span className="info-label">Insurance Plan:</span>
@@ -1084,7 +1190,7 @@ const Insurance = ({ currentUser }) => {
                       <div className="financial-breakdown">
                         <div className="financial-item">
                           <span className="financial-label">Amount Billed:</span>
-                          <span className="financial-value">{formatCurrency(selectedClaim.claim_amount)}</span>
+                          <span className="financial-value">{formatCurrency(selectedClaim.claimAmount)}</span>
                         </div>
                         <div className="financial-item">
                           <span className="financial-label">Amount Approved:</span>
@@ -1109,28 +1215,28 @@ const Insurance = ({ currentUser }) => {
                         <div className="timeline-dot"></div>
                         <div className="timeline-content">
                           <span className="timeline-title">Claim Submitted</span>
-                          <span className="timeline-date">{formatDate(selectedClaim.submitted_on)}</span>
+                          <span className="timeline-date">{formatDate(selectedClaim.submittedOn)}</span>
                         </div>
                       </div>
                       <div className="timeline-item completed">
                         <div className="timeline-dot"></div>
                         <div className="timeline-content">
                           <span className="timeline-title">Claim Received</span>
-                          <span className="timeline-date">{formatDate(selectedClaim.submitted_on)}</span>
+                          <span className="timeline-date">{formatDate(selectedClaim.submittedOn)}</span>
                         </div>
                       </div>
                       <div className="timeline-item completed">
                         <div className="timeline-dot"></div>
                         <div className="timeline-content">
                           <span className="timeline-title">Claim Processed</span>
-                          <span className="timeline-date">{formatDate(selectedClaim.submitted_on)}</span>
+                          <span className="timeline-date">{formatDate(selectedClaim.submittedOn)}</span>
                         </div>
                       </div>
                       <div className="timeline-item completed">
                         <div className="timeline-dot"></div>
                         <div className="timeline-content">
                           <span className="timeline-title">Payment Issued</span>
-                          <span className="timeline-date">{formatDate(selectedClaim.submitted_on)}</span>
+                          <span className="timeline-date">{formatDate(selectedClaim.submittedOn)}</span>
                         </div>
                       </div>
                     </div>
