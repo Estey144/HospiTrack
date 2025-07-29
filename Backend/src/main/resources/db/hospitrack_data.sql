@@ -261,16 +261,35 @@ INSERT INTO Audit_Log VALUES ('al009', 'u009', 'CREATE', 'Room_Assignments', DAT
 INSERT INTO Audit_Log VALUES ('al010', 'u010', 'UPDATE', 'Appointments', DATE '2024-01-24', 'Appointment completed successfully');
 
 -- 21. Ambulances
-INSERT INTO Ambulances VALUES ('amb001', 'AMB-001', 'Available', 'Main Hospital Branch', 'b001');
-INSERT INTO Ambulances VALUES ('amb002', 'AMB-002', 'In Transit', 'North Branch', 'b002');
-INSERT INTO Ambulances VALUES ('amb003', 'AMB-003', 'Available', 'South Branch', 'b003');
-INSERT INTO Ambulances VALUES ('amb004', 'AMB-004', 'Maintenance', 'East Branch', 'b004');
-INSERT INTO Ambulances VALUES ('amb005', 'AMB-005', 'Available', 'West Branch', 'b005');
-INSERT INTO Ambulances VALUES ('amb006', 'AMB-006', 'In Transit', 'Central Branch', 'b006');
-INSERT INTO Ambulances VALUES ('amb007', 'AMB-007', 'Available', 'Downtown Branch', 'b007');
-INSERT INTO Ambulances VALUES ('amb008', 'AMB-008', 'Available', 'Suburban Branch', 'b008');
-INSERT INTO Ambulances VALUES ('amb009', 'AMB-009', 'In Transit', 'Metropolitan Branch', 'b009');
-INSERT INTO Ambulances VALUES ('amb010', 'AMB-010', 'Available', 'Community Branch', 'b010');
+INSERT INTO Ambulances (id, vehicle_number, status, location, branch_id) 
+VALUES ('amb001', 'AMB-001', 'Available', 'Dhaka Medical Branch', 'b001');
+
+INSERT INTO Ambulances (id, vehicle_number, status, location, branch_id) 
+VALUES ('amb002', 'AMB-002', 'In Transit', 'Mirpur Branch', 'b002');
+
+INSERT INTO Ambulances (id, vehicle_number, status, location, branch_id) 
+VALUES ('amb003', 'AMB-003', 'Available', 'Gulshan Branch', 'b003');
+
+INSERT INTO Ambulances (id, vehicle_number, status, location, branch_id) 
+VALUES ('amb004', 'AMB-004', 'Maintenance', 'Rajshahi Branch', 'b004');
+
+INSERT INTO Ambulances (id, vehicle_number, status, location, branch_id) 
+VALUES ('amb005', 'AMB-005', 'Available', 'Chattogram General Branch', 'b005');
+
+INSERT INTO Ambulances (id, vehicle_number, status, location, branch_id) 
+VALUES ('amb006', 'AMB-006', 'In Transit', 'Sylhet Central Branch', 'b006');
+
+INSERT INTO Ambulances (id, vehicle_number, status, location, branch_id) 
+VALUES ('amb007', 'AMB-007', 'Available', 'Khulna Hospital Branch', 'b007');
+
+INSERT INTO Ambulances (id, vehicle_number, status, location, branch_id) 
+VALUES ('amb008', 'AMB-008', 'Available', 'Uttara Community Branch', 'b008');
+
+INSERT INTO Ambulances (id, vehicle_number, status, location, branch_id) 
+VALUES ('amb009', 'AMB-009', 'In Transit', 'Rangpur Medical Branch', 'b009');
+
+INSERT INTO Ambulances (id, vehicle_number, status, location, branch_id) 
+VALUES ('amb010', 'AMB-010', 'Available', 'Barisal City Branch', 'b010');
 
 -- 22. Ambulance Requests
 INSERT INTO Ambulance_Requests VALUES ('ar001', 'p001', 'amb001', DATE '2024-01-15', '23/B Dhanmondi, Dhaka', 'Dhaka Medical Branch', 'Completed');

@@ -6,31 +6,8 @@ import "./DoctorDashboard.css";
 
 const DoctorDashboard = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user"));
   
-  // Debug and validation
-  console.log("DoctorDashboard - User from localStorage:", user);
-  
-  if (!user) {
-    console.error("No user found in localStorage");
-    navigate('/login');
-    return null;
-  }
-  
-  if (!user.id) {
-    console.error("User object missing ID:", user);
-    alert("Invalid user session. Please login again.");
-    navigate('/login');
-    return null;
-  }
-  
-  if (user.role !== 'doctor') {
-    console.warn("User is not a doctor:", user.role);
-    alert("Access denied. This dashboard is for doctors only.");
-    navigate('/');
-    return null;
-  }
-  
+  // All hooks must be called before any conditional logic
   const [appointments, setAppointments] = useState([]);
   const [patients, setPatients] = useState([]);
   const [labReports, setLabReports] = useState([]);
@@ -59,23 +36,9 @@ const DoctorDashboard = () => {
     hours: {}
   });
 
-  const goTo = (path) => navigate(path);
-
-  // Helper function to get doctor ID from user ID
-  const getDoctorId = async () => {
-    try {
-      const doctorRes = await axios.get(`http://localhost:8080/api/users/${user.id}/doctor`);
-      if (doctorRes.data.error) {
-        throw new Error(doctorRes.data.error);
-      }
-      return doctorRes.data.doctorId;
-    } catch (error) {
-      console.error("Error getting doctor ID:", error);
-      throw error;
-    }
-  };
-
+  // All useEffect hooks must be declared before any conditional logic
   useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
     if (!user?.id) return;
 
     const fetchData = async () => {
@@ -84,7 +47,7 @@ const DoctorDashboard = () => {
         console.log("Fetching data for user:", user.id);
         
         // First, get the doctor ID from the user ID
-        const fetchedDoctorId = await getDoctorId();
+        const fetchedDoctorId = await getDoctorId(user);
         setDoctorId(fetchedDoctorId);
         
         console.log("Found doctor ID:", fetchedDoctorId, "for user ID:", user.id);
@@ -132,7 +95,50 @@ const DoctorDashboard = () => {
       }
     };
     fetchData();
-  }, [user?.id]);
+  }, []);
+
+  // Get user from localStorage after hooks
+  const user = JSON.parse(localStorage.getItem("user"));
+  
+  // Debug and validation - moved after hooks
+  console.log("DoctorDashboard - User from localStorage:", user);
+  
+  // Early returns should happen after all hooks are declared
+  if (!user) {
+    console.error("No user found in localStorage");
+    navigate('/login');
+    return null;
+  }
+  
+  if (!user.id) {
+    console.error("User object missing ID:", user);
+    alert("Invalid user session. Please login again.");
+    navigate('/login');
+    return null;
+  }
+  
+  if (user.role !== 'doctor') {
+    console.warn("User is not a doctor:", user.role);
+    alert("Access denied. This dashboard is for doctors only.");
+    navigate('/');
+    return null;
+  }
+
+  const goTo = (path) => navigate(path);
+
+  // Helper function to get doctor ID from user ID
+  const getDoctorId = async (userObj) => {
+    try {
+      const doctorRes = await axios.get(`http://localhost:8080/api/users/${userObj.id}/doctor`);
+      if (doctorRes.data.error) {
+        throw new Error(doctorRes.data.error);
+      }
+      return doctorRes.data.doctorId;
+    } catch (error) {
+      console.error("Error getting doctor ID:", error);
+      throw error;
+    }
+  };
 
   const handlePrescriptionChange = (e) => {
     setNewPrescription({

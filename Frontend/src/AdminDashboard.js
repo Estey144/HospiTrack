@@ -825,7 +825,7 @@ const AdminDashboard = () => {
         )}
         {type === 'patients' && <td className="adm-table__cell">{item.blood_type || 'N/A'}</td>}
         {type === 'rooms' && <td className="adm-table__cell">{item.room_type || 'N/A'}</td>}
-        {type === 'branches' && <td className="adm-table__cell">{item.location || 'N/A'}</td>}
+        {type === 'branches' && <td className="adm-table__cell">{item.address || 'N/A'}</td>}
         {type === 'ambulances' && <td className="adm-table__cell">{item.status || 'Available'}</td>}
         {type === 'departments' && <td className="adm-table__cell">{item.head_doctor || 'N/A'}</td>}
         {type === 'equipment' && <td className="adm-table__cell">{item.condition || 'Good'}</td>}
@@ -1219,7 +1219,7 @@ const AdminDashboard = () => {
                       )}
                       {activeTab === 'patients' && <th className="adm-table__header">Blood Type</th>}
                       {activeTab === 'rooms' && <th className="adm-table__header">Room Type</th>}
-                      {activeTab === 'branches' && <th className="adm-table__header">Location</th>}
+                      {activeTab === 'branches' && <th className="adm-table__header">Address</th>}
                       {activeTab === 'ambulances' && <th className="adm-table__header">Status</th>}
                       {activeTab === 'departments' && <th className="adm-table__header">Head Doctor</th>}
                       {activeTab === 'equipment' && <th className="adm-table__header">Condition</th>}
@@ -1785,17 +1785,6 @@ const AdminDashboard = () => {
                     {formType === 'branch' && (
                       <>
                         <div className="adm-form__group">
-                          <label className="adm-form__label">Location</label>
-                          <input
-                            name="location"
-                            type="text"
-                            value={formData.location || ''}
-                            onChange={handleFormChange}
-                            required
-                            className="adm-form__input"
-                          />
-                        </div>
-                        <div className="adm-form__group">
                           <label className="adm-form__label">Address</label>
                           <textarea
                             name="address"
@@ -1832,28 +1821,6 @@ const AdminDashboard = () => {
 
                     {formType === 'ambulance' && (
                       <>
-                        <div className="adm-form__group">
-                          <label className="adm-form__label">Driver Name</label>
-                          <input
-                            name="driver_name"
-                            type="text"
-                            value={formData.driver_name || ''}
-                            onChange={handleFormChange}
-                            required
-                            className="adm-form__input"
-                          />
-                        </div>
-                        <div className="adm-form__group">
-                          <label className="adm-form__label">Driver Phone</label>
-                          <input
-                            name="driver_phone"
-                            type="tel"
-                            value={formData.driver_phone || ''}
-                            onChange={handleFormChange}
-                            required
-                            className="adm-form__input"
-                          />
-                        </div>
                         <div className="adm-form__group">
                           <label className="adm-form__label">Status</label>
                           <select
