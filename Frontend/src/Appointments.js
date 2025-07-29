@@ -4,7 +4,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Calendar, DollarSign, FileText, Shield, Ambulance, Video, TestTube, Brain, MessageSquare, Menu, X, User, Home } from 'lucide-react';
 import './Appointments.css';
 import './PatientDashboard.css';
-  import { v4 as uuidv4 } from 'uuid'; 
+import { v4 as uuidv4 } from 'uuid';
 
 const Appointments = ({ currentUser }) => {
   const navigate = useNavigate();
@@ -77,6 +77,8 @@ const Appointments = ({ currentUser }) => {
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const [isLoadingDoctorsDepts, setIsLoadingDoctorsDepts] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   const [newAppointment, setNewAppointment] = useState({
     branchId: '',
@@ -306,56 +308,55 @@ const Appointments = ({ currentUser }) => {
     }
   };
 
+  const handleBookAppointment = async (e) => {
+    e.preventDefault();
+    setFormErrors({});
+    setAppointmentError('');
 
-const handleBookAppointment = async (e) => {
-  e.preventDefault();
-  setFormErrors({});
-  setAppointmentError('');
+    const errors = {};
+    if (!newAppointment.branchId) errors.branchId = 'Please select a branch';
+    if (!newAppointment.departmentId) errors.departmentId = 'Please select a department';
+    if (!newAppointment.doctorId) errors.doctorId = 'Please select a doctor';
+    if (!newAppointment.date) errors.date = 'Please select a date';
+    if (!newAppointment.time) errors.time = 'Please select a time slot';
+    if (!newAppointment.type) errors.type = 'Please select appointment type';
 
-  const errors = {};
-  if (!newAppointment.branchId) errors.branchId = 'Please select a branch';
-  if (!newAppointment.departmentId) errors.departmentId = 'Please select a department';
-  if (!newAppointment.doctorId) errors.doctorId = 'Please select a doctor';
-  if (!newAppointment.date) errors.date = 'Please select a date';
-  if (!newAppointment.time) errors.time = 'Please select a time slot';
-  if (!newAppointment.type) errors.type = 'Please select appointment type';
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
 
-  if (Object.keys(errors).length > 0) {
-    setFormErrors(errors);
-    return;
-  }
+    setIsBooking(true);
 
-  setIsBooking(true);
+    try {
+      const appointmentId = uuidv4();
 
-  try {
-    const appointmentId = uuidv4();
+      // POST to /api/appointments/user/{userId}, backend will map to patientId
+      await axios.post(`http://localhost:8080/api/appointments/user/${user.id}`, {
+        id: appointmentId,
+        doctorId: newAppointment.doctorId,
+        appointmentDate: newAppointment.date,
+        timeSlot: newAppointment.time,
+        type: newAppointment.type,
+        status: 'pending'
+      }, {
+        withCredentials: true
+      });
 
-    // POST to /api/appointments/user/{userId}, backend will map to patientId
-    await axios.post(`http://localhost:8080/api/appointments/user/${user.id}`, {
-      id: appointmentId,
-      doctorId: newAppointment.doctorId,
-      appointmentDate: newAppointment.date,
-      timeSlot: newAppointment.time,
-      type: newAppointment.type,
-      status: 'pending'
-    }, {
-      withCredentials: true
-    });
+      setSuccessMessage('Appointment booked successfully!');
+      await fetchAppointments();
+      setShowNewAppointmentModal(false);
+      setTimeout(() => setSuccessMessage(''), 3000);
 
-    setSuccessMessage('Appointment booked successfully!');
-    await fetchAppointments();
-    setShowNewAppointmentModal(false);
-    setTimeout(() => setSuccessMessage(''), 3000);
-
-  } catch (error) {
-    console.error('Failed to book appointment:', error);
-    setAppointmentError(
-      error.response?.data?.message || 'Failed to book appointment. Please try again.'
-    );
-  } finally {
-    setIsBooking(false);
-  }
-};
+    } catch (error) {
+      console.error('Failed to book appointment:', error);
+      setAppointmentError(
+        error.response?.data?.message || 'Failed to book appointment. Please try again.'
+      );
+    } finally {
+      setIsBooking(false);
+    }
+  };
 
   const getStatusBadgeClass = (status) => {
     switch ((status || '').toLowerCase()) {
@@ -375,33 +376,34 @@ const handleBookAppointment = async (e) => {
   };
 
   const formatTime = (timeString) => {
-  if (!timeString) return 'N/A';
+    if (/^\d{1,2}:\d{2}\s?(AM|PM)$/i.test(timeString)) return timeString;
+    const time = new Date(`2000-01-01T${timeString}`);
+    return time.toLocaleTimeString('en-US', {
+      hour: 'numeric', minute: '2-digit', hour12: true
+    });
+  };
 
-  // If already in 12-hour format with AM/PM, just return it
-  if (/^\d{1,2}:\d{2}\s?(AM|PM)$/i.test(timeString.trim())) {
-    return timeString.trim();
-  }
+  const handleViewDetails = (appointment) => {
+    setSelectedAppointment(appointment);
+    setShowDetailsModal(true);
+  };
 
-  // Parse times like "16:00" or "16:00:00"
-  const parts = timeString.split(':');
-  if (parts.length < 2) return 'Invalid time';
-
-  let hour = parseInt(parts[0], 10);
-  const minute = parseInt(parts[1], 10);
-
-  if (isNaN(hour) || isNaN(minute)) return 'Invalid time';
-
-  // Convert 24h to 12h
-  const ampm = hour >= 12 ? 'PM' : 'AM';
-  hour = hour % 12 || 12; // converts 0 to 12
-
-  // Format minutes with leading zero
-  const minuteStr = minute.toString().padStart(2, '0');
-
-  return `${hour}:${minuteStr} ${ampm}`;
-};
-
-
+  const handleReschedule = (appointmentId) => {
+    // Find the appointment to reschedule
+    const appointmentToReschedule = patientAppointments.find(apt => apt.id === appointmentId);
+    if (appointmentToReschedule) {
+      // Pre-populate the form with existing appointment data
+      setNewAppointment({
+        branchId: '', // Will need to be set based on doctor
+        departmentId: '', // Will need to be set based on doctor
+        doctorId: appointmentToReschedule.doctorId || '',
+        date: '',
+        time: '',
+        type: appointmentToReschedule.type || ''
+      });
+      setShowNewAppointmentModal(true);
+    }
+  };
 
   // Get filtered departments based on selected branch
   const getFilteredDepartments = () => {
@@ -607,9 +609,8 @@ const handleBookAppointment = async (e) => {
                   <div className="patient-appointment-detail-content">
                     <span className="patient-appointment-detail-label">Department</span>
                     <span className="patient-appointment-detail-value">
-  {appointment.department || appointment.SPECIALIZATION || appointment.specialty}
-</span>
-
+                      {appointment.department || appointment.SPECIALIZATION}
+                    </span>
                   </div>
                 </div>
 
@@ -625,8 +626,7 @@ const handleBookAppointment = async (e) => {
                   <div className="patient-appointment-detail-icon" aria-hidden="true">⏰</div>
                   <div className="patient-appointment-detail-content">
                     <span className="patient-appointment-detail-label">Time</span>
-                   <span className="patient-appointment-detail-value">{formatTime(appointment.appointmentTime)}</span>
-
+                    <span className="patient-appointment-detail-value">{formatTime(appointment.time)}</span>
                   </div>
                 </div>
               </div>
@@ -635,14 +635,14 @@ const handleBookAppointment = async (e) => {
                 <button
                   className="patient-appointment-btn patient-appointment-btn-secondary"
                   aria-label={`Reschedule appointment with ${appointment.doctorName || appointment.DOCTORNAME}`}
-                  disabled
+                  onClick={() => handleReschedule(appointment.id)}
                 >
                   Reschedule
                 </button>
                 <button
                   className="patient-appointment-btn patient-appointment-btn-primary"
                   aria-label={`View details of appointment with ${appointment.doctorName || appointment.DOCTORNAME}`}
-                  disabled
+                  onClick={() => handleViewDetails(appointment)}
                 >
                   View Details
                 </button>
@@ -832,6 +832,132 @@ const handleBookAppointment = async (e) => {
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Appointment Details Modal */}
+      {showDetailsModal && selectedAppointment && (
+        <div
+          className="patient-appointment-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="details-modal-title"
+          onClick={() => setShowDetailsModal(false)}
+        >
+          <div 
+            className="patient-appointment-details-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="patient-appointment-details-header">
+              <div className="details-header-content">
+                <h2 id="details-modal-title">Appointment Details</h2>
+                <div className={`details-status-badge ${getStatusBadgeClass(selectedAppointment.status)}`}>
+                  {selectedAppointment.status}
+                </div>
+              </div>
+              <button
+                className="patient-appointment-modal-close"
+                onClick={() => setShowDetailsModal(false)}
+                aria-label="Close details modal"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="patient-appointment-details-content">
+              {/* Doctor Information */}
+              <div className="details-section">
+                <h3 className="details-section-title">
+                  <User size={20} />
+                  Doctor Information
+                </h3>
+                <div className="details-grid">
+                  <div className="details-item">
+                    <span className="details-label">Doctor Name</span>
+                    <span className="details-value">
+                      {selectedAppointment.doctorName || selectedAppointment.DOCTORNAME || 'Not specified'}
+                    </span>
+                  </div>
+                  <div className="details-item">
+                    <span className="details-label">Department</span>
+                    <span className="details-value">
+                      {selectedAppointment.department || selectedAppointment.SPECIALIZATION || selectedAppointment.specialty || 'Not specified'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Appointment Information */}
+              <div className="details-section">
+                <h3 className="details-section-title">
+                  <Calendar size={20} />
+                  Appointment Information
+                </h3>
+                <div className="details-grid">
+                  <div className="details-item">
+                    <span className="details-label">Date</span>
+                    <span className="details-value">
+                      {formatDate(selectedAppointment.date || selectedAppointment.dateTime || selectedAppointment.appointmentDate)}
+                    </span>
+                  </div>
+                  <div className="details-item">
+                    <span className="details-label">Time</span>
+                    <span className="details-value">
+                      {formatTime(selectedAppointment.time || selectedAppointment.appointmentTime)}
+                    </span>
+                  </div>
+                  <div className="details-item">
+                    <span className="details-label">Type</span>
+                    <span className="details-value">
+                      {selectedAppointment.type || 'Not specified'}
+                    </span>
+                  </div>
+                  <div className="details-item">
+                    <span className="details-label">Appointment ID</span>
+                    <span className="details-value details-id">
+                      {selectedAppointment.id ? selectedAppointment.id.substring(0, 8) : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional Information */}
+              <div className="details-section">
+                <h3 className="details-section-title">
+                  <FileText size={20} />
+                  Additional Information
+                </h3>
+                <div className="details-grid">
+                  <div className="details-item">
+                    <span className="details-label">Status</span>
+                    <span className={`details-value details-status ${getStatusBadgeClass(selectedAppointment.status)}`}>
+                      {selectedAppointment.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="details-actions">
+                <button
+                  className="patient-appointment-btn patient-appointment-btn-secondary"
+                  onClick={() => {
+                    setShowDetailsModal(false);
+                    handleReschedule(selectedAppointment.id);
+                  }}
+                >
+                  <Calendar size={16} />
+                  Reschedule
+                </button>
+                <button
+                  className="patient-appointment-btn patient-appointment-btn-primary"
+                  onClick={() => setShowDetailsModal(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

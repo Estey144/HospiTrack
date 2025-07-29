@@ -14,6 +14,14 @@ import {
   CheckCircle,
   AlertTriangle,
   Clock,
+  DollarSign,
+  Shield,
+  Video,
+  TestTube,
+  Brain,
+  MessageSquare,
+  Home,
+  Ambulance,
 } from 'lucide-react';
 
 import './AmbulanceRequest.css';
@@ -53,7 +61,15 @@ const AmbulanceRequest = ({ currentUser }) => {
   const navigationItems = [
     { path: '/patient-dashboard', label: 'Patient Dashboard', icon: User, color: 'text-blue-600' },
     { path: '/appointments', label: 'Appointments', icon: Calendar, color: 'text-purple-600' },
-    { path: '/ambulance', label: 'Ambulance', icon: Truck, color: 'text-rose-600' },
+    { path: '/prescriptions', label: 'Prescriptions', icon: FileText, color: 'text-cyan-600' },
+    { path: '/bills', label: 'Bills', icon: DollarSign, color: 'text-yellow-600' },
+    { path: '/medical-history', label: 'Medical History', icon: FileText, color: 'text-lime-600' },
+    { path: '/insurance', label: 'Insurance', icon: Shield, color: 'text-sky-600' },
+    { path: '/ambulance', label: 'Ambulance', icon: Ambulance, color: 'text-rose-600' },
+    { path: '/video-sessions', label: 'Video Sessions', icon: Video, color: 'text-indigo-600' },
+    { path: '/lab-tests', label: 'Lab Tests', icon: TestTube, color: 'text-fuchsia-600' },
+    { path: '/symptom-checker', label: 'AI Symptom Checker', icon: Brain, color: 'text-emerald-600' },
+    { path: '/feedback', label: 'Feedback', icon: MessageSquare, color: 'text-violet-600' }
   ];
 
   const handleSidebarNavigation = (path) => {
@@ -143,18 +159,34 @@ const AmbulanceRequest = ({ currentUser }) => {
 
   return (
     <div className="patient-dashboard-wrapper">
+      {/* Sidebar Overlay for mobile */}
+      {sidebarOpen && (
+        <div 
+          className="patient-sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <div className={`patient-sidebar ${sidebarOpen ? 'patient-sidebar--open' : ''}`}>
         <div className="patient-sidebar-header">
           <div className="patient-sidebar-title">
-            <h2>Patient Portal</h2>
-            <button onClick={() => setSidebarOpen(false)}><X size={20} /></button>
+            <User size={24} className="patient-sidebar-logo" />
+            <span className="patient-sidebar-title-text">Patient Portal</span>
           </div>
+          <button 
+            className="patient-sidebar-close"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <div className="patient-sidebar-user">
-          <div className="patient-sidebar-user-avatar"><User size={24} /></div>
-          <div>
+          <div className="patient-sidebar-user-avatar">
+            {user?.name?.charAt(0)?.toUpperCase() || 'P'}
+          </div>
+          <div className="patient-sidebar-user-info">
             <div className="patient-sidebar-user-name">{user?.name || 'Patient'}</div>
             <div className="patient-sidebar-user-id">ID: {user?.id || 'N/A'}</div>
           </div>
@@ -162,23 +194,33 @@ const AmbulanceRequest = ({ currentUser }) => {
 
         <nav className="patient-sidebar-nav">
           {navigationItems.map((item) => {
-            const Icon = item.icon;
+            const IconComponent = item.icon;
+            const isActive = window.location.pathname === item.path;
+            
             return (
               <button
                 key={item.path}
                 onClick={() => handleSidebarNavigation(item.path)}
-                className="patient-nav-item"
+                className={`patient-nav-item ${isActive ? 'patient-nav-item--active' : ''}`}
               >
-                <Icon size={18} className={item.color} />
-                <span>{item.label}</span>
+                <IconComponent size={20} className={`patient-nav-icon ${item.color}`} />
+                <span className="patient-nav-label">{item.label}</span>
+                {isActive && <div className="patient-nav-indicator" />}
               </button>
             );
           })}
         </nav>
-      </div>
 
-      {/* Sidebar overlay */}
-      {sidebarOpen && <div className="patient-sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
+        <div className="patient-sidebar-footer">
+          <button 
+            onClick={() => navigate('/')}
+            className="patient-home-button"
+          >
+            <Home size={16} />
+            <span>Back to Homepage</span>
+          </button>
+        </div>
+      </div>
 
       <div className="patient-main">
         <div className="ambulance-page">

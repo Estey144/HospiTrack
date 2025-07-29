@@ -13,13 +13,13 @@ import {
   XCircle,
   AlertCircle,
   Building,
-  Stethoscope,
   Heart,
   Activity,
   Users,
   Shield,
   Zap,
-  Eye
+  Eye,
+  Ambulance
 } from 'lucide-react';
 import './Rooms.css';
 
@@ -50,7 +50,6 @@ const Rooms = () => {
           capacity: room.capacity || (room.type?.toLowerCase().includes('icu') ? 1 : 2),
           doctorName: room.doctorName || room.doctor_name,
           department: room.department,
-          price: room.price || 0,
           amenities: room.amenities || [],
           lastUpdated: room.lastUpdated || new Date().toISOString()
         }));
@@ -124,6 +123,20 @@ const Rooms = () => {
         return <Zap className="type-icon" />;
       default:
         return <Bed className="type-icon" />;
+    }
+  };
+
+  const handleEmergencyRequest = (roomId) => {
+    // Check if user is logged in by checking for token or user data
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const userData = localStorage.getItem('userData') || sessionStorage.getItem('userData');
+    
+    if (token && userData) {
+      // User is logged in, navigate to ambulance page with room info
+      navigate('/ambulance', { state: { roomId } });
+    } else {
+      // User not logged in, redirect to login page
+      navigate('/login');
     }
   };
 
@@ -307,11 +320,6 @@ const Rooms = () => {
                 </div>
               )}
 
-              <div className="room-price">
-                <span className="price-label">Daily Rate:</span>
-                <span className="price-amount">${room.price}</span>
-              </div>
-
               {room.amenities && room.amenities.length > 0 && (
                 <div className="room-amenities">
                   <h4>Amenities:</h4>
@@ -329,9 +337,12 @@ const Rooms = () => {
                   <span>Updated: {new Date(room.lastUpdated).toLocaleTimeString()}</span>
                 </div>
                 {room.status.toLowerCase() === 'available' && (
-                  <button className="contact-button">
-                    <Stethoscope size={16} />
-                    Contact for Booking
+                  <button 
+                    className="emergency-button"
+                    onClick={() => handleEmergencyRequest(room.roomId)}
+                  >
+                    <Ambulance size={16} />
+                    Request Emergency Transport
                   </button>
                 )}
               </div>

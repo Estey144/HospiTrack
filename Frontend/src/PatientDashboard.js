@@ -214,6 +214,13 @@ const PatientDashboard = () => {
               </div>
             </div>
             <div className="patient-dash-header-actions">
+              <button
+                onClick={() => navigate('/')}
+                className="patient-home-button patient-header-home"
+              >
+                <Home size={16} />
+                <span>Homepage</span>
+              </button>
               <div className="patient-dash-id">
                 <span className="patient-dash-id-label">Patient ID:</span>
                 <span className="patient-dash-id-value">{user?.id}</span>
