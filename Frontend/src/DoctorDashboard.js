@@ -7,9 +7,34 @@ import "./DoctorDashboard.css";
 const DoctorDashboard = () => {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
+  
+  // Debug and validation
+  console.log("DoctorDashboard - User from localStorage:", user);
+  
+  if (!user) {
+    console.error("No user found in localStorage");
+    navigate('/login');
+    return null;
+  }
+  
+  if (!user.id) {
+    console.error("User object missing ID:", user);
+    alert("Invalid user session. Please login again.");
+    navigate('/login');
+    return null;
+  }
+  
+  if (user.role !== 'doctor') {
+    console.warn("User is not a doctor:", user.role);
+    alert("Access denied. This dashboard is for doctors only.");
+    navigate('/');
+    return null;
+  }
+  
   const [appointments, setAppointments] = useState([]);
   const [patients, setPatients] = useState([]);
   const [labReports, setLabReports] = useState([]);
+  const [prescriptions, setPrescriptions] = useState([]);
   const [testsToAdd, setTestsToAdd] = useState([]);
   const [availableHours, setAvailableHours] = useState("");
   const [newPrescription, setNewPrescription] = useState({
@@ -27,6 +52,11 @@ const DoctorDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
   const [appointmentFilter, setAppointmentFilter] = useState("all");
+  const [formErrors, setFormErrors] = useState({
+    prescription: {},
+    labTest: {},
+    hours: {}
+  });
 
   const goTo = (path) => navigate(path);
 
@@ -36,22 +66,44 @@ const DoctorDashboard = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [appRes, patRes, labRes] = await Promise.all([
+        console.log("Fetching data for doctor:", user.id);
+        
+        const [appRes, patRes, labRes, prescRes] = await Promise.all([
           axios.get(`http://localhost:8080/api/doctors/${user.id}/appointments`),
           axios.get(`http://localhost:8080/api/doctors/${user.id}/patients`),
           axios.get(`http://localhost:8080/api/doctors/${user.id}/labreports`),
+          axios.get(`http://localhost:8080/api/doctors/${user.id}/prescriptions`),
         ]);
+        
+        console.log("Appointments response:", appRes.data);
+        console.log("Patients response:", patRes.data);
+        console.log("Lab reports response:", labRes.data);
+        console.log("Prescriptions response:", prescRes.data);
+        
         setAppointments(appRes.data);
         setPatients(patRes.data);
         setLabReports(labRes.data);
+        setPrescriptions(prescRes.data);
         setAvailableHours(user.availableHours || "");
+        setError(""); // Clear any previous errors
       } catch (err) {
-        console.warn("Some API endpoints are not available:", err.message);
-        setError("Some features may not be available");
+        console.error("API Error details:", err);
+        console.error("Error response:", err.response?.data);
+        console.error("Error status:", err.response?.status);
+        
+        if (err.response?.status === 404) {
+          setError("Doctor dashboard endpoints not found. Please contact support.");
+        } else if (err.response?.status === 500) {
+          setError("Server error occurred. Please try again later.");
+        } else {
+          setError(`Error loading dashboard data: ${err.message}`);
+        }
+        
         // Set default empty data to allow the dashboard to display
         setAppointments([]);
         setPatients([]);
         setLabReports([]);
+        setPrescriptions([]);
         setAvailableHours(user.availableHours || "9:00 AM - 5:00 PM");
       } finally {
         setLoading(false);
@@ -69,18 +121,70 @@ const DoctorDashboard = () => {
 
   const submitPrescription = async (e) => {
     e.preventDefault();
-    if (!newPrescription.appointmentId || !newPrescription.patientId) {
-      setError("Select appointment and patient for prescription");
+    
+    // Reset form errors
+    setFormErrors(prev => ({ ...prev, prescription: {} }));
+    
+    // Validation
+    const errors = {};
+    if (!newPrescription.appointmentId) errors.appointmentId = "Please select an appointment";
+    if (!newPrescription.patientId) errors.patientId = "Please select a patient";
+    if (!newPrescription.notes.trim()) errors.notes = "Please enter prescription notes";
+    
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(prev => ({ ...prev, prescription: errors }));
+      setError("Please fill all required fields for prescription");
       return;
     }
+    
     try {
       setLoading(true);
-      await axios.post("http://localhost:8080/api/prescriptions", newPrescription);
+      console.log("Submitting prescription:", newPrescription);
+      
+      // Add doctorId to the prescription data
+      const prescriptionData = {
+        ...newPrescription,
+        doctorId: user.id
+      };
+      
+      const response = await axios.post("http://localhost:8080/api/prescriptions", prescriptionData);
+      console.log("Prescription response:", response.data);
+      
       setNewPrescription({ appointmentId: "", patientId: "", notes: "" });
+      setError("");
+      setFormErrors(prev => ({ ...prev, prescription: {} }));
+      
+      // Show success message with animation
+      const submitBtn = e.target.querySelector('.submit-button');
+      if (submitBtn) {
+        submitBtn.classList.add('success');
+        submitBtn.textContent = 'Success!';
+        setTimeout(() => {
+          submitBtn.classList.remove('success');
+          submitBtn.textContent = 'Submit Prescription';
+        }, 2000);
+      }
+      
       alert("Prescription submitted successfully!");
+      
+      // Refresh prescriptions data to show the new prescription
+      try {
+        const prescRes = await axios.get(`http://localhost:8080/api/doctors/${user.id}/prescriptions`);
+        setPrescriptions(prescRes.data);
+        console.log("Prescriptions refreshed:", prescRes.data);
+      } catch (refreshErr) {
+        console.warn("Could not refresh prescriptions:", refreshErr);
+      }
     } catch (err) {
-      console.warn("Prescription API not available:", err.message);
-      setError("Prescription feature is not available yet");
+      console.error("Prescription error:", err);
+      console.error("Error response:", err.response?.data);
+      if (err.response?.status === 404) {
+        setError("Prescription API endpoint not found");
+      } else if (err.response?.status === 500) {
+        setError("Server error while submitting prescription");
+      } else {
+        setError(`Error submitting prescription: ${err.message}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -95,38 +199,147 @@ const DoctorDashboard = () => {
 
   const submitTest = async (e) => {
     e.preventDefault();
-    if (!newTest.patientId || !newTest.testType) {
-      setError("Select patient and test type");
+    
+    // Reset form errors
+    setFormErrors(prev => ({ ...prev, labTest: {} }));
+    
+    // Validation
+    const errors = {};
+    if (!newTest.patientId) errors.patientId = "Please select a patient";
+    if (!newTest.testType.trim()) errors.testType = "Please enter test type";
+    
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(prev => ({ ...prev, labTest: errors }));
+      setError("Please fill all required fields for lab test");
       return;
     }
+    
     try {
       setLoading(true);
-      await axios.post("http://localhost:8080/api/labtests", {
+      const testData = {
         patientId: newTest.patientId,
         testType: newTest.testType,
         testDate: new Date(),
         doctorId: user.id,
-      });
+      };
+      console.log("Submitting lab test:", testData);
+      const response = await axios.post("http://localhost:8080/api/labtests", testData);
+      console.log("Lab test response:", response.data);
+      
       setNewTest({ patientId: "", testType: "" });
+      setError("");
+      setFormErrors(prev => ({ ...prev, labTest: {} }));
+      
+      // Show success message with animation
+      const submitBtn = e.target.querySelector('.submit-button');
+      if (submitBtn) {
+        submitBtn.classList.add('success');
+        submitBtn.textContent = 'Success!';
+        setTimeout(() => {
+          submitBtn.classList.remove('success');
+          submitBtn.textContent = 'Add Lab Test';
+        }, 2000);
+      }
+      
       alert("Lab test added successfully!");
+      
+      // Refresh lab reports data
+      try {
+        const labRes = await axios.get(`http://localhost:8080/api/doctors/${user.id}/labreports`);
+        setLabReports(labRes.data);
+      } catch (refreshErr) {
+        console.warn("Could not refresh lab reports:", refreshErr);
+      }
     } catch (err) {
-      console.warn("Lab test API not available:", err.message);
-      setError("Lab test feature is not available yet");
+      console.error("Lab test error:", err);
+      console.error("Error response:", err.response?.data);
+      if (err.response?.status === 404) {
+        setError("Lab test API endpoint not found");
+      } else if (err.response?.status === 500) {
+        setError("Server error while adding lab test");
+      } else {
+        setError(`Error adding lab test: ${err.message}`);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const updateAvailableHours = async () => {
+    // Reset form errors
+    setFormErrors(prev => ({ ...prev, hours: {} }));
+    
+    if (!availableHours.trim()) {
+      setFormErrors(prev => ({ ...prev, hours: { availableHours: "Please enter available hours" } }));
+      setError("Please enter available hours");
+      return;
+    }
+    
     try {
       setLoading(true);
-      await axios.put(`http://localhost:8080/api/doctors/${user.id}/availablehours`, {
+      console.log("Updating available hours for doctor:", user.id, "to:", availableHours);
+      const response = await axios.put(`http://localhost:8080/api/doctors/${user.id}/availablehours`, {
         availableHours,
       });
+      console.log("Update hours response:", response.data);
+      setError("");
+      setFormErrors(prev => ({ ...prev, hours: {} }));
+      
+      // Show success message with animation
+      const submitBtn = document.querySelector('.action-card:last-child .submit-button');
+      if (submitBtn) {
+        submitBtn.classList.add('success');
+        submitBtn.textContent = 'Success!';
+        setTimeout(() => {
+          submitBtn.classList.remove('success');
+          submitBtn.textContent = 'Update Hours';
+        }, 2000);
+      }
+      
       alert("Available hours updated successfully!");
     } catch (err) {
-      console.warn("Update hours API not available:", err.message);
-      setError("Update hours feature is not available yet");
+      console.error("Update hours error:", err);
+      console.error("Error response:", err.response?.data);
+      if (err.response?.status === 404) {
+        setError("Update hours API endpoint not found");
+      } else if (err.response?.status === 500) {
+        setError("Server error while updating hours");
+      } else {
+        setError(`Error updating hours: ${err.message}`);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const approveAppointment = async (appointmentId) => {
+    try {
+      setLoading(true);
+      console.log("Approving appointment:", appointmentId);
+      const response = await axios.put(`http://localhost:8080/api/appointments/${appointmentId}/approve`);
+      console.log("Approve appointment response:", response.data);
+      
+      // Update the local state to reflect the change
+      setAppointments(prevAppointments => 
+        prevAppointments.map(app => 
+          app.id === appointmentId 
+            ? { ...app, status: 'confirmed' }
+            : app
+        )
+      );
+      
+      setError("");
+      alert("Appointment approved successfully!");
+    } catch (err) {
+      console.error("Approve appointment error:", err);
+      console.error("Error response:", err.response?.data);
+      if (err.response?.status === 404) {
+        setError("Appointment not found or approval endpoint not available");
+      } else if (err.response?.status === 500) {
+        setError("Server error while approving appointment");
+      } else {
+        setError(`Error approving appointment: ${err.message}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -144,14 +357,25 @@ const DoctorDashboard = () => {
 
     try {
       setLoading(true);
+      console.log("Fetching history for patient:", patientId);
       const res = await axios.get(`http://localhost:8080/api/patients/${patientId}/history`);
+      console.log("Patient history response:", res.data);
       setSelectedHistory((prev) => ({
         ...prev,
         [patientId]: res.data,
       }));
     } catch (err) {
-      console.warn("Patient history API not available:", err.message);
-      alert("Patient history feature is not available yet.");
+      console.error("Patient history error:", err);
+      console.error("Error response:", err.response?.data);
+      console.error("Error status:", err.response?.status);
+      
+      if (err.response?.status === 404) {
+        alert("Patient history not found for this patient.");
+      } else if (err.response?.status === 500) {
+        alert("Server error while fetching patient history. Please try again.");
+      } else {
+        alert(`Error fetching patient history: ${err.message}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -190,6 +414,12 @@ const DoctorDashboard = () => {
 
   if (loading) return <div className="loading"><div className="spinner"></div>Loading...</div>;
 
+  // Console logging for development (can be removed in production)
+  console.log("Doctor Dashboard - Current user:", user);
+  console.log("Appointments count:", appointments.length);
+  console.log("Patients count:", patients.length);
+  console.log("Lab reports count:", labReports.length);
+
   return (
     <div className="doctor-dashboard">
       <div className="dashboard-header">
@@ -215,16 +445,24 @@ const DoctorDashboard = () => {
         </div>
         <div className="stats-cards">
           <div className="stat-card">
-            <div className="stat-number">{getTodaysAppointments().length}</div>
-            <div className="stat-label">Today's Appointments</div>
+            <div className="stat-number">{appointments.length}</div>
+            <div className="stat-label">Total Appointments</div>
           </div>
           <div className="stat-card">
             <div className="stat-number">{patients.length}</div>
             <div className="stat-label">Total Patients</div>
           </div>
           <div className="stat-card">
-            <div className="stat-number">{getPendingReports().length}</div>
-            <div className="stat-label">Pending Reports</div>
+            <div className="stat-number">{labReports.length}</div>
+            <div className="stat-label">Lab Reports</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-number">{prescriptions.length}</div>
+            <div className="stat-label">Prescriptions</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-number">{getTodaysAppointments().length}</div>
+            <div className="stat-label">Today's Appointments</div>
           </div>
         </div>
       </div>
@@ -257,6 +495,12 @@ const DoctorDashboard = () => {
           Lab Reports
         </button>
         <button 
+          className={`tab-button ${activeTab === "prescriptions" ? "active" : ""}`}
+          onClick={() => setActiveTab("prescriptions")}
+        >
+          Prescriptions
+        </button>
+        <button 
           className={`tab-button ${activeTab === "actions" ? "active" : ""}`}
           onClick={() => setActiveTab("actions")}
         >
@@ -268,18 +512,45 @@ const DoctorDashboard = () => {
         <div className="tab-content">
           <div className="overview-grid">
             <div className="overview-card">
-              <h3>Today's Schedule</h3>
-              {getTodaysAppointments().length === 0 ? (
-                <p className="empty-state">No appointments today</p>
+              <h3>Recent Appointments</h3>
+              {appointments.length === 0 ? (
+                <p className="empty-state">No appointments found</p>
               ) : (
                 <div className="appointment-list">
-                  {getTodaysAppointments().map((app) => (
+                  {appointments.slice(0, 5).map((app) => (
                     <div key={app.id} className="appointment-item">
+                      <div className="appointment-date">{new Date(app.appointmentDate).toLocaleDateString()}</div>
                       <div className="appointment-time">{app.timeSlot}</div>
                       <div className="appointment-patient">{app.patientName}</div>
                       <div className="appointment-status" style={{ color: getStatusColor(app.status) }}>
                         {app.status}
                       </div>
+                      {app.status.toLowerCase() === 'pending' && (
+                        <button 
+                          onClick={() => approveAppointment(app.id)}
+                          className="approve-button-small"
+                          disabled={loading}
+                        >
+                          Approve
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="overview-card">
+              <h3>My Patients</h3>
+              {patients.length === 0 ? (
+                <p className="empty-state">No patients found</p>
+              ) : (
+                <div className="patient-list">
+                  {patients.slice(0, 5).map((patient) => (
+                    <div key={patient.id} className="patient-item">
+                      <div className="patient-name">{patient.name}</div>
+                      <div className="patient-contact">{patient.phone}</div>
+                      <div className="patient-blood">{patient.bloodType}</div>
                     </div>
                   ))}
                 </div>
@@ -341,6 +612,7 @@ const DoctorDashboard = () => {
                     <th>Patient</th>
                     <th>Type</th>
                     <th>Status</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -354,6 +626,21 @@ const DoctorDashboard = () => {
                         <span className="status-badge" style={{ backgroundColor: getStatusColor(a.status) }}>
                           {a.status}
                         </span>
+                      </td>
+                      <td>
+                        {a.status.toLowerCase() === 'pending' ? (
+                          <button 
+                            onClick={() => approveAppointment(a.id)}
+                            className="approve-button"
+                            disabled={loading}
+                          >
+                            Approve
+                          </button>
+                        ) : (
+                          <span className="approved-text">
+                            {a.status.toLowerCase() === 'confirmed' ? 'Approved' : a.status}
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -512,6 +799,46 @@ const DoctorDashboard = () => {
         </div>
       )}
 
+      {activeTab === "prescriptions" && (
+        <div className="tab-content">
+          <h2>Prescriptions</h2>
+          {prescriptions.length === 0 ? (
+            <div className="empty-state-card">
+              <p>No prescriptions available.</p>
+            </div>
+          ) : (
+            <div className="table-container">
+              <table className="modern-table">
+                <thead>
+                  <tr>
+                    <th>Date Issued</th>
+                    <th>Patient</th>
+                    <th>Appointment Date</th>
+                    <th>Prescription Notes</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {prescriptions.map((prescription) => (
+                    <tr key={prescription.id}>
+                      <td>{new Date(prescription.dateIssued).toLocaleDateString()}</td>
+                      <td className="patient-name">{prescription.patientName}</td>
+                      <td>{prescription.appointmentDate ? new Date(prescription.appointmentDate).toLocaleDateString() : 'N/A'}</td>
+                      <td className="prescription-notes">{prescription.notes}</td>
+                      <td>
+                        <span className="status-badge" style={{ backgroundColor: '#28a745' }}>
+                          Issued
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
       {activeTab === "actions" && (
         <div className="tab-content">
           <div className="actions-grid">
@@ -524,6 +851,7 @@ const DoctorDashboard = () => {
                     name="appointmentId"
                     value={newPrescription.appointmentId}
                     onChange={handlePrescriptionChange}
+                    className={formErrors.prescription.appointmentId ? 'error' : ''}
                     required
                   >
                     <option value="">Select Appointment</option>
@@ -533,6 +861,11 @@ const DoctorDashboard = () => {
                       </option>
                     ))}
                   </select>
+                  {formErrors.prescription.appointmentId && (
+                    <div className="error-message">
+                      ⚠️ {formErrors.prescription.appointmentId}
+                    </div>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -541,6 +874,7 @@ const DoctorDashboard = () => {
                     name="patientId"
                     value={newPrescription.patientId}
                     onChange={handlePrescriptionChange}
+                    className={formErrors.prescription.patientId ? 'error' : ''}
                     required
                   >
                     <option value="">Select Patient</option>
@@ -550,6 +884,11 @@ const DoctorDashboard = () => {
                       </option>
                     ))}
                   </select>
+                  {formErrors.prescription.patientId && (
+                    <div className="error-message">
+                      ⚠️ {formErrors.prescription.patientId}
+                    </div>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -560,12 +899,18 @@ const DoctorDashboard = () => {
                     onChange={handlePrescriptionChange}
                     placeholder="Enter prescription details..."
                     rows="4"
+                    className={formErrors.prescription.notes ? 'error' : ''}
                     required
                   />
+                  {formErrors.prescription.notes && (
+                    <div className="error-message">
+                      ⚠️ {formErrors.prescription.notes}
+                    </div>
+                  )}
                 </div>
 
-                <button type="submit" className="submit-button">
-                  Submit Prescription
+                <button type="submit" className="submit-button" disabled={loading}>
+                  {loading ? 'Submitting...' : 'Submit Prescription'}
                 </button>
               </form>
             </div>
@@ -579,6 +924,7 @@ const DoctorDashboard = () => {
                     name="patientId"
                     value={newTest.patientId}
                     onChange={handleTestChange}
+                    className={formErrors.labTest.patientId ? 'error' : ''}
                     required
                   >
                     <option value="">Select Patient</option>
@@ -588,6 +934,11 @@ const DoctorDashboard = () => {
                       </option>
                     ))}
                   </select>
+                  {formErrors.labTest.patientId && (
+                    <div className="error-message">
+                      ⚠️ {formErrors.labTest.patientId}
+                    </div>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -598,12 +949,18 @@ const DoctorDashboard = () => {
                     value={newTest.testType}
                     onChange={handleTestChange}
                     placeholder="e.g., Blood Test, X-Ray, MRI"
+                    className={formErrors.labTest.testType ? 'error' : ''}
                     required
                   />
+                  {formErrors.labTest.testType && (
+                    <div className="error-message">
+                      ⚠️ {formErrors.labTest.testType}
+                    </div>
+                  )}
                 </div>
 
-                <button type="submit" className="submit-button">
-                  Add Lab Test
+                <button type="submit" className="submit-button" disabled={loading}>
+                  {loading ? 'Submitting...' : 'Add Lab Test'}
                 </button>
               </form>
             </div>
@@ -618,10 +975,16 @@ const DoctorDashboard = () => {
                     value={availableHours}
                     onChange={(e) => setAvailableHours(e.target.value)}
                     placeholder="e.g., 9:00 AM - 5:00 PM"
+                    className={formErrors.hours.availableHours ? 'error' : ''}
                   />
+                  {formErrors.hours.availableHours && (
+                    <div className="error-message">
+                      ⚠️ {formErrors.hours.availableHours}
+                    </div>
+                  )}
                 </div>
-                <button onClick={updateAvailableHours} className="submit-button">
-                  Update Hours
+                <button onClick={updateAvailableHours} className="submit-button" disabled={loading}>
+                  {loading ? 'Updating...' : 'Update Hours'}
                 </button>
               </div>
             </div>

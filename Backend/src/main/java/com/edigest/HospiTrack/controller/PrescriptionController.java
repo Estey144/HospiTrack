@@ -47,12 +47,21 @@ public class PrescriptionController {
             String prescriptionId = UUID.randomUUID().toString();
             String appointmentId = (String) request.get("appointmentId");
             String patientId = (String) request.get("patientId");
+            String doctorId = (String) request.get("doctorId");
             String notes = (String) request.get("notes");
             
-            String sql = "INSERT INTO Prescriptions (id, appointment_id, patient_id, notes, date_issued) " +
-                        "VALUES (?, ?, ?, ?, SYSDATE)";
+            // Validate required fields
+            if (appointmentId == null || patientId == null || doctorId == null || notes == null) {
+                Map<String, String> response = new HashMap<>();
+                response.put("status", "error");
+                response.put("message", "Missing required fields: appointmentId, patientId, doctorId, or notes");
+                return ResponseEntity.ok(response);
+            }
             
-            int rowsInserted = jdbcTemplate.update(sql, prescriptionId, appointmentId, patientId, notes);
+            String sql = "INSERT INTO Prescriptions (id, appointment_id, doctor_id, patient_id, notes, date_issued) " +
+                        "VALUES (?, ?, ?, ?, ?, SYSDATE)";
+            
+            int rowsInserted = jdbcTemplate.update(sql, prescriptionId, appointmentId, doctorId, patientId, notes);
             
             Map<String, String> response = new HashMap<>();
             if (rowsInserted > 0) {
@@ -68,6 +77,7 @@ public class PrescriptionController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             System.out.println("Error creating prescription: " + e.getMessage());
+            e.printStackTrace();
             Map<String, String> response = new HashMap<>();
             response.put("status", "error");
             response.put("message", "Failed to create prescription: " + e.getMessage());

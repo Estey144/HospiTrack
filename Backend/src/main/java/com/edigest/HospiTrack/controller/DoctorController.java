@@ -249,4 +249,64 @@ public class DoctorController {
         }
     }
 
+    // Get prescriptions for a specific doctor
+    @GetMapping("/doctors/{doctorId}/prescriptions")
+    public List<Map<String, Object>> getDoctorPrescriptions(@PathVariable String doctorId) {
+        try {
+            String sql = "SELECT p.id, p.appointment_id, p.notes, p.date_issued, " +
+                        "u.name AS patientName, a.appointment_date " +
+                        "FROM Prescriptions p " +
+                        "JOIN Patients pt ON p.patient_id = pt.id " +
+                        "JOIN Users u ON pt.user_id = u.id " +
+                        "LEFT JOIN Appointments a ON p.appointment_id = a.id " +
+                        "WHERE p.doctor_id = ? " +
+                        "ORDER BY p.date_issued DESC";
+            
+            List<Map<String, Object>> prescriptions = jdbc.query(sql, ps -> ps.setString(1, doctorId), (rs, rowNum) -> {
+                Map<String, Object> prescription = new HashMap<>();
+                prescription.put("id", rs.getString("id"));
+                prescription.put("appointmentId", rs.getString("appointment_id"));
+                prescription.put("notes", rs.getString("notes"));
+                prescription.put("dateIssued", rs.getTimestamp("date_issued"));
+                prescription.put("patientName", rs.getString("patientName"));
+                prescription.put("appointmentDate", rs.getTimestamp("appointment_date"));
+                return prescription;
+            });
+            
+            System.out.println("Found " + prescriptions.size() + " prescriptions for doctor: " + doctorId);
+            return prescriptions;
+        } catch (Exception e) {
+            System.err.println("Error fetching prescriptions for doctor " + doctorId + ": " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    // Appointment approval endpoint for Doctor Dashboard
+    @PutMapping("/appointments/{appointmentId}/approve")
+    public Map<String, String> approveAppointment(@PathVariable String appointmentId) {
+        try {
+            String sql = "UPDATE Appointments SET status = 'confirmed' WHERE id = ?";
+            
+            int rowsUpdated = jdbc.update(sql, appointmentId);
+            
+            Map<String, String> response = new HashMap<>();
+            if (rowsUpdated > 0) {
+                response.put("status", "success");
+                response.put("message", "Appointment approved successfully");
+                response.put("appointmentId", appointmentId);
+            } else {
+                response.put("status", "error");
+                response.put("message", "Appointment not found or already approved");
+            }
+            
+            return response;
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("status", "error");
+            response.put("message", "Failed to approve appointment: " + e.getMessage());
+            return response;
+        }
+    }
+
 }
