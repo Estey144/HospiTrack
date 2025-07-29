@@ -1,14 +1,14 @@
 package com.edigest.HospiTrack.service;
 
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Service;
-
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
 
 @Service
 public class AmbulanceRequestService {
@@ -75,6 +75,20 @@ public class AmbulanceRequestService {
         """;
 
         return jdbcTemplate.queryForList(sql, userId);
+    }
+
+    public List<Map<String, Object>> getAllRequests() {
+        String sql = """
+        SELECT ar.*, a.vehicle_number, a.status AS ambulance_status,
+               p.dob as patient_dob, u.name as patient_name, u.phone as patient_phone
+        FROM Ambulance_Requests ar
+        LEFT JOIN Ambulances a ON ar.ambulance_id = a.id
+        LEFT JOIN Patients p ON ar.patient_id = p.id
+        LEFT JOIN Users u ON p.user_id = u.id
+        ORDER BY ar.request_time DESC
+        """;
+
+        return jdbcTemplate.queryForList(sql);
     }
 
 }

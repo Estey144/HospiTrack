@@ -1,13 +1,15 @@
 package com.edigest.HospiTrack.service;
 
-import com.edigest.HospiTrack.payload.AmbulanceRequestDTO;
-import com.edigest.HospiTrack.entity.Appointment;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import com.edigest.HospiTrack.entity.Appointment;
+import com.edigest.HospiTrack.payload.AmbulanceRequestDTO;
+import com.edigest.HospiTrack.payload.AppointmentDTO;
 @Service
 public class AppointmentService {
 
@@ -81,5 +83,32 @@ public class AppointmentService {
             return List.of();
         }
         return getByPatientId(patientId);
+    }
+
+    public List<AppointmentDTO> getAllAppointmentsWithNames() {
+        String sql = """
+            SELECT a.id, a.patient_id, a.doctor_id, 
+                   u_pat.name AS patient_name,
+                   u_doc.name AS doctor_name,
+                   a.appointment_date, a.time_slot, a.type, a.status
+            FROM Appointments a
+            LEFT JOIN Patients p ON a.patient_id = p.id
+            LEFT JOIN Users u_pat ON p.user_id = u_pat.id
+            LEFT JOIN Doctors d ON a.doctor_id = d.id
+            LEFT JOIN Users u_doc ON d.user_id = u_doc.id
+            ORDER BY a.appointment_date DESC
+        """;
+        
+        return jdbc.query(sql, (rs, rowNum) -> new AppointmentDTO(
+            rs.getString("id"),
+            rs.getString("patient_id"),
+            rs.getString("doctor_id"),
+            rs.getString("patient_name"),
+            rs.getString("doctor_name"),
+            rs.getDate("appointment_date"),
+            rs.getString("time_slot"),
+            rs.getString("type"),
+            rs.getString("status")
+        ));
     }
 }

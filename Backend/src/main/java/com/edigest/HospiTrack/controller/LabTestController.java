@@ -20,6 +20,11 @@ public class LabTestController {
         this.labTestService = labTestService;
     }
 
+    @GetMapping
+    public List<LabTestDTO> getAllLabTests() throws SQLException {
+        return labTestService.getAllLabTests();
+    }
+
     @GetMapping("/user/{userId}")
     public List<LabTestDTO> getLabTestsByUserId(@PathVariable String userId) throws SQLException {
         return labTestService.getLabTestsByUserId(userId);

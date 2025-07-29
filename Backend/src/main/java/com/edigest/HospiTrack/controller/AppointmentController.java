@@ -1,22 +1,30 @@
 package com.edigest.HospiTrack.controller;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.edigest.HospiTrack.entity.Appointment;
 import com.edigest.HospiTrack.entity.Department;
 import com.edigest.HospiTrack.entity.Doctor;
 import com.edigest.HospiTrack.entity.Users;
 import com.edigest.HospiTrack.payload.AmbulanceRequestDTO;
+import com.edigest.HospiTrack.payload.AppointmentDTO;
 import com.edigest.HospiTrack.service.AppointmentService;
 import com.edigest.HospiTrack.service.DepartmentService;
 import com.edigest.HospiTrack.service.DoctorService;
 import com.edigest.HospiTrack.service.UsersService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/appointments")
@@ -41,8 +49,8 @@ public class AppointmentController {
     }
 
     @GetMapping
-    public List<Appointment> getAll() {
-        return service.getAll();
+    public List<AppointmentDTO> getAll() {
+        return service.getAllAppointmentsWithNames();
     }
 
     @DeleteMapping("/{id}")

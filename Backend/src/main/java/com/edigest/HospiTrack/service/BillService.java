@@ -1,15 +1,16 @@
 package com.edigest.HospiTrack.service;
 
-import com.edigest.HospiTrack.payload.BillDTO;
-import com.edigest.HospiTrack.payload.BillItemDTO;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.List;
+import com.edigest.HospiTrack.payload.BillDTO;
+import com.edigest.HospiTrack.payload.BillItemDTO;
 
 @Service
 public class BillService {
@@ -19,17 +20,45 @@ public class BillService {
 
     public List<BillDTO> getBillsByUserId(String userId) {
         String billSql = "SELECT b.id, b.patient_id, b.appointment_id, b.total_amount, b.status, b.issue_date, " +
-                "u.name as doctor_name, a.type as appointment_type, d.name as department_name, a.appointment_date " +
+                "u_doc.name as doctor_name, u_pat.name as patient_name, " +
+                "a.type as appointment_type, d.name as department_name, a.appointment_date " +
                 "FROM Bills b " +
                 "JOIN Appointments a ON b.appointment_id = a.id " +
                 "JOIN Doctors doc ON a.doctor_id = doc.id " +
-                "JOIN Users u ON doc.user_id = u.id " +
+                "JOIN Users u_doc ON doc.user_id = u_doc.id " +
                 "JOIN Departments d ON doc.department_id = d.id " +
                 "JOIN Patients p ON b.patient_id = p.id " +
+                "JOIN Users u_pat ON p.user_id = u_pat.id " +
                 "WHERE p.user_id = ?";
 
         // Query bills for the user
         List<BillDTO> bills = jdbcTemplate.query(billSql, new Object[]{userId}, new BillDTORowMapper());
+
+        // For each bill, fetch its items
+        for (BillDTO bill : bills) {
+            String itemSql = "SELECT id, bill_id, description, amount FROM Bill_Items WHERE bill_id = ?";
+            List<BillItemDTO> items = jdbcTemplate.query(itemSql, new Object[]{bill.getId()}, new BillItemDTORowMapper());
+            bill.setItems(items);
+        }
+
+        return bills;
+    }
+
+    public List<BillDTO> getAllBills() {
+        String billSql = "SELECT b.id, b.patient_id, b.appointment_id, b.total_amount, b.status, b.issue_date, " +
+                "u_doc.name as doctor_name, u_pat.name as patient_name, " +
+                "a.type as appointment_type, d.name as department_name, a.appointment_date " +
+                "FROM Bills b " +
+                "JOIN Appointments a ON b.appointment_id = a.id " +
+                "JOIN Doctors doc ON a.doctor_id = doc.id " +
+                "JOIN Users u_doc ON doc.user_id = u_doc.id " +
+                "JOIN Departments d ON doc.department_id = d.id " +
+                "JOIN Patients p ON b.patient_id = p.id " +
+                "JOIN Users u_pat ON p.user_id = u_pat.id " +
+                "ORDER BY b.issue_date DESC";
+
+        // Query all bills
+        List<BillDTO> bills = jdbcTemplate.query(billSql, new BillDTORowMapper());
 
         // For each bill, fetch its items
         for (BillDTO bill : bills) {
@@ -53,6 +82,7 @@ public class BillService {
             bill.setStatus(rs.getString("status"));
             bill.setIssueDate(rs.getDate("issue_date"));
             bill.setDoctorName(rs.getString("doctor_name"));
+            bill.setPatientName(rs.getString("patient_name"));
             bill.setAppointmentType(rs.getString("appointment_type"));
             bill.setDepartment(rs.getString("department_name"));
             bill.setVisitDate(rs.getDate("appointment_date"));

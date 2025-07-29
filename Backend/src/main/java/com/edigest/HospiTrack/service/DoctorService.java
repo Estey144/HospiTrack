@@ -43,6 +43,22 @@ public class DoctorService {
         return doctor;
     }
 
+    public Doctor updateDoctor(Doctor doctor) {
+        String sql = "UPDATE Doctors SET user_id = ?, branch_id = ?, license_number = ?, " +
+                "experience_years = ?, available_hours = ?, department_id = ?, image_url = ? WHERE id = ?";
+        jdbc.update(sql,
+                doctor.getUserId(),
+                doctor.getBranchId(),
+                doctor.getLicenseNumber(),
+                doctor.getExperienceYears(),
+                doctor.getAvailableHours(),
+                doctor.getDepartmentId(),
+                doctor.getImageUrl(),
+                doctor.getId()
+        );
+        return doctor;
+    }
+
     public void deleteDoctor(String id) {
         String sql = "DELETE FROM Doctors WHERE id = ?";
         jdbc.update(sql, id);

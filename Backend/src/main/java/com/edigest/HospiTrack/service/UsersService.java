@@ -1,14 +1,15 @@
 package com.edigest.HospiTrack.service;
 
-import com.edigest.HospiTrack.entity.Users;
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.List;
+import com.edigest.HospiTrack.entity.Users;
 
 @Service
 public class UsersService {
@@ -35,18 +36,32 @@ public class UsersService {
     }
 
     public Users save(Users user) {
-        String sql = "INSERT INTO Users (id, name, email, password, phone, created_at, role) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        Date now = new Date();
-        jdbc.update(sql,
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                user.getPassword(),
-                user.getPhone(),
-                new Timestamp(now.getTime()),
-                user.getRole()
-        );
-        user.setCreatedAt(now);
+        if (user.getId() != null && getById(user.getId()) != null) {
+            // Update existing user
+            String sql = "UPDATE Users SET name = ?, email = ?, password = ?, phone = ?, role = ? WHERE id = ?";
+            jdbc.update(sql,
+                    user.getName(),
+                    user.getEmail(),
+                    user.getPassword(),
+                    user.getPhone(),
+                    user.getRole(),
+                    user.getId()
+            );
+        } else {
+            // Insert new user
+            String sql = "INSERT INTO Users (id, name, email, password, phone, created_at, role) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            Date now = new Date();
+            jdbc.update(sql,
+                    user.getId(),
+                    user.getName(),
+                    user.getEmail(),
+                    user.getPassword(),
+                    user.getPhone(),
+                    new Timestamp(now.getTime()),
+                    user.getRole()
+            );
+            user.setCreatedAt(now);
+        }
         return user;
     }
 

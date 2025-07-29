@@ -1,6 +1,7 @@
 package com.edigest.HospiTrack.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,6 +34,11 @@ public class PatientController {
         return patientService.getAllPatients();
     }
 
+    @GetMapping("/with-names")
+    public List<Map<String, Object>> getAllPatientsWithNames() {
+        return patientService.getAllPatientsWithNames();
+    }
+
     @GetMapping("/{id}")
     public Patient getById(@PathVariable String id) {
         return patientService.getPatientById(id);
@@ -40,6 +47,12 @@ public class PatientController {
     @PostMapping
     public Patient create(@RequestBody Patient patient) {
         return patientService.savePatient(patient);
+    }
+
+    @PutMapping("/{id}")
+    public Patient update(@PathVariable String id, @RequestBody Patient patient) {
+        patient.setId(id); // Ensure the ID matches the path variable
+        return patientService.updatePatient(patient);
     }
 
     @DeleteMapping("/{id}")

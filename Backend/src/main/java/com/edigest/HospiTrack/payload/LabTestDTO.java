@@ -5,8 +5,9 @@ public class LabTestDTO {
     private String testType;
     private String result;
     private String fileUrl;
-    private String testDate; // Use String for simplicity or LocalDate for date
-    private String doctorName; // Optional, if you want to include doctor's name
+    private String testDate; 
+    private String doctorName; 
+    private String patientName; 
 
     // getters and setters
     public String getId() { return id; }
@@ -26,4 +27,7 @@ public class LabTestDTO {
 
     public String getDoctorName() { return doctorName; }
     public void setDoctorName(String doctorName) { this.doctorName = doctorName; }
+
+    public String getPatientName() { return patientName; }
+    public void setPatientName(String patientName) { this.patientName = patientName; }
 }

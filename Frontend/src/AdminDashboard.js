@@ -195,15 +195,211 @@ const AdminDashboard = () => {
     return sampleData[entity] || [];
   };
 
-  const API_BASE = '/api';
+  const API_BASE = 'http://localhost:8080';
+
+  // Helper function to get the correct API endpoint for each entity
+  const getApiEndpoint = (entity) => {
+    const endpoints = {
+      'doctors': '/api/doctors',
+      'patients': '/patients/with-names',
+      'staff': '/api/staff',
+      'users': '/api/users',
+      'rooms': '/api/rooms',
+      'branches': '/api/branches',
+      'ambulances': '/api/ambulances',
+      'departments': '/api/departments',
+      'equipment': '/api/equipment',
+      'ambulance-requests': '/api/ambulance-requests',
+      'prescriptions': '/api/prescriptions',
+      'test-reports': '/api/lab-tests',
+      'appointments': '/api/appointments',
+      'bills': '/api/bills'
+    };
+    return endpoints[entity] || `/api/${entity}`;
+  };
+
+  // Helper function to get CRUD endpoints (different from fetch endpoints for some entities)
+  const getCrudEndpoint = (entity) => {
+    const endpoints = {
+      'doctors': '/api/doctors',
+      'patients': '/patients', // CRUD operations use the base patients endpoint
+      'staff': '/api/staff',
+      'users': '/api/users',
+      'rooms': '/api/rooms',
+      'branches': '/api/branches',
+      'ambulances': '/api/ambulances',
+      'departments': '/api/departments',
+      'equipment': '/api/equipment',
+      'ambulance-requests': '/api/ambulance-requests',
+      'prescriptions': '/api/prescriptions',
+      'test-reports': '/api/lab-tests',
+      'appointments': '/api/appointments',
+      'bills': '/api/bills'
+    };
+    return endpoints[entity] || `/api/${entity}`;
+  };
+
+  // Helper function to fetch users data for patient names
+  const fetchUsersData = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/users`);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (err) {
+      console.error('Error fetching users:', err);
+    }
+    return [];
+  };
+
+  // Data transformation functions to normalize backend data
+  const transformDoctorData = (backendData) => {
+    return backendData.map(item => ({
+      id: item.DOCTORID || item.id,
+      name: item.DOCTORNAME || item.name,
+      experience_years: item.EXPERIENCEYEARS || item.experience_years,
+      license_number: item.LICENSENUMBER || item.license_number,
+      available_hours: item.AVAILABLEHOURS || item.available_hours,
+      department: item.DEPARTMENTNAME || item.department,
+      branch: item.BRANCHNAME || item.branch,
+      image_url: item.IMAGEURL || item.image_url,
+      active: item.active !== false
+    }));
+  };
+
+  const transformPatientData = (backendData) => {
+    return backendData.map(item => ({
+      id: item.id,
+      name: item.name || 'Unknown Patient',
+      user_id: item.userId,
+      dob: item.dob,
+      gender: item.gender,
+      blood_type: item.bloodType || item.blood_type,
+      address: item.address,
+      phone: item.phone || 'N/A',
+      emergency_contact: item.emergencyContact || item.emergency_contact,
+      active: item.active !== false
+    }));
+  };
+
+  const transformUserData = (backendData) => {
+    return backendData.map(item => ({
+      id: item.id,
+      name: item.name || 'Unknown User',
+      email: item.email || 'N/A',
+      phone: item.phone || 'N/A',
+      role: item.role || 'USER',
+      created_at: item.createdAt || item.created_at,
+      active: item.active !== false
+    }));
+  };
+
+  const transformAppointmentData = (backendData) => {
+    return backendData.map(item => ({
+      id: item.id,
+      patient_id: item.patientId,
+      doctor_id: item.doctorId,
+      appointment_date: item.appointmentDate,
+      time_slot: item.timeSlot,
+      type: item.type,
+      status: item.status,
+      patient_name: item.patientName || `Patient ${item.patientId}`,
+      doctor_name: item.doctorName || `Doctor ${item.doctorId}`,
+      active: item.active !== false
+    }));
+  };
+
+  const transformPrescriptionData = (backendData) => {
+    return backendData.map(item => ({
+      id: item.id,
+      appointment_id: item.appointmentId,
+      doctor_id: item.doctorId,
+      patient_id: item.patientId,
+      notes: item.notes,
+      date_issued: item.dateIssued,
+      medications: item.medications,
+      patient_name: item.patientName || `Patient ${item.patientId}`,
+      doctor_name: item.doctorName || `Doctor ${item.doctorId}`,
+      active: item.active !== false
+    }));
+  };
+
+  const transformBillData = (backendData) => {
+    return backendData.map(item => ({
+      id: item.id,
+      patient_id: item.patientId,
+      appointment_id: item.appointmentId,
+      total_amount: item.totalAmount,
+      status: item.status,
+      issue_date: item.issueDate,
+      items: item.items,
+      doctor_name: item.doctorName || `Doctor ${item.doctorId}`,
+      patient_name: item.patientName || `Patient ${item.patientId}`,
+      appointment_type: item.appointmentType,
+      department: item.department,
+      visit_date: item.visitDate,
+      active: item.active !== false
+    }));
+  };
+
+  const transformRoomData = (backendData) => {
+    return backendData.map(item => ({
+      id: item.id,
+      room_number: item.roomNumber,
+      room_type: item.type,
+      status: item.status,
+      active: item.active !== false
+    }));
+  };
+
+  const transformTestReportData = (backendData) => {
+    return backendData.map(item => ({
+      id: item.id,
+      test_type: item.testType,
+      result: item.result,
+      file_url: item.fileUrl,
+      test_date: item.testDate,
+      doctor_name: item.doctorName || 'N/A',
+      patient_name: item.patientName || 'N/A',
+      active: item.active !== false
+    }));
+  };
+
+  const transformAmbulanceRequestData = (backendData) => {
+    return backendData.map(item => ({
+      id: item.ID || item.id,
+      name: item.PATIENT_NAME || item.patientName || 'N/A', // Show patient name in the name column
+      patient_name: item.PATIENT_NAME || item.patientName || 'N/A',
+      pickup_location: item.PICKUP_LOCATION || item.pickupLocation,
+      drop_location: item.DROP_LOCATION || item.dropLocation,
+      request_time: item.REQUEST_TIME || item.requestTime,
+      vehicle_number: item.VEHICLE_NUMBER || item.vehicleNumber || 'N/A',
+      priority: item.PRIORITY || item.priority || 'Medium',
+      status: item.STATUS || item.status || 'Pending',
+      active: item.active !== false
+    }));
+  };
+
+  const transformAmbulanceData = (backendData) => {
+    return backendData.map(item => ({
+      id: item.id,
+      name: item.vehicleNumber || 'N/A', // Show vehicle number in the name column
+      vehicle_number: item.vehicleNumber,
+      status: item.status || 'Available',
+      location: item.location,
+      branch_id: item.branchId,
+      active: item.active !== false
+    }));
+  };
 
   const fetchData = async (entity) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/${entity}`);
+      const endpoint = getApiEndpoint(entity);
+      const res = await fetch(`${API_BASE}${endpoint}`);
       if (!res.ok) {
-        // If API fails, provide sample data for demonstration
+        console.warn(`API call failed for ${entity}, using sample data`);
         const sampleData = getSampleData(entity);
         switch (entity) {
           case 'doctors': setDoctors(sampleData); break;
@@ -224,25 +420,86 @@ const AdminDashboard = () => {
         }
       } else {
         const data = await res.json();
+        console.log(`Fetched ${entity} data:`, data);
+        
+        // Transform and set data based on entity type
         switch (entity) {
-          case 'doctors': setDoctors(data); break;
-          case 'patients': setPatients(data); break;
-          case 'staff': setStaff(data); break;
-          case 'users': setUsers(data); break;
-          case 'rooms': setRooms(data); break;
-          case 'branches': setBranches(data); break;
-          case 'ambulances': setAmbulances(data); break;
-          case 'departments': setDepartments(data); break;
-          case 'equipment': setEquipment(data); break;
-          case 'ambulance-requests': setAmbulanceRequests(data); break;
-          case 'prescriptions': setPrescriptions(data); break;
-          case 'test-reports': setTestReports(data); break;
-          case 'appointments': setAppointments(data); break;
-          case 'bills': setBills(data); break;
+          case 'doctors': 
+            setDoctors(transformDoctorData(data)); 
+            break;
+          case 'patients': 
+            // First check if patients endpoint exists, otherwise use sample data
+            if (Array.isArray(data)) {
+              setPatients(transformPatientData(data));
+            } else {
+              setPatients(getSampleData('patients'));
+            }
+            break;
+          case 'staff': setStaff(Array.isArray(data) ? data : getSampleData('staff')); break;
+          case 'users': 
+            if (Array.isArray(data)) {
+              setUsers(transformUserData(data));
+            } else {
+              setUsers(getSampleData('users'));
+            }
+            break;
+          case 'rooms': 
+            if (Array.isArray(data)) {
+              setRooms(transformRoomData(data));
+            } else {
+              setRooms(getSampleData('rooms'));
+            }
+            break;
+          case 'branches': setBranches(Array.isArray(data) ? data : getSampleData('branches')); break;
+          case 'ambulances': 
+            if (Array.isArray(data)) {
+              setAmbulances(transformAmbulanceData(data));
+            } else {
+              setAmbulances(getSampleData('ambulances'));
+            }
+            break;
+          case 'departments': setDepartments(Array.isArray(data) ? data : getSampleData('departments')); break;
+          case 'equipment': setEquipment(Array.isArray(data) ? data : getSampleData('equipment')); break;
+          case 'ambulance-requests': 
+            if (Array.isArray(data)) {
+              setAmbulanceRequests(transformAmbulanceRequestData(data));
+            } else {
+              setAmbulanceRequests(getSampleData('ambulance-requests'));
+            }
+            break;
+          case 'prescriptions': 
+            if (Array.isArray(data)) {
+              setPrescriptions(transformPrescriptionData(data));
+            } else {
+              setPrescriptions(getSampleData('prescriptions'));
+            }
+            break;
+          case 'test-reports': 
+            if (Array.isArray(data)) {
+              setTestReports(transformTestReportData(data));
+            } else {
+              setTestReports(getSampleData('test-reports'));
+            }
+            break;
+          case 'appointments': 
+            if (Array.isArray(data)) {
+              setAppointments(transformAppointmentData(data));
+            } else {
+              setAppointments(getSampleData('appointments'));
+            }
+            break;
+          case 'bills': 
+            if (Array.isArray(data)) {
+              setBills(transformBillData(data));
+            } else {
+              setBills(getSampleData('bills'));
+            }
+            break;
           default: break;
         }
       }
     } catch (err) {
+      console.error(`Error fetching ${entity}:`, err);
       // If network error, provide sample data
       const sampleData = getSampleData(entity);
       switch (entity) {
@@ -321,35 +578,46 @@ const AdminDashboard = () => {
     setLoading(true);
     setError(null);
     try {
-      // Simulate audit logs - replace with actual API call
-      const logs = [
-        {
-          id: 1,
-          action: 'User Created',
-          user: 'Admin',
-          details: 'Created new doctor account',
-          timestamp: new Date().toISOString(),
-          severity: 'info'
-        },
-        {
-          id: 2,
-          action: 'Data Export',
-          user: 'Admin',
-          details: 'Exported patient data',
-          timestamp: new Date(Date.now() - 3600000).toISOString(),
-          severity: 'warning'
-        },
-        {
-          id: 3,
-          action: 'System Backup',
-          user: 'System',
-          details: 'Automated backup completed',
-          timestamp: new Date(Date.now() - 7200000).toISOString(),
-          severity: 'success'
-        }
-      ];
-      setAuditLogs(logs);
+      console.log('Fetching audit logs from:', `${API_BASE}/api/audit-logs`);
+      const res = await fetch(`${API_BASE}/api/audit-logs`);
+      console.log('Audit logs response status:', res.status);
+      if (!res.ok) {
+        console.warn('API call failed for audit logs, using sample data');
+        // Fallback to sample data if API fails
+        const logs = [
+          {
+            id: 1,
+            action: 'User Created',
+            user: 'Admin',
+            details: 'Created new doctor account',
+            timestamp: new Date().toISOString(),
+            severity: 'info'
+          },
+          {
+            id: 2,
+            action: 'Data Export',
+            user: 'Admin',
+            details: 'Exported patient data',
+            timestamp: new Date(Date.now() - 3600000).toISOString(),
+            severity: 'warning'
+          },
+          {
+            id: 3,
+            action: 'System Backup',
+            user: 'System',
+            details: 'Automated backup completed',
+            timestamp: new Date(Date.now() - 7200000).toISOString(),
+            severity: 'success'
+          }
+        ];
+        setAuditLogs(logs);
+      } else {
+        const data = await res.json();
+        console.log('Audit logs data received:', data);
+        setAuditLogs(Array.isArray(data) ? data : []);
+      }
     } catch (err) {
+      console.error('Error fetching audit logs:', err);
       setError(err.message);
     }
     setLoading(false);
@@ -460,8 +728,11 @@ const AdminDashboard = () => {
     setLoading(true);
 
     const entity = getApiEntityName(formType);
-    const url = `${API_BASE}/${entity}${formMode === 'edit' ? `/${formData.id}` : ''}`;
+    const endpoint = getCrudEndpoint(entity);
+    const url = `${API_BASE}${endpoint}${formMode === 'edit' ? `/${formData.id}` : ''}`;
     const method = formMode === 'edit' ? 'PUT' : 'POST';
+
+    console.log(`Attempting to ${method} ${entity} at URL: ${url}`, formData);
 
     try {
       const res = await fetch(url, {
@@ -469,10 +740,21 @@ const AdminDashboard = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-      if (!res.ok) throw new Error('Failed to save data');
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error(`${method} failed with status ${res.status}:`, errorText);
+        throw new Error(`Failed to save data: ${errorText}`);
+      }
+      
+      console.log(`Successfully ${formMode === 'edit' ? 'updated' : 'created'} ${entity}`);
       await fetchData(entity);
       closeForm();
+      setError(`${getEntityDisplayName(entity).slice(0, -1)} ${formMode === 'edit' ? 'updated' : 'created'} successfully!`);
+      // Clear success message after 3 seconds
+      setTimeout(() => setError(null), 3000);
     } catch (err) {
+      console.error('Submit error:', err);
       setError(err.message);
     }
     setLoading(false);
@@ -483,10 +765,32 @@ const AdminDashboard = () => {
     setLoading(true);
     try {
       const entity = getApiEntityName(type);
-      const res = await fetch(`${API_BASE}/${entity}/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete');
+      const endpoint = getCrudEndpoint(entity);
+      console.log(`Attempting to delete ${entity} with ID ${id} at endpoint: ${API_BASE}${endpoint}/${id}`);
+      
+      const res = await fetch(`${API_BASE}${endpoint}/${id}`, { method: 'DELETE' });
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error(`Delete failed with status ${res.status}:`, errorText);
+        
+        // Try to provide a more helpful error message
+        if (res.status === 500) {
+          throw new Error('Cannot delete this record. It may be referenced by other data in the system.');
+        } else if (res.status === 404) {
+          throw new Error('Record not found.');
+        } else {
+          throw new Error(`Failed to delete: ${errorText}`);
+        }
+      }
+      
+      console.log(`Successfully deleted ${entity} with ID ${id}`);
       await fetchData(entity);
+      setError(`${getEntityDisplayName(entity).slice(0, -1)} deleted successfully!`);
+      // Clear success message after 3 seconds
+      setTimeout(() => setError(null), 3000);
     } catch (err) {
+      console.error('Delete error:', err);
       setError(err.message);
     }
     setLoading(false);
@@ -501,11 +805,24 @@ const AdminDashboard = () => {
     return list.map(item => (
       <tr key={item.id} className="adm-table__row">
         <td className="adm-table__cell">{item.id}</td>
-        <td className="adm-table__cell adm-table__cell--primary">
-          {item.name || item.email || item.designation || item.room_number || item.vehicle_number || item.equipment_name || item.patient_name || item.medication || item.test_type || 'N/A'}
-        </td>
+        {type !== 'test-reports' && (
+          <td className="adm-table__cell adm-table__cell--primary">
+            {item.name || item.email || item.designation || item.room_number || item.vehicle_number || item.equipment_name || item.patient_name || item.notes || item.medication || 'N/A'}
+          </td>
+        )}
+        {type === 'test-reports' && (
+          <td className="adm-table__cell adm-table__cell--primary">
+            {item.test_type || 'N/A'}
+          </td>
+        )}
         {type === 'users' && <td className="adm-table__cell">{item.role}</td>}
-        {type === 'doctors' && <td className="adm-table__cell">{item.experience_years || 0} years</td>}
+        {type === 'doctors' && (
+          <>
+            <td className="adm-table__cell">{item.department || 'N/A'}</td>
+            <td className="adm-table__cell">{item.experience_years || 0} years</td>
+            <td className="adm-table__cell">{item.available_hours || 'N/A'}</td>
+          </>
+        )}
         {type === 'patients' && <td className="adm-table__cell">{item.blood_type || 'N/A'}</td>}
         {type === 'rooms' && <td className="adm-table__cell">{item.room_type || 'N/A'}</td>}
         {type === 'branches' && <td className="adm-table__cell">{item.location || 'N/A'}</td>}
@@ -514,8 +831,12 @@ const AdminDashboard = () => {
         {type === 'equipment' && <td className="adm-table__cell">{item.condition || 'Good'}</td>}
         {type === 'ambulance-requests' && <td className="adm-table__cell">{item.priority || 'Medium'}</td>}
         {type === 'prescriptions' && <td className="adm-table__cell">{item.doctor_name || 'N/A'}</td>}
+        {type === 'test-reports' && <td className="adm-table__cell">{item.patient_name || 'N/A'}</td>}
+        {type === 'test-reports' && <td className="adm-table__cell">{item.doctor_name || 'N/A'}</td>}
         {type === 'test-reports' && <td className="adm-table__cell">{item.result || 'Pending'}</td>}
         {type === 'appointments' && <td className="adm-table__cell">{item.doctor_name || 'N/A'}</td>}
+        {type === 'bills' && <td className="adm-table__cell">{item.patient_name || 'N/A'}</td>}
+        {type === 'bills' && <td className="adm-table__cell">{item.doctor_name || 'N/A'}</td>}
         {type === 'bills' && <td className="adm-table__cell">₹{item.total_amount || 0}</td>}
         <td className="adm-table__cell">
           {getStatusBadge(item.active !== false)}
@@ -882,11 +1203,20 @@ const AdminDashboard = () => {
                       <th className="adm-table__header" onClick={() => handleSort('id')}>
                         ID {sortField === 'id' && (sortDirection === 'asc' ? '↑' : '↓')}
                       </th>
-                      <th className="adm-table__header" onClick={() => handleSort('name')}>
-                        Name {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
-                      </th>
+                      {activeTab !== 'test-reports' && (
+                        <th className="adm-table__header" onClick={() => handleSort('name')}>
+                          Name {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
+                        </th>
+                      )}
+                      {activeTab === 'test-reports' && <th className="adm-table__header">Test Type</th>}
                       {activeTab === 'users' && <th className="adm-table__header">Role</th>}
-                      {activeTab === 'doctors' && <th className="adm-table__header">Experience</th>}
+                      {activeTab === 'doctors' && (
+                        <>
+                          <th className="adm-table__header">Department</th>
+                          <th className="adm-table__header">Experience</th>
+                          <th className="adm-table__header">Available Hours</th>
+                        </>
+                      )}
                       {activeTab === 'patients' && <th className="adm-table__header">Blood Type</th>}
                       {activeTab === 'rooms' && <th className="adm-table__header">Room Type</th>}
                       {activeTab === 'branches' && <th className="adm-table__header">Location</th>}
@@ -895,8 +1225,12 @@ const AdminDashboard = () => {
                       {activeTab === 'equipment' && <th className="adm-table__header">Condition</th>}
                       {activeTab === 'ambulance-requests' && <th className="adm-table__header">Priority</th>}
                       {activeTab === 'prescriptions' && <th className="adm-table__header">Doctor</th>}
+                      {activeTab === 'test-reports' && <th className="adm-table__header">Patient</th>}
+                      {activeTab === 'test-reports' && <th className="adm-table__header">Doctor</th>}
                       {activeTab === 'test-reports' && <th className="adm-table__header">Result</th>}
                       {activeTab === 'appointments' && <th className="adm-table__header">Doctor</th>}
+                      {activeTab === 'bills' && <th className="adm-table__header">Patient</th>}
+                      {activeTab === 'bills' && <th className="adm-table__header">Doctor</th>}
                       {activeTab === 'bills' && <th className="adm-table__header">Amount</th>}
                       <th className="adm-table__header">Status</th>
                       <th className="adm-table__header">Actions</th>
@@ -1047,6 +1381,7 @@ const AdminDashboard = () => {
                       <th className="adm-table__header">Action</th>
                       <th className="adm-table__header">User</th>
                       <th className="adm-table__header">Details</th>
+                      <th className="adm-table__header">IP Address</th>
                       <th className="adm-table__header">Timestamp</th>
                       <th className="adm-table__header">Severity</th>
                     </tr>
@@ -1057,9 +1392,15 @@ const AdminDashboard = () => {
                         <td className="adm-table__cell adm-table__cell--primary">{log.action}</td>
                         <td className="adm-table__cell">{log.user}</td>
                         <td className="adm-table__cell">{log.details}</td>
+                        <td className="adm-table__cell">{log.ipAddress || 'N/A'}</td>
                         <td className="adm-table__cell">{new Date(log.timestamp).toLocaleString()}</td>
                         <td className="adm-table__cell">
-                          <span className={`adm-badge adm-badge--${log.severity === 'warning' ? 'danger' : 'success'}`}>
+                          <span className={`adm-badge adm-badge--${
+                            log.severity === 'error' ? 'danger' : 
+                            log.severity === 'warning' ? 'danger' : 
+                            log.severity === 'success' ? 'success' : 
+                            'secondary'
+                          }`}>
                             {log.severity}
                           </span>
                         </td>

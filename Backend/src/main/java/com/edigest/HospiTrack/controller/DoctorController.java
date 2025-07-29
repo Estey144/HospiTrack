@@ -53,6 +53,12 @@ public class DoctorController {
         return service.saveDoctor(doctor);
     }
 
+    @PutMapping("/doctors/{id}")
+    public Doctor update(@PathVariable String id, @RequestBody Doctor doctor) {
+        doctor.setId(id); // Ensure the ID matches the path variable
+        return service.updateDoctor(doctor);
+    }
+
     @DeleteMapping("/doctors/{id}")
     public void delete(@PathVariable String id) {
         service.deleteDoctor(id);

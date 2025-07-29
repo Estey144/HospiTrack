@@ -14,6 +14,7 @@ public class BillDTO {
 
     // Additional metadata
     private String doctorName;
+    private String patientName;
     private String appointmentType;
     private String department;
     private Date visitDate;
@@ -43,6 +44,9 @@ public class BillDTO {
 
     public String getDoctorName() { return doctorName; }
     public void setDoctorName(String doctorName) { this.doctorName = doctorName; }
+
+    public String getPatientName() { return patientName; }
+    public void setPatientName(String patientName) { this.patientName = patientName; }
 
     public String getAppointmentType() { return appointmentType; }
     public void setAppointmentType(String appointmentType) { this.appointmentType = appointmentType; }
