@@ -57,6 +57,7 @@ const AmbulanceRequest = ({ currentUser }) => {
   const [myRequests, setMyRequests] = useState([]);
   const [showMyRequestsModal, setShowMyRequestsModal] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [hospitalBranches, setHospitalBranches] = useState([]);
 
   const navigationItems = [
     { path: '/patient-dashboard', label: 'Patient Dashboard', icon: User, color: 'text-blue-600' },
@@ -79,6 +80,41 @@ const AmbulanceRequest = ({ currentUser }) => {
     setSidebarOpen(false);
   };
 
+  // Fetch hospital branches
+  const fetchHospitalBranches = async () => {
+    try {
+      const response = await axios.get('http://localhost:8080/api/branches', {
+        withCredentials: true
+      });
+
+      const normalizedBranches = response.data.map((branch) => ({
+        id: branch.id ?? branch.BRANCHID ?? branch.branch_id,
+        name: branch.name ?? branch.BRANCHNAME ?? branch.branch_name,
+        location: branch.location ?? branch.LOCATION,
+        address: branch.address ?? branch.ADDRESS
+      }));
+
+      setHospitalBranches(normalizedBranches);
+    } catch (error) {
+      console.error('Failed to fetch hospital branches:', error);
+      // Use mock data when API fails
+      const mockBranches = [
+        { id: 'b001', name: 'Dhaka Medical Branch', address: 'Azimpur, Dhaka', location: 'Dhaka' },
+        { id: 'b002', name: 'Mirpur Branch', address: 'Mirpur-10, Dhaka', location: 'Dhaka' },
+        { id: 'b003', name: 'Gulshan Branch', address: 'Gulshan-2, Dhaka', location: 'Dhaka' },
+        { id: 'b004', name: 'Rajshahi Branch', address: 'Kazla, Rajshahi', location: 'Rajshahi' },
+        { id: 'b005', name: 'Chittagong Branch', address: 'Agrabad, Chittagong', location: 'Chittagong' },
+        { id: 'b006', name: 'Sylhet Branch', address: 'Zindabazar, Sylhet', location: 'Sylhet' }
+      ];
+      setHospitalBranches(mockBranches);
+    }
+  };
+
+  // Load hospital branches on component mount
+  useEffect(() => {
+    fetchHospitalBranches();
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -93,10 +129,13 @@ const AmbulanceRequest = ({ currentUser }) => {
     setError(null);
 
     try {
+      // Extract just the hospital name from the selected value
+      const destinationName = formData.destination.split(' - ')[0];
+      
       const response = await axios.post('/api/ambulance-requests', {
         userId: user?.id,
         pickupLocation: formData.pickupLocation,
-        dropLocation: formData.destination,
+        dropLocation: destinationName,
         requestedTime: formData.requestedTime || null,
       });
 
@@ -288,21 +327,26 @@ const AmbulanceRequest = ({ currentUser }) => {
                       name="pickupLocation"
                       value={formData.pickupLocation}
                       onChange={handleInputChange}
-                      placeholder="123 Main St"
+                      placeholder="ECE, BUET"
                       required
                     />
                   </div>
 
                   <div className="form-group">
-                    <label>Destination *</label>
-                    <input
-                      type="text"
+                    <label>Destination Hospital *</label>
+                    <select
                       name="destination"
                       value={formData.destination}
                       onChange={handleInputChange}
-                      placeholder="City Hospital"
                       required
-                    />
+                    >
+                      <option value="">Select Hospital Branch</option>
+                      {hospitalBranches.map(branch => (
+                        <option key={branch.id} value={`${branch.name} - ${branch.address}`}>
+                          {branch.name} - {branch.location || branch.address}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
@@ -346,55 +390,127 @@ const AmbulanceRequest = ({ currentUser }) => {
       {/* Modal for My Requests */}
       {showMyRequestsModal && (
         <div className="modal-overlay" onClick={() => setShowMyRequestsModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-content ambulance-requests-modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2><FileText size={20} /> My Ambulance Requests</h2>
-              <button className="modal-close-button" onClick={() => setShowMyRequestsModal(false)}><X size={20} /></button>
-            </div>
-            {myRequests.length === 0 ? (
-              <div className="no-requests">
-                <Truck size={48} />
-                <p>No ambulance requests found</p>
+              <div className="modal-title-section">
+                <div className="modal-icon">
+                  <Truck size={24} />
+                </div>
+                <div className="modal-title-text">
+                  <h2>My Ambulance Requests</h2>
+                  <p>Track your ambulance service requests</p>
+                </div>
               </div>
-            ) : (
-              <div className="requests-list">
-                {myRequests.map(request => (
-                  <div key={request.id} className="request-card">
-                    <div className="request-card-header">
-                      <div className="request-info">
-                        <h4>Request #{request.id.substring(0, 8)}</h4>
-                        <div className="request-meta">
-                          <Calendar size={14} />
-                          {new Date(request.requestedTime).toLocaleString()}
-                        </div>
-                      </div>
-                      <div className="request-badges">
-                        {getStatusBadge(request.status)}
-                      </div>
+              <button className="modal-close-button" onClick={() => setShowMyRequestsModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              {myRequests.length === 0 ? (
+                <div className="no-requests">
+                  <div className="no-requests-icon">
+                    <Truck size={48} />
+                  </div>
+                  <div className="no-requests-text">
+                    <h3>No Requests Found</h3>
+                    <p>You haven't made any ambulance requests yet.</p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="requests-summary">
+                    <div className="summary-item">
+                      <span className="summary-count">{myRequests.length}</span>
+                      <span className="summary-label">Total Requests</span>
                     </div>
-
-                    <div className="request-card-body">
-                      <div className="request-details">
-                        <div className="detail-row">
-                          <MapPin size={14} />
-                          <span><strong>From:</strong> {request.pickupLocation}</span>
-                        </div>
-                        <div className="detail-row">
-                          <MapPin size={14} />
-                          <span><strong>To:</strong> {request.destination}</span>
-                        </div>
-                        {request.vehicleNumber && (
-                          <div className="detail-row">
-                            <Truck size={14} />
-                            <span><strong>Vehicle:</strong> {request.vehicleNumber}</span>
-                          </div>
-                        )}
-                      </div>
+                    <div className="summary-item">
+                      <span className="summary-count">{myRequests.filter(r => r.status === 'pending').length}</span>
+                      <span className="summary-label">Pending</span>
+                    </div>
+                    <div className="summary-item">
+                      <span className="summary-count">{myRequests.filter(r => r.status === 'completed').length}</span>
+                      <span className="summary-label">Completed</span>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                  
+                  <div className="requests-list">
+                    {myRequests.map(request => (
+                      <div key={request.id} className="request-card">
+                        <div className="request-card-header">
+                          <div className="request-status-section">
+                            <div className="request-status-indicator">
+                              {request.status === 'pending' ? '⏳' : 
+                               request.status === 'completed' ? '✅' : 
+                               request.status === 'cancelled' ? '❌' : '📋'}
+                            </div>
+                            <div className="request-status-info">
+                              <span className="request-id">Request #{request.id.substring(0, 8).toUpperCase()}</span>
+                              {getStatusBadge(request.status)}
+                            </div>
+                          </div>
+                          <div className="request-timestamp">
+                            <Clock size={14} />
+                            <span>{new Date(request.requestedTime).toLocaleDateString()}</span>
+                            <span className="time-detail">{new Date(request.requestedTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                          </div>
+                        </div>
+
+                        <div className="request-card-body">
+                          <div className="location-journey">
+                            <div className="location-point pickup-point">
+                              <div className="location-icon">📍</div>
+                              <div className="location-details">
+                                <span className="location-label">Pickup Location</span>
+                                <span className="location-address">{request.pickupLocation}</span>
+                              </div>
+                            </div>
+                            
+                            <div className="journey-line">
+                              <div className="journey-arrow">→</div>
+                            </div>
+                            
+                            <div className="location-point destination-point">
+                              <div className="location-icon">🏥</div>
+                              <div className="location-details">
+                                <span className="location-label">Destination</span>
+                                <span className="location-address">{request.destination}</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {request.vehicleNumber && (
+                            <div className="vehicle-info">
+                              <div className="vehicle-badge">
+                                <Truck size={16} />
+                                <span className="vehicle-label">Assigned Vehicle:</span>
+                                <span className="vehicle-number">{request.vehicleNumber}</span>
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="request-footer">
+                            <div className="request-priority">
+                              {request.requestedTime ? (
+                                <span className="scheduled-request">
+                                  <Calendar size={12} />
+                                  Scheduled Request
+                                </span>
+                              ) : (
+                                <span className="immediate-request">
+                                  <AlertTriangle size={12} />
+                                  Immediate Request
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}

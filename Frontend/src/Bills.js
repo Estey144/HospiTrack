@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import {
   Receipt,
@@ -20,7 +22,8 @@ import {
   MessageSquare,
   Menu,
   X,
-  User
+  User,
+  Download
 } from 'lucide-react';
 import './PatientDashboard.css';
 import './Bills.css';
@@ -208,6 +211,376 @@ const Bills = ({ currentUser }) => {
     return bills.filter(bill => bill.status?.toLowerCase() === 'overdue').length;
   };
 
+  // Enhanced PDF export function
+  const exportToPDF = () => {
+    try {
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 20;
+      let yPosition = margin;
+
+      // Header
+      pdf.setFontSize(24);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(0, 0, 139);
+      pdf.text('HospiTrack - Bills & Payment Report', margin, yPosition);
+      
+      yPosition += 15;
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(`Patient: ${user?.name || 'N/A'}`, margin, yPosition);
+      
+      yPosition += 7;
+      pdf.text(`Patient ID: ${user?.id || 'N/A'}`, margin, yPosition);
+      
+      yPosition += 7;
+      pdf.text(`Generated: ${new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })} at ${new Date().toLocaleTimeString()}`, margin, yPosition);
+      
+      yPosition += 20;
+
+      // Summary Box
+      pdf.setDrawColor(0, 123, 255);
+      pdf.setFillColor(240, 248, 255);
+      pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 25, 2, 2, 'FD');
+      
+      yPosition += 8;
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(0, 123, 255);
+      pdf.text('BILLING SUMMARY', margin + 5, yPosition);
+      
+      yPosition += 8;
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(`Total Balance: ${formatCurrency(getTotalBalance())}`, margin + 5, yPosition);
+      
+      yPosition += 6;
+      pdf.text(`Overdue Bills: ${getOverdueBills()}`, margin + 5, yPosition);
+      
+      yPosition += 6;
+      pdf.text(`Total Bills: ${filteredBills.length}`, margin + 5, yPosition);
+      
+      yPosition += 20;
+
+      // Bills Section Header
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(220, 53, 69);
+      pdf.text('BILLING DETAILS', margin, yPosition);
+      
+      yPosition += 15;
+
+      // Process each bill
+      filteredBills.forEach((bill, index) => {
+        // Check if we need a new page
+        if (yPosition > pageHeight - 100) {
+          pdf.addPage();
+          yPosition = margin;
+        }
+
+        // Bill header box
+        const statusColor = bill.status?.toLowerCase() === 'paid' ? [40, 167, 69] : 
+                           bill.status?.toLowerCase() === 'pending' ? [255, 193, 7] : 
+                           bill.status?.toLowerCase() === 'overdue' ? [220, 53, 69] : [108, 117, 125];
+        
+        pdf.setDrawColor(...statusColor);
+        pdf.setFillColor(248, 249, 250);
+        pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 40, 2, 2, 'FD');
+        
+        yPosition += 8;
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(`Invoice #${bill.id}`, margin + 5, yPosition);
+        
+        // Status badge
+        pdf.setTextColor(...statusColor);
+        pdf.text(`Status: ${bill.status?.toUpperCase() || 'UNKNOWN'}`, pageWidth - margin - 40, yPosition);
+        
+        yPosition += 8;
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(`Doctor: ${bill.doctorName || 'N/A'}`, margin + 10, yPosition);
+        
+        yPosition += 5;
+        pdf.text(`Department: ${bill.department || 'N/A'}`, margin + 10, yPosition);
+        
+        yPosition += 5;
+        pdf.text(`Visit Date: ${formatDate(bill.visitDate) || 'N/A'}`, margin + 10, yPosition);
+        
+        yPosition += 5;
+        pdf.text(`Appointment Type: ${bill.appointmentType || 'N/A'}`, margin + 10, yPosition);
+        
+        yPosition += 15;
+
+        // Bill items
+        if (bill.items && bill.items.length > 0) {
+          pdf.setFont('helvetica', 'bold');
+          pdf.text('Bill Items:', margin + 5, yPosition);
+          yPosition += 6;
+          
+          bill.items.forEach(item => {
+            pdf.setFont('helvetica', 'normal');
+            pdf.text(`• ${item.description}`, margin + 10, yPosition);
+            pdf.text(`${formatCurrency(item.amount)}`, pageWidth - margin - 30, yPosition);
+            yPosition += 5;
+          });
+          yPosition += 3;
+        }
+
+        // Total amount
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(12);
+        pdf.text(`Total Amount: ${formatCurrency(bill.totalAmount)}`, margin + 5, yPosition);
+        
+        yPosition += 20; // Space between bills
+      });
+
+      // Financial Summary at the end
+      if (yPosition > pageHeight - 60) {
+        pdf.addPage();
+        yPosition = margin;
+      } else {
+        yPosition += 10;
+      }
+
+      // Financial summary box
+      pdf.setDrawColor(40, 167, 69);
+      pdf.setFillColor(240, 255, 240);
+      pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 45, 2, 2, 'FD');
+      
+      yPosition += 8;
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(40, 167, 69);
+      pdf.text('FINANCIAL SUMMARY', margin + 5, yPosition);
+      
+      yPosition += 10;
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(10);
+      
+      const paidBills = filteredBills.filter(b => b.status?.toLowerCase() === 'paid');
+      const pendingBills = filteredBills.filter(b => b.status?.toLowerCase() === 'pending');
+      const overdueBills = filteredBills.filter(b => b.status?.toLowerCase() === 'overdue');
+      
+      const paidAmount = paidBills.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+      const pendingAmount = pendingBills.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+      const overdueAmount = overdueBills.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+      
+      // Split the content into two columns to fit better
+      const leftColumn = margin + 5;
+      const rightColumn = margin + (pageWidth - 2 * margin) / 2;
+      
+      pdf.text(`Paid Bills: ${paidBills.length}`, leftColumn, yPosition);
+      pdf.text(`Amount: ${formatCurrency(paidAmount)}`, rightColumn, yPosition);
+      yPosition += 6;
+      
+      pdf.text(`Pending Bills: ${pendingBills.length}`, leftColumn, yPosition);
+      pdf.text(`Amount: ${formatCurrency(pendingAmount)}`, rightColumn, yPosition);
+      yPosition += 6;
+      
+      pdf.text(`Overdue Bills: ${overdueBills.length}`, leftColumn, yPosition);
+      pdf.text(`Amount: ${formatCurrency(overdueAmount)}`, rightColumn, yPosition);
+
+      // Footer
+      const totalPages = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(108, 117, 125);
+        
+        // Footer line
+        pdf.setDrawColor(108, 117, 125);
+        pdf.line(margin, pageHeight - 20, pageWidth - margin, pageHeight - 20);
+        
+        // Footer text
+        pdf.text(`Page ${i} of ${totalPages}`, pageWidth - margin - 20, pageHeight - 10);
+        pdf.text('HospiTrack Patient Portal - Billing Report', margin, pageHeight - 10);
+        pdf.text('This is a digitally generated billing report', margin, pageHeight - 6);
+      }
+
+      pdf.save(`${user?.name || 'Patient'}_Billing_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (err) {
+      console.error('Error exporting PDF:', err);
+      alert('Failed to export PDF');
+    }
+  };
+
+  // Export individual bill to PDF
+  const exportIndividualBillToPDF = (bill) => {
+    try {
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 20;
+      let yPosition = margin;
+
+      // Header
+      pdf.setFontSize(22);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(0, 0, 139);
+      pdf.text('HospiTrack Medical Invoice', margin, yPosition);
+      
+      yPosition += 15;
+      pdf.setFontSize(16);
+      pdf.text(`Invoice #${bill.id}`, margin, yPosition);
+      
+      yPosition += 15;
+
+      // Patient Information Box
+      pdf.setDrawColor(0, 123, 255);
+      pdf.setFillColor(240, 248, 255);
+      pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 25, 2, 2, 'FD');
+      
+      yPosition += 8;
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(0, 123, 255);
+      pdf.text('PATIENT INFORMATION', margin + 5, yPosition);
+      
+      yPosition += 8;
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(`Name: ${user?.name || 'N/A'}`, margin + 5, yPosition);
+      yPosition += 6;
+      pdf.text(`Patient ID: ${user?.id || 'N/A'}`, margin + 5, yPosition);
+      
+      yPosition += 20;
+
+      // Service Information Box
+      pdf.setDrawColor(40, 167, 69);
+      pdf.setFillColor(240, 255, 240);
+      pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 35, 2, 2, 'FD');
+      
+      yPosition += 8;
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(40, 167, 69);
+      pdf.text('SERVICE INFORMATION', margin + 5, yPosition);
+      
+      yPosition += 8;
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(`Doctor: ${bill.doctorName || 'N/A'}`, margin + 5, yPosition);
+      yPosition += 6;
+      pdf.text(`Department: ${bill.department || 'N/A'}`, margin + 5, yPosition);
+      yPosition += 6;
+      pdf.text(`Appointment Type: ${bill.appointmentType || 'N/A'}`, margin + 5, yPosition);
+      yPosition += 6;
+      pdf.text(`Visit Date: ${formatDate(bill.visitDate) || 'N/A'}`, margin + 5, yPosition);
+      
+      yPosition += 20;
+
+      // Bill Items Section
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(220, 53, 69);
+      pdf.text('BILL ITEMS', margin, yPosition);
+      
+      yPosition += 10;
+
+      if (bill.items && bill.items.length > 0) {
+        // Table header
+        pdf.setDrawColor(108, 117, 125);
+        pdf.setFillColor(248, 249, 250);
+        pdf.rect(margin, yPosition, pageWidth - 2 * margin, 10, 'FD');
+        
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(0, 0, 0);
+        pdf.text('Description', margin + 5, yPosition + 7);
+        pdf.text('Amount', pageWidth - margin - 30, yPosition + 7);
+        
+        yPosition += 15;
+
+        // Table rows
+        bill.items.forEach((item, index) => {
+          if (index % 2 === 1) {
+            pdf.setFillColor(250, 250, 250);
+            pdf.rect(margin, yPosition - 3, pageWidth - 2 * margin, 8, 'F');
+          }
+          
+          pdf.setFont('helvetica', 'normal');
+          pdf.text(item.description, margin + 5, yPosition + 3);
+          pdf.text(formatCurrency(item.amount), pageWidth - margin - 30, yPosition + 3);
+          yPosition += 8;
+        });
+      } else {
+        pdf.setFont('helvetica', 'normal');
+        pdf.text('No items listed', margin + 5, yPosition);
+        yPosition += 10;
+      }
+
+      yPosition += 10;
+
+      // Total Amount Box
+      pdf.setDrawColor(255, 193, 7);
+      pdf.setFillColor(255, 252, 230);
+      pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 15, 2, 2, 'FD');
+      
+      yPosition += 10;
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(`TOTAL AMOUNT: ${formatCurrency(bill.totalAmount)}`, margin + 5, yPosition);
+      
+      yPosition += 20;
+
+      // Status Box
+      const statusColor = bill.status?.toLowerCase() === 'paid' ? [40, 167, 69] : 
+                         bill.status?.toLowerCase() === 'pending' ? [255, 193, 7] : 
+                         bill.status?.toLowerCase() === 'overdue' ? [220, 53, 69] : [108, 117, 125];
+      
+      pdf.setDrawColor(...statusColor);
+      pdf.setFillColor(255, 255, 255);
+      pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 15, 2, 2, 'FD');
+      
+      yPosition += 10;
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(...statusColor);
+      pdf.text(`STATUS: ${bill.status?.toUpperCase() || 'UNKNOWN'}`, margin + 5, yPosition);
+
+      // Footer information
+      yPosition = pageHeight - 50;
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(108, 117, 125);
+      pdf.text(`Issue Date: ${formatDate(bill.issueDate) || 'N/A'}`, margin, yPosition);
+      
+      yPosition += 6;
+      pdf.text(`Generated: ${new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })} at ${new Date().toLocaleTimeString()}`, margin, yPosition);
+
+      // Bottom line
+      pdf.setDrawColor(108, 117, 125);
+      pdf.line(margin, pageHeight - 20, pageWidth - margin, pageHeight - 20);
+      
+      yPosition = pageHeight - 15;
+      pdf.setFontSize(8);
+      pdf.text('HospiTrack Patient Portal - Medical Invoice', margin, yPosition);
+      pdf.text('This is a digitally generated invoice', pageWidth - margin - 60, yPosition);
+
+      pdf.save(`Invoice_${bill.id}_${user?.name || 'Patient'}.pdf`);
+    } catch (err) {
+      console.error('Error exporting individual bill PDF:', err);
+      alert('Failed to export bill PDF');
+    }
+  };
+
   if (loading) {
     return (
       <div className="bills-page">
@@ -311,6 +684,14 @@ const Bills = ({ currentUser }) => {
               <span className="summary-count overdue">{getOverdueBills()}</span>
             </div>
           </div>
+          <button 
+            className="export-pdf-btn"
+            onClick={exportToPDF}
+            title="Export all bills as comprehensive PDF report"
+          >
+            <Download className="btn-icon" />
+            Export All PDF
+          </button>
         </div>
       </div>
 
@@ -419,7 +800,17 @@ const Bills = ({ currentUser }) => {
               </section>
 
               <footer className="bill-total">
-                <strong>Total Amount:</strong> {formatCurrency(bill.totalAmount)}
+                <div className="bill-amount">
+                  <strong>Total Amount:</strong> {formatCurrency(bill.totalAmount)}
+                </div>
+                <button 
+                  className="bill-pdf-btn"
+                  onClick={() => exportIndividualBillToPDF(bill)}
+                  title="Export this bill as PDF"
+                >
+                  <Download size={16} />
+                  Export PDF
+                </button>
               </footer>
             </article>
           ))

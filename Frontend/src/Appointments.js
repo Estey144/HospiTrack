@@ -604,15 +604,18 @@ const Appointments = ({ currentUser }) => {
               </div>
 
               <div className="patient-appointment-card-body">
-                <div className="patient-appointment-detail">
-                  <div className="patient-appointment-detail-icon" aria-hidden="true">🏥</div>
-                  <div className="patient-appointment-detail-content">
-                    <span className="patient-appointment-detail-label">Department</span>
-                    <span className="patient-appointment-detail-value">
-                      {appointment.department || appointment.SPECIALIZATION}
-                    </span>
+                {/* Only show department if it exists in the data */}
+                {(appointment.department || appointment.SPECIALIZATION) && (
+                  <div className="patient-appointment-detail">
+                    <div className="patient-appointment-detail-icon" aria-hidden="true">🏥</div>
+                    <div className="patient-appointment-detail-content">
+                      <span className="patient-appointment-detail-label">Department</span>
+                      <span className="patient-appointment-detail-value">
+                        {appointment.department || appointment.SPECIALIZATION}
+                      </span>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="patient-appointment-detail">
                   <div className="patient-appointment-detail-icon" aria-hidden="true">📅</div>
@@ -626,19 +629,14 @@ const Appointments = ({ currentUser }) => {
                   <div className="patient-appointment-detail-icon" aria-hidden="true">⏰</div>
                   <div className="patient-appointment-detail-content">
                     <span className="patient-appointment-detail-label">Time</span>
-                    <span className="patient-appointment-detail-value">{formatTime(appointment.time)}</span>
+                    <span className="patient-appointment-detail-value">
+                      {formatTime(appointment.time || appointment.appointmentTime || appointment.timeSlot)}
+                    </span>
                   </div>
                 </div>
               </div>
 
               <div className="patient-appointment-card-footer">
-                <button
-                  className="patient-appointment-btn patient-appointment-btn-secondary"
-                  aria-label={`Reschedule appointment with ${appointment.doctorName || appointment.DOCTORNAME}`}
-                  onClick={() => handleReschedule(appointment.id)}
-                >
-                  Reschedule
-                </button>
                 <button
                   className="patient-appointment-btn patient-appointment-btn-primary"
                   aria-label={`View details of appointment with ${appointment.doctorName || appointment.DOCTORNAME}`}
@@ -866,74 +864,91 @@ const Appointments = ({ currentUser }) => {
             </div>
 
             <div className="patient-appointment-details-content">
-              {/* Doctor Information */}
-              <div className="details-section">
-                <h3 className="details-section-title">
-                  <User size={20} />
-                  Doctor Information
-                </h3>
-                <div className="details-grid">
-                  <div className="details-item">
-                    <span className="details-label">Doctor Name</span>
-                    <span className="details-value">
-                      {selectedAppointment.doctorName || selectedAppointment.DOCTORNAME || 'Not specified'}
-                    </span>
+              {/* Doctor Profile Card */}
+              <div className="details-section doctor-profile-section">
+                <div className="doctor-profile-header">
+                  <div className="doctor-avatar">
+                    {(selectedAppointment.doctorName || selectedAppointment.DOCTORNAME || 'D').charAt(0).toUpperCase()}
                   </div>
-                  <div className="details-item">
-                    <span className="details-label">Department</span>
-                    <span className="details-value">
-                      {selectedAppointment.department || selectedAppointment.SPECIALIZATION || selectedAppointment.specialty || 'Not specified'}
-                    </span>
+                  <div className="doctor-info">
+                    <h3 className="doctor-name">
+                      {selectedAppointment.doctorName || selectedAppointment.DOCTORNAME || 'Not specified'}
+                    </h3>
+                    {/* Only show specialty/department if it exists */}
+                    {(selectedAppointment.department || selectedAppointment.SPECIALIZATION || selectedAppointment.specialty) && (
+                      <p className="doctor-specialty">
+                        {selectedAppointment.department || selectedAppointment.SPECIALIZATION || selectedAppointment.specialty}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Appointment Information */}
-              <div className="details-section">
+              {/* Appointment Summary Card */}
+              <div className="details-section appointment-summary-section">
                 <h3 className="details-section-title">
                   <Calendar size={20} />
-                  Appointment Information
+                  Appointment Summary
                 </h3>
-                <div className="details-grid">
-                  <div className="details-item">
-                    <span className="details-label">Date</span>
-                    <span className="details-value">
-                      {formatDate(selectedAppointment.date || selectedAppointment.dateTime || selectedAppointment.appointmentDate)}
-                    </span>
+                <div className="appointment-summary-grid">
+                  <div className="summary-item primary-info">
+                    <div className="summary-icon">📅</div>
+                    <div className="summary-content">
+                      <span className="summary-label">Date & Time</span>
+                      <span className="summary-value">
+                        {formatDate(selectedAppointment.date || selectedAppointment.dateTime || selectedAppointment.appointmentDate)}
+                      </span>
+                      <span className="summary-time">
+                        {formatTime(selectedAppointment.time || selectedAppointment.appointmentTime)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="details-item">
-                    <span className="details-label">Time</span>
-                    <span className="details-value">
-                      {formatTime(selectedAppointment.time || selectedAppointment.appointmentTime)}
-                    </span>
+                  
+                  <div className="summary-item">
+                    <div className="summary-icon">🏥</div>
+                    <div className="summary-content">
+                      <span className="summary-label">Appointment Type</span>
+                      <span className="summary-value">
+                        {selectedAppointment.type || 'General Consultation'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="details-item">
-                    <span className="details-label">Type</span>
-                    <span className="details-value">
-                      {selectedAppointment.type || 'Not specified'}
-                    </span>
-                  </div>
-                  <div className="details-item">
-                    <span className="details-label">Appointment ID</span>
-                    <span className="details-value details-id">
-                      {selectedAppointment.id ? selectedAppointment.id.substring(0, 8) : 'N/A'}
-                    </span>
+
+                  <div className="summary-item status-item">
+                    <div className="summary-icon">
+                      {selectedAppointment.status === 'confirmed' ? '✅' : 
+                       selectedAppointment.status === 'pending' ? '⏳' : 
+                       selectedAppointment.status === 'cancelled' ? '❌' : 
+                       selectedAppointment.status === 'completed' ? '✔️' : '📋'}
+                    </div>
+                    <div className="summary-content">
+                      <span className="summary-label">Status</span>
+                      <span className={`summary-status ${getStatusBadgeClass(selectedAppointment.status)}`}>
+                        {selectedAppointment.status?.toUpperCase() || 'PENDING'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Additional Information */}
-              <div className="details-section">
+              {/* Important Notes */}
+              <div className="details-section notes-section">
                 <h3 className="details-section-title">
                   <FileText size={20} />
-                  Additional Information
+                  Important Information
                 </h3>
-                <div className="details-grid">
-                  <div className="details-item">
-                    <span className="details-label">Status</span>
-                    <span className={`details-value details-status ${getStatusBadgeClass(selectedAppointment.status)}`}>
-                      {selectedAppointment.status}
-                    </span>
+                <div className="notes-content">
+                  <div className="note-item">
+                    <span className="note-icon">💡</span>
+                    <span className="note-text">Please arrive 15 minutes before your scheduled appointment time.</span>
+                  </div>
+                  <div className="note-item">
+                    <span className="note-icon">📋</span>
+                    <span className="note-text">Bring your insurance card and any relevant medical documents.</span>
+                  </div>
+                  <div className="note-item">
+                    <span className="note-icon">📞</span>
+                    <span className="note-text">Contact us at least 24 hours in advance if you need to reschedule.</span>
                   </div>
                 </div>
               </div>
@@ -941,14 +956,20 @@ const Appointments = ({ currentUser }) => {
               {/* Action Buttons */}
               <div className="details-actions">
                 <button
-                  className="patient-appointment-btn patient-appointment-btn-secondary"
-                  onClick={() => {
-                    setShowDetailsModal(false);
-                    handleReschedule(selectedAppointment.id);
-                  }}
+                  className="patient-appointment-btn patient-appointment-btn-disabled"
+                  disabled
+                  title="Rescheduling is temporarily unavailable"
                 >
                   <Calendar size={16} />
                   Reschedule
+                </button>
+                <button
+                  className="patient-appointment-btn patient-appointment-btn-disabled"
+                  disabled
+                  title="Cancellation is temporarily unavailable"
+                >
+                  <X size={16} />
+                  Cancel
                 </button>
                 <button
                   className="patient-appointment-btn patient-appointment-btn-primary"

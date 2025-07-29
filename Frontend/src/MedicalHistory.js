@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   FileText, ArrowLeft, Home, Calendar, Stethoscope, 
@@ -140,6 +142,231 @@ const MedicalHistory = () => {
     setExpandedRecord(expandedRecord === recordId ? null : recordId);
   };
 
+  // Enhanced PDF export function
+  const exportMedicalRecordsToPDF = () => {
+    try {
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 20;
+      let yPosition = margin;
+
+      // Header
+      pdf.setFontSize(24);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(0, 0, 139);
+      pdf.text('HospiTrack - Medical History Report', margin, yPosition);
+      
+      yPosition += 15;
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(`Patient: ${user?.username || 'N/A'}`, margin, yPosition);
+      
+      yPosition += 7;
+      pdf.text(`Patient ID: ${user?.id || 'N/A'}`, margin, yPosition);
+      
+      yPosition += 7;
+      pdf.text(`Generated: ${new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })} at ${new Date().toLocaleTimeString()}`, margin, yPosition);
+      
+      yPosition += 20;
+
+      // Summary Box
+      pdf.setDrawColor(0, 123, 255);
+      pdf.setFillColor(240, 248, 255);
+      pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 30, 2, 2, 'FD');
+      
+      yPosition += 8;
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(0, 123, 255);
+      pdf.text('MEDICAL HISTORY SUMMARY', margin + 5, yPosition);
+      
+      yPosition += 8;
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(10);
+      
+      const totalRecords = medicalRecords.length;
+      const lastVisit = medicalRecords[0]?.date ? formatDate(medicalRecords[0].date) : 'N/A';
+      
+      // Get most common type
+      const typeCounts = medicalRecords.reduce((acc, record) => {
+        const type = record.type || 'Unknown';
+        acc[type] = (acc[type] || 0) + 1;
+        return acc;
+      }, {});
+      const mostCommonType = Object.keys(typeCounts).reduce((a, b) => 
+        typeCounts[a] > typeCounts[b] ? a : b, 'N/A');
+      
+      pdf.text(`Total Records: ${totalRecords}`, margin + 5, yPosition);
+      pdf.text(`Last Visit: ${lastVisit}`, margin + 90, yPosition);
+      yPosition += 6;
+      pdf.text(`Most Common Type: ${mostCommonType}`, margin + 5, yPosition);
+      pdf.text(`Filtered Records: ${filteredRecords.length}`, margin + 90, yPosition);
+      
+      yPosition += 20;
+
+      // Medical Records Section Header
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(40, 167, 69);
+      pdf.text('MEDICAL RECORDS', margin, yPosition);
+      
+      yPosition += 15;
+
+      // Process each medical record
+      filteredRecords.forEach((record, index) => {
+        // Check if we need a new page
+        if (yPosition > pageHeight - 80) {
+          pdf.addPage();
+          yPosition = margin;
+        }
+
+        // Record type color coding
+        const typeColors = {
+          'consultation': [0, 123, 255],
+          'emergency': [220, 53, 69],
+          'preventive': [40, 167, 69],
+          'specialist': [23, 162, 184],
+          'follow-up': [255, 193, 7]
+        };
+        const recordColor = typeColors[record.type?.toLowerCase()] || [108, 117, 125];
+        
+        // Record header box
+        pdf.setDrawColor(...recordColor);
+        pdf.setFillColor(248, 249, 250);
+        pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 35, 2, 2, 'FD');
+        
+        yPosition += 8;
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(`${index + 1}. ${record.diagnosis || 'No diagnosis available'}`, margin + 5, yPosition);
+        
+        // Type badge
+        pdf.setTextColor(...recordColor);
+        pdf.text(`${record.type || 'Unknown'}`, pageWidth - margin - 40, yPosition);
+        
+        yPosition += 8;
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFontSize(10);
+        pdf.text(`Date: ${formatDate(record.date)}`, margin + 10, yPosition);
+        
+        yPosition += 5;
+        pdf.text(`Doctor: ${record.doctorName || 'Unknown Doctor'}`, margin + 10, yPosition);
+        
+        yPosition += 5;
+        pdf.text(`Department: ${record.department || 'Unknown Department'}`, margin + 10, yPosition);
+        
+        // Additional details if available
+        if (record.symptoms) {
+          yPosition += 5;
+          const symptomsText = `Symptoms: ${record.symptoms}`;
+          const symptomsLines = pdf.splitTextToSize(symptomsText, pageWidth - 2 * margin - 20);
+          symptomsLines.forEach(line => {
+            pdf.text(line, margin + 10, yPosition);
+            yPosition += 4;
+          });
+        }
+        
+        if (record.treatment) {
+          yPosition += 2;
+          const treatmentText = `Treatment: ${record.treatment}`;
+          const treatmentLines = pdf.splitTextToSize(treatmentText, pageWidth - 2 * margin - 20);
+          treatmentLines.forEach(line => {
+            pdf.text(line, margin + 10, yPosition);
+            yPosition += 4;
+          });
+        }
+        
+        if (record.medications) {
+          yPosition += 2;
+          const medicationsText = `Medications: ${record.medications}`;
+          const medicationsLines = pdf.splitTextToSize(medicationsText, pageWidth - 2 * margin - 20);
+          medicationsLines.forEach(line => {
+            pdf.text(line, margin + 10, yPosition);
+            yPosition += 4;
+          });
+        }
+        
+        if (record.notes) {
+          yPosition += 2;
+          const notesText = `Notes: ${record.notes}`;
+          const notesLines = pdf.splitTextToSize(notesText, pageWidth - 2 * margin - 20);
+          notesLines.forEach(line => {
+            pdf.text(line, margin + 10, yPosition);
+            yPosition += 4;
+          });
+        }
+        
+        yPosition += 15; // Space between records
+      });
+
+      // Statistics Summary at the end
+      if (yPosition > pageHeight - 60) {
+        pdf.addPage();
+        yPosition = margin;
+      } else {
+        yPosition += 10;
+      }
+
+      // Statistics summary box
+      pdf.setDrawColor(155, 89, 182);
+      pdf.setFillColor(248, 240, 252);
+      pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 40, 2, 2, 'FD');
+      
+      yPosition += 8;
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(155, 89, 182);
+      pdf.text('STATISTICS BREAKDOWN', margin + 5, yPosition);
+      
+      yPosition += 8;
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(10);
+      
+      // Calculate statistics
+      const typeStats = Object.entries(typeCounts);
+      
+      typeStats.forEach(([type, count], index) => {
+        const percentage = ((count / totalRecords) * 100).toFixed(1);
+        pdf.text(`${type}: ${count} records (${percentage}%)`, margin + 5, yPosition);
+        yPosition += 5;
+      });
+
+      // Footer
+      const totalPages = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(108, 117, 125);
+        
+        // Footer line
+        pdf.setDrawColor(108, 117, 125);
+        pdf.line(margin, pageHeight - 20, pageWidth - margin, pageHeight - 20);
+        
+        // Footer text
+        pdf.text(`Page ${i} of ${totalPages}`, pageWidth - margin - 20, pageHeight - 10);
+        pdf.text('HospiTrack Patient Portal - Medical History', margin, pageHeight - 10);
+        pdf.text('This is a digitally generated medical report', margin, pageHeight - 6);
+      }
+
+      pdf.save(`${user?.username || 'Patient'}_Medical_History_${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (err) {
+      console.error('Error exporting medical records PDF:', err);
+      alert('Failed to export medical records PDF');
+    }
+  };
+
   if (loading) {
     return (
       <div className="medical-history-page">
@@ -242,7 +469,7 @@ const MedicalHistory = () => {
           </div>
         </div>
         <div className="medical-history-header-right">
-          <button className="btn btn-outline">
+          <button className="btn btn-outline" onClick={exportMedicalRecordsToPDF} title="Export complete medical history as PDF">
             <Download size={16} />
             Export Records
           </button>

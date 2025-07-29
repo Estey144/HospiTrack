@@ -1,7 +1,12 @@
 /* Insurance Page Styles */
+.insurance-page-container {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  min-height: 100vh;
+}
+
 .insurance-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  background: transparent;
   padding: 2rem;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
@@ -57,8 +62,15 @@
 
 .insurance-header-left {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 1rem;
+  flex: 1;
+}
+
+.insurance-page-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .insurance-title-with-sidebar {
@@ -71,12 +83,26 @@
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.insurance-page-title p {
+  color: #64748b;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 .insurance-header-right {
   display: flex;
   gap: 1rem;
+  align-items: center;
 }
 
 /* Navigation Buttons */
@@ -170,15 +196,24 @@
   font-size: 1rem;
 }
 
+/* Insurance Cards Container for PDF Export */
+.insurance-cards-container {
+  background: white;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
 /* Quick Stats */
 .insurance-quick-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+  padding: 0.5rem;
 }
 
-.stat-card {
+.insurance-page-container .insurance-page .stat-card {
   background: white !important;
   padding: 1.5rem;
   border-radius: 1rem;
@@ -190,14 +225,14 @@
   transition: all 0.3s ease;
 }
 
-.stat-card:hover {
+.insurance-page-container .insurance-page .stat-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.15);
 }
 
-.stat-icon {
+.insurance-page-container .insurance-page .stat-icon {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  color: white;
+  color: white !important;
   padding: 0.75rem;
   border-radius: 0.75rem;
   display: flex;
@@ -205,22 +240,24 @@
   justify-content: center;
 }
 
-.stat-info {
+.insurance-page-container .insurance-page .stat-info {
   display: flex;
   flex-direction: column;
   color: inherit;
 }
 
-.stat-label {
+.insurance-page-container .insurance-page .stat-label {
   font-size: 0.875rem;
   color: #64748b !important;
   font-weight: 500;
+  margin: 0;
 }
 
-.stat-value {
+.insurance-page-container .insurance-page .stat-value {
   font-size: 1.5rem;
   font-weight: 700;
   color: #1e293b !important;
+  margin: 0;
 }
 
 /* Tabs */

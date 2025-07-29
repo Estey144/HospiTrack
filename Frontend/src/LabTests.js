@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { 
   FlaskConical, 
@@ -178,6 +180,117 @@ const LabTests = ({ currentUser }) => {
     setShowTestDetails(true);
   };
 
+  // Export all lab test results to PDF
+  const exportLabResultsToPDF = () => {
+    const input = document.querySelector('.lab-tests-container');
+
+    if (!input) {
+      alert('Lab test data not found!');
+      return;
+    }
+
+    html2canvas(input, { 
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff'
+    }).then(canvas => {
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      
+      // Add title and header
+      pdf.setFontSize(18);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Lab Test Results', 20, 20);
+      
+      // Add user info if available
+      if (user?.name) {
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(`Patient: ${user.name}`, 20, 30);
+        pdf.text(`Patient ID: ${user.id}`, 20, 38);
+      }
+      
+      // Add generation date
+      pdf.setFontSize(10);
+      pdf.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 20, 46);
+
+      // Calculate image dimensions
+      const startY = 55;
+      const availableHeight = pdf.internal.pageSize.getHeight() - startY - 20;
+      const scaledHeight = Math.min((imgProps.height * pdfWidth) / imgProps.width, availableHeight);
+
+      pdf.addImage(imgData, 'PNG', 0, startY, pdfWidth, scaledHeight);
+      pdf.save(`${user?.name ? user.name.replace(/\s+/g, '_') + '_' : ''}lab-test-results.pdf`);
+    }).catch(err => {
+      console.error('Error exporting PDF:', err);
+      alert('Failed to export PDF');
+    });
+  };
+
+  // Export individual test result to PDF
+  const exportIndividualTestToPDF = (test) => {
+    if (!test) {
+      alert('Test data not found!');
+      return;
+    }
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    
+    // Add title and header
+    pdf.setFontSize(18);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Lab Test Result', 20, 20);
+    
+    // Add user info
+    if (user?.name) {
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Patient: ${user.name}`, 20, 35);
+      pdf.text(`Patient ID: ${user.id}`, 20, 43);
+    }
+    
+    // Add test details
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Test Information:', 20, 60);
+    
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'normal');
+    let yPos = 70;
+    
+    const addTestDetail = (label, value) => {
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`${label}:`, 20, yPos);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(value || 'N/A', 70, yPos);
+      yPos += 8;
+    };
+    
+    addTestDetail('Test ID', test.id);
+    addTestDetail('Test Type', test.testType);
+    addTestDetail('Test Date', formatDate(test.testDate));
+    addTestDetail('Ordered by', test.doctorName);
+    addTestDetail('Result', test.result);
+    
+    if (test.fileUrl) {
+      yPos += 5;
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Report URL:', 20, yPos);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(test.fileUrl, 20, yPos + 8);
+    }
+    
+    // Add generation timestamp
+    yPos += 20;
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'italic');
+    pdf.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 20, yPos);
+    
+    pdf.save(`${user?.name ? user.name.replace(/\s+/g, '_') + '_' : ''}${test.testType ? test.testType.replace(/\s+/g, '_') + '_' : ''}test-result.pdf`);
+  };
+
   if (loading) {
     return (
       <div className="lab-tests-page">
@@ -281,7 +394,7 @@ const LabTests = ({ currentUser }) => {
               </div>
             </div>
             <div className="lab-tests-header-right">
-              <button className="btn btn-outline">
+              <button className="btn btn-outline" onClick={exportLabResultsToPDF}>
                 <Download size={16} />
                 Export Results
               </button>
@@ -340,6 +453,17 @@ const LabTests = ({ currentUser }) => {
                   >
                     <Eye size={14} />
                     View Details
+                  </button>
+                  <button 
+                    className="btn btn-outline btn-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      exportIndividualTestToPDF(test);
+                    }}
+                    title="Download PDF report"
+                  >
+                    <Download size={14} />
+                    PDF
                   </button>
                   <div className="test-expand-button">
                     {expandedTest === test.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -414,7 +538,7 @@ const LabTests = ({ currentUser }) => {
               <button className="btn btn-outline" onClick={() => setShowTestDetails(false)}>
                 Close
               </button>
-              <button className="btn btn-outline">
+              <button className="btn btn-outline" onClick={() => exportIndividualTestToPDF(selectedTest)}>
                 <Download size={16} />
                 Download PDF
               </button>

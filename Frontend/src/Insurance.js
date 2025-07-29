@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { 
   Shield, 
@@ -376,6 +378,96 @@ const Insurance = ({ currentUser }) => {
     setShowAddInsurance(true);
   };
 
+  // Export insurance cards to PDF
+  const exportInsuranceCardsToPDF = () => {
+    const input = document.querySelector('.insurance-cards-container');
+
+    if (!input) {
+      // If no specific container found, export the whole insurance content
+      const fallbackInput = document.querySelector('.insurance-page-container');
+      if (!fallbackInput) {
+        alert('Insurance data not found! Please navigate to the Plans or Overview tab to export cards.');
+        return;
+      }
+      
+      html2canvas(fallbackInput, { 
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+        // Add title to PDF
+        pdf.setFontSize(16);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Insurance Cards & Information', 20, 20);
+        
+        // Add current date
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
+
+        // Add the image below the title
+        const startY = 40;
+        const availableHeight = pdf.internal.pageSize.getHeight() - startY - 20;
+        const scaledHeight = Math.min(pdfHeight, availableHeight);
+        const scaledWidth = (scaledHeight * imgProps.width) / imgProps.height;
+
+        pdf.addImage(imgData, 'PNG', 20, startY, scaledWidth, scaledHeight);
+        pdf.save('insurance-cards.pdf');
+      }).catch(err => {
+        console.error('Error exporting PDF:', err);
+        alert('Failed to export PDF');
+      });
+      return;
+    }
+
+    html2canvas(input, { 
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      scrollX: 0,
+      scrollY: 0
+    }).then(canvas => {
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      
+      // Add title and header
+      pdf.setFontSize(18);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Insurance Cards', 20, 20);
+      
+      // Add user info if available
+      if (user?.name) {
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(`Patient: ${user.name}`, 20, 30);
+        pdf.text(`Patient ID: ${user.id}`, 20, 38);
+      }
+      
+      // Add generation date
+      pdf.setFontSize(10);
+      pdf.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 20, 46);
+
+      // Calculate image dimensions
+      const startY = 55;
+      const availableHeight = pdf.internal.pageSize.getHeight() - startY - 20;
+      const scaledHeight = Math.min((imgProps.height * pdfWidth) / imgProps.width, availableHeight);
+
+      pdf.addImage(imgData, 'PNG', 0, startY, pdfWidth, scaledHeight);
+      pdf.save(`${user?.name ? user.name.replace(/\s+/g, '_') + '_' : ''}insurance-cards.pdf`);
+    }).catch(err => {
+      console.error('Error exporting PDF:', err);
+      alert('Failed to export PDF. Please make sure you are on the Plans or Overview tab.');
+    });
+  };
+
   return (
     <div className="patient-dashboard-wrapper">
       {/* Sidebar Overlay for mobile */}
@@ -443,6 +535,7 @@ const Insurance = ({ currentUser }) => {
 
       {/* Main Content */}
       <div className="patient-main">
+        <div className="insurance-page-container">
         <div className="insurance-page">
       {/* Header */}
       <div className="insurance-header">
@@ -465,7 +558,7 @@ const Insurance = ({ currentUser }) => {
             <Plus size={16} />
             Add Insurance
           </button>
-          <button className="btn btn-outline">
+          <button className="btn btn-outline" onClick={exportInsuranceCardsToPDF}>
             <Download size={16} />
             Download Cards
           </button>
@@ -548,6 +641,7 @@ const Insurance = ({ currentUser }) => {
       <div className="tab-content">
         {activeTab === 'overview' && (
           <div className="overview-content">
+            <div className="insurance-cards-container">
             {/* Primary Insurance Card */}
             {primaryInsurance && (
               <div className="insurance-card primary-card">
@@ -654,11 +748,13 @@ const Insurance = ({ currentUser }) => {
                 ))}
               </div>
             </div>
+            </div>
           </div>
         )}
 
         {activeTab === 'plans' && (
           <div className="plans-content">
+            <div className="insurance-cards-container">
             <div className="plans-grid">
               {insurancePlans.map((plan) => (
                 <div key={plan.id} className={`insurance-plan-card ${plan.isPrimary ? 'primary-plan' : ''}`}>
@@ -730,6 +826,7 @@ const Insurance = ({ currentUser }) => {
                   </div>
                 </div>
               ))}
+            </div>
             </div>
           </div>
         )}
@@ -1071,6 +1168,7 @@ const Insurance = ({ currentUser }) => {
           </div>
         </div>
       )}
+        </div>
         </div>
       </div>
     </div>
