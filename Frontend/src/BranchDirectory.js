@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './Branches.css';
+import { axiosCompatible } from './utils/api';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
@@ -24,7 +25,7 @@ const Branches = () => {
   const fetchBranches = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/api/branches`);
+      const response = await axiosCompatible.get(`${API_BASE_URL}/api/branches`);
       setBranches(response.data);
       setFilteredBranches(response.data);
     } catch (error) {
@@ -45,7 +46,7 @@ const Branches = () => {
 
     try {
       setSearching(true);
-      const response = await axios.get(`${API_BASE_URL}/api/branches/search`, {
+      const response = await axiosCompatible.get(`${API_BASE_URL}/api/branches/search`, {
         params: { query: query.trim() }
       });
       setFilteredBranches(response.data);

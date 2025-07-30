@@ -30,8 +30,9 @@ const Login = ({ setUser }) => {  // Accept setUser here
       .then(data => {
         const role = data.user.role.trim().toLowerCase();
 
-        // Save user in localStorage
+        // Save user and token in localStorage
         localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('token', data.token);
 
         // Update user state in App component
         setUser(data.user);

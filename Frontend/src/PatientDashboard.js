@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, DollarSign, FileText, Shield, Ambulance, Video, TestTube, ChevronRight, AlertCircle, Loader, Home, Brain, MessageSquare, Menu, X, User } from 'lucide-react';
 import './PatientDashboard.css';
+import { apiCall } from './utils/api';
 
 const PatientDashboard = () => {
   const navigate = useNavigate();
@@ -15,17 +16,13 @@ const PatientDashboard = () => {
 
   useEffect(() => {
     const fetchUpcomingAppointments = async () => {
+      if (!user?.id) return;
+
       try {
-        const response = await fetch(`http://localhost:8080/api/appointments/patient/${user?.id}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        if (!response.ok) throw new Error('Failed to fetch appointments');
-        const data = await response.json();
+        const data = await apiCall(`/appointments/patient/${user.id}`);
         setUpcomingAppointments(data);
         console.log('Upcoming appointments:', data);
+        setError(prev => ({ ...prev, appointments: null }));
       } catch (err) {
         setError(prev => ({ ...prev, appointments: err.message }));
       } finally {
@@ -40,16 +37,7 @@ const PatientDashboard = () => {
       if (!user?.id) return;
 
       try {
-        const response = await fetch(`http://localhost:8080/api/bills?userId=${user.id}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (!response.ok) throw new Error('Failed to fetch bills');
-
-        const data = await response.json();
+        const data = await apiCall(`/bills?userId=${user.id}`);
 
         // Filter only pending bills here (or you can filter on backend)
         const pending = data.filter(bill => bill.status?.toLowerCase() === 'pending');

@@ -12,6 +12,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { apiCall } from './utils/api';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -397,8 +398,9 @@ const AdminDashboard = () => {
     setError(null);
     try {
       const endpoint = getApiEndpoint(entity);
-      const res = await fetch(`${API_BASE}${endpoint}`);
-      if (!res.ok) {
+      const data = await apiCall(endpoint);
+      
+      if (!data) {
         console.warn(`API call failed for ${entity}, using sample data`);
         const sampleData = getSampleData(entity);
         switch (entity) {
@@ -419,7 +421,6 @@ const AdminDashboard = () => {
           default: break;
         }
       } else {
-        const data = await res.json();
         console.log(`Fetched ${entity} data:`, data);
         
         // Transform and set data based on entity type
@@ -728,24 +729,17 @@ const AdminDashboard = () => {
     setLoading(true);
 
     const entity = getApiEntityName(formType);
-    const endpoint = getCrudEndpoint(entity);
-    const url = `${API_BASE}${endpoint}${formMode === 'edit' ? `/${formData.id}` : ''}`;
+    const baseEndpoint = getCrudEndpoint(entity);
+    const endpoint = `${baseEndpoint}${formMode === 'edit' ? `/${formData.id}` : ''}`;
     const method = formMode === 'edit' ? 'PUT' : 'POST';
 
-    console.log(`Attempting to ${method} ${entity} at URL: ${url}`, formData);
+    console.log(`Attempting to ${method} ${entity} at endpoint: ${endpoint}`, formData);
 
     try {
-      const res = await fetch(url, {
+      const data = await apiCall(endpoint, {
         method,
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-      
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error(`${method} failed with status ${res.status}:`, errorText);
-        throw new Error(`Failed to save data: ${errorText}`);
-      }
       
       console.log(`Successfully ${formMode === 'edit' ? 'updated' : 'created'} ${entity}`);
       await fetchData(entity);
@@ -765,24 +759,11 @@ const AdminDashboard = () => {
     setLoading(true);
     try {
       const entity = getApiEntityName(type);
-      const endpoint = getCrudEndpoint(entity);
-      console.log(`Attempting to delete ${entity} with ID ${id} at endpoint: ${API_BASE}${endpoint}/${id}`);
+      const baseEndpoint = getCrudEndpoint(entity);
+      const endpoint = `${baseEndpoint}/${id}`;
+      console.log(`Attempting to delete ${entity} with ID ${id} at endpoint: ${endpoint}`);
       
-      const res = await fetch(`${API_BASE}${endpoint}/${id}`, { method: 'DELETE' });
-      
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error(`Delete failed with status ${res.status}:`, errorText);
-        
-        // Try to provide a more helpful error message
-        if (res.status === 500) {
-          throw new Error('Cannot delete this record. It may be referenced by other data in the system.');
-        } else if (res.status === 404) {
-          throw new Error('Record not found.');
-        } else {
-          throw new Error(`Failed to delete: ${errorText}`);
-        }
-      }
+      await apiCall(endpoint, { method: 'DELETE' });
       
       console.log(`Successfully deleted ${entity} with ID ${id}`);
       await fetchData(entity);

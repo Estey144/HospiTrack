@@ -49,7 +49,7 @@ public class AmbulanceRequestController {
                     "message", "Ambulance request created successfully"
             ));
         } catch (RuntimeException e) {
-            // If it's our known error (like no ambulance), return 503
+            // return 503
             if (e.getMessage().contains("busy")) {
                 return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                         .body(Map.of("error", e.getMessage()));

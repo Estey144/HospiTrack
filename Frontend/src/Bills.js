@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import './PatientDashboard.css';
 import './Bills.css';
+import { apiCall } from './utils/api';
 
 const Bills = ({ currentUser }) => {
   const navigate = useNavigate();

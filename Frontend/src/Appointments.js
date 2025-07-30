@@ -5,6 +5,7 @@ import { Calendar, DollarSign, FileText, Shield, Ambulance, Video, TestTube, Bra
 import './Appointments.css';
 import './PatientDashboard.css';
 import { v4 as uuidv4 } from 'uuid';
+import { apiCall, axiosCompatible } from './utils/api';
 
 const Appointments = ({ currentUser }) => {
   const navigate = useNavigate();
@@ -118,11 +119,8 @@ const Appointments = ({ currentUser }) => {
     setIsLoadingAppointments(true);
     setAppointmentError('');
     try {
-      const response = await axios.get(`http://localhost:8080/api/appointments/patient/${user.id}`, {
-        withCredentials: true
-      });
-
-      setPatientAppointments(response.data);
+      const data = await apiCall(`/appointments/patient/${user.id}`);
+      setPatientAppointments(data);
     } catch (error) {
       console.error('Failed to fetch appointments:', error);
       setAppointmentError('Failed to fetch appointments.');
@@ -136,9 +134,9 @@ const Appointments = ({ currentUser }) => {
     try {
       // Try to fetch from API first
       const [doctorsRes, departmentsRes, branchesRes] = await Promise.all([
-        axios.get('http://localhost:8080/api/doctors', { withCredentials: true }),
-        axios.get('http://localhost:8080/api/departments', { withCredentials: true }),
-        axios.get('http://localhost:8080/api/branches', { withCredentials: true })
+        axiosCompatible.get('http://localhost:8080/api/doctors'),
+        axiosCompatible.get('http://localhost:8080/api/departments'),
+        axiosCompatible.get('http://localhost:8080/api/branches')
       ]);
 
       console.log('Doctors API response:', doctorsRes.data);
@@ -234,10 +232,8 @@ const Appointments = ({ currentUser }) => {
     setIsLoadingSlots(true);
     setFormErrors(prev => ({ ...prev, time: '' }));
     try {
-      const response = await axios.get(`http://localhost:8080/api/appointments/available-slots/${doctorId}/${date}`, {
-        withCredentials: true
-      });
-      setAvailableSlots(response.data);
+      const data = await apiCall(`/appointments/available-slots/${doctorId}/${date}`);
+      setAvailableSlots(data);
     } catch (error) {
       console.error('Failed to fetch available slots:', error);
       console.log('Using mock time slots for testing...');
@@ -332,15 +328,13 @@ const Appointments = ({ currentUser }) => {
       const appointmentId = uuidv4();
 
       // POST to /api/appointments/user/{userId}, backend will map to patientId
-      await axios.post(`http://localhost:8080/api/appointments/user/${user.id}`, {
+      await axiosCompatible.post(`http://localhost:8080/api/appointments/user/${user.id}`, {
         id: appointmentId,
         doctorId: newAppointment.doctorId,
         appointmentDate: newAppointment.date,
         timeSlot: newAppointment.time,
         type: newAppointment.type,
         status: 'pending'
-      }, {
-        withCredentials: true
       });
 
       setSuccessMessage('Appointment booked successfully!');

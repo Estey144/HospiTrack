@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import './Prescriptions.css';
 import './PatientDashboard.css';
+import { apiCall } from './utils/api';
 
 const Prescriptions = ({ currentUser }) => {
   const navigate = useNavigate();
@@ -122,21 +123,18 @@ const Prescriptions = ({ currentUser }) => {
     try {
       if (!user?.id) throw new Error("User not found");
 
-      // Step 1: Get patientId from userId
-      const patientIdResponse = await fetch(`http://localhost:8080/patients/by-user/${user.id}`);
-      if (!patientIdResponse.ok) throw new Error("Failed to fetch patient ID");
-      const patientId = await patientIdResponse.text();
-
-      // Step 2: Use patientId to fetch prescriptions
-      const response = await fetch(`http://localhost:8080/api/prescriptions/patient/${patientId}`, {
+      // Step 1: Get patientId from userId - this endpoint is not under /api
+      const patientIdResponse = await fetch(`http://localhost:8080/patients/by-user/${user.id}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         }
       });
+      if (!patientIdResponse.ok) throw new Error("Failed to fetch patient ID");
+      const patientId = await patientIdResponse.text();
 
-      if (!response.ok) throw new Error('Failed to fetch prescriptions');
-      const data = await response.json();
+      // Step 2: Use patientId to fetch prescriptions
+      const data = await apiCall(`/prescriptions/patient/${patientId}`);
       setPrescriptions(data);
 
     } catch (err) {

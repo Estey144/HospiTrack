@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Home } from "lucide-react";
 import "./DoctorDashboard.css";
+import { axiosCompatible } from './utils/api';
 
 const DoctorDashboard = () => {
   const navigate = useNavigate();
@@ -54,10 +55,10 @@ const DoctorDashboard = () => {
         
         // Now fetch all doctor data using the correct doctor ID
         const [appRes, patRes, labRes, prescRes] = await Promise.all([
-          axios.get(`http://localhost:8080/api/doctors/${fetchedDoctorId}/appointments`),
-          axios.get(`http://localhost:8080/api/doctors/${fetchedDoctorId}/patients`),
-          axios.get(`http://localhost:8080/api/doctors/${fetchedDoctorId}/labreports`),
-          axios.get(`http://localhost:8080/api/doctors/${fetchedDoctorId}/prescriptions`),
+          axiosCompatible.get(`http://localhost:8080/api/doctors/${fetchedDoctorId}/appointments`),
+          axiosCompatible.get(`http://localhost:8080/api/doctors/${fetchedDoctorId}/patients`),
+          axiosCompatible.get(`http://localhost:8080/api/doctors/${fetchedDoctorId}/labreports`),
+          axiosCompatible.get(`http://localhost:8080/api/doctors/${fetchedDoctorId}/prescriptions`),
         ]);
         
         console.log("Appointments response:", appRes.data);
@@ -129,7 +130,7 @@ const DoctorDashboard = () => {
   // Helper function to get doctor ID from user ID
   const getDoctorId = async (userObj) => {
     try {
-      const doctorRes = await axios.get(`http://localhost:8080/api/users/${userObj.id}/doctor`);
+      const doctorRes = await axiosCompatible.get(`http://localhost:8080/api/users/${userObj.id}/doctor`);
       if (doctorRes.data.error) {
         throw new Error(doctorRes.data.error);
       }
@@ -195,9 +196,9 @@ const DoctorDashboard = () => {
       
       alert("Prescription submitted successfully!");
       
-      // Refresh prescriptions data to show the new prescription
+      // Refresh prescriptions list
       try {
-        const prescRes = await axios.get(`http://localhost:8080/api/doctors/${doctorId || user.id}/prescriptions`);
+        const prescRes = await axiosCompatible.get(`http://localhost:8080/api/doctors/${doctorId || user.id}/prescriptions`);
         setPrescriptions(prescRes.data);
         console.log("Prescriptions refreshed:", prescRes.data);
       } catch (refreshErr) {

@@ -26,6 +26,7 @@ import {
 
 import './AmbulanceRequest.css';
 import './PatientDashboard.css';
+import { axiosCompatible } from './utils/api';
 
 const AmbulanceRequest = ({ currentUser }) => {
   const navigate = useNavigate();
@@ -83,9 +84,7 @@ const AmbulanceRequest = ({ currentUser }) => {
   // Fetch hospital branches
   const fetchHospitalBranches = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/branches', {
-        withCredentials: true
-      });
+      const response = await axiosCompatible.get('http://localhost:8080/api/branches');
 
       const normalizedBranches = response.data.map((branch) => ({
         id: branch.id ?? branch.BRANCHID ?? branch.branch_id,
@@ -132,7 +131,7 @@ const AmbulanceRequest = ({ currentUser }) => {
       // Extract just the hospital name from the selected value
       const destinationName = formData.destination.split(' - ')[0];
       
-      const response = await axios.post('/api/ambulance-requests', {
+      const response = await axiosCompatible.post('/api/ambulance-requests', {
         userId: user?.id,
         pickupLocation: formData.pickupLocation,
         dropLocation: destinationName,
@@ -164,7 +163,7 @@ const AmbulanceRequest = ({ currentUser }) => {
 
   const fetchMyRequests = async () => {
     try {
-      const response = await axios.get(`/api/ambulance-requests/user/${user.id}`);
+      const response = await axiosCompatible.get(`/api/ambulance-requests/user/${user.id}`);
 
       // Map backend keys (uppercase) to frontend camelCase keys
       const mappedRequests = response.data.map(req => ({
