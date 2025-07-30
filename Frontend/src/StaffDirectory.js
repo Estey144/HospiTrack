@@ -6,6 +6,7 @@ import {
   ArrowLeft, Building2, Clock, Star 
 } from 'lucide-react';
 import './StaffDirectory.css';
+import { apiCall } from './utils/api';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
@@ -22,10 +23,10 @@ const StaffDirectory = () => {
 
   useEffect(() => {
     setLoading(true);
-    axios.get(`${API_BASE_URL}/api/staff`)
-      .then(res => {
-        setStaffList(res.data);
-        setFilteredStaff(res.data);
+    apiCall('/staff')
+      .then(data => {
+        setStaffList(data);
+        setFilteredStaff(data);
         setError('');
       })
       .catch(err => {

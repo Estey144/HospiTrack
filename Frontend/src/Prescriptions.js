@@ -124,15 +124,8 @@ const Prescriptions = ({ currentUser }) => {
       if (!user?.id) throw new Error("User not found");
 
       // Step 1: Get patientId from userId - this endpoint is not under /api
-      const patientIdResponse = await fetch(`http://localhost:8080/patients/by-user/${user.id}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      if (!patientIdResponse.ok) throw new Error("Failed to fetch patient ID");
-      const patientId = await patientIdResponse.text();
-
+      const patientId = await apiCall(`/patients/by-user/${user.id}`, { responseType: 'text' });
+      
       // Step 2: Use patientId to fetch prescriptions
       const data = await apiCall(`/prescriptions/patient/${patientId}`);
       setPrescriptions(data);

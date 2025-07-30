@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import './Homepage.css';
 import { useNavigate } from 'react-router-dom';
+import { apiCall } from './utils/api';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
@@ -38,7 +39,9 @@ const Homepage = () => {
   useEffect(() => {
     // Load data in background without showing loading screen
     Promise.all([
-      axios.get(`${API_BASE_URL}/api/stats`).then(res => setStats(res.data)).catch(() => setError('Failed to load hospital statistics.')),
+      // Use JWT-compatible API call for stats
+      apiCall('/stats').then(data => setStats(data)).catch(() => setError('Failed to load hospital statistics.')),
+      // External COVID API doesn't need JWT
       axios.get('https://disease.sh/v3/covid-19/all').then(res => {
         setCovid({
           cases: res.data.cases,
@@ -47,9 +50,10 @@ const Homepage = () => {
           recovered: res.data.recovered,
         });
       }).catch(() => setError('Failed to load COVID-19 data.')),
-      axios.get(`${API_BASE_URL}/api/feedback`).then(res => {
+      // Use JWT-compatible API call for feedback
+      apiCall('/feedback').then(data => {
         // Filter for feedback (rating >= 3) to show variety in star ratings
-        const goodFeedback = res.data
+        const goodFeedback = data
           .filter(f => f.rating >= 3 && f.comments && f.comments.trim().length > 0)
           .sort((a, b) => new Date(b.date_submitted) - new Date(a.date_submitted))
           .slice(0, 20); // Get top 20 recent feedback

@@ -22,6 +22,7 @@ import {
   Ambulance
 } from 'lucide-react';
 import './Rooms.css';
+import { apiCall } from './utils/api';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
@@ -39,9 +40,9 @@ const Rooms = () => {
 
   useEffect(() => {
     setLoading(true);
-    axios.get(`${API_BASE_URL}/api/rooms`)
-      .then(res => {
-        const normalizedRooms = res.data.map(room => ({
+    apiCall('/rooms')
+      .then(data => {
+        const normalizedRooms = data.map(room => ({
           id: room.id,
           roomNumber: room.roomNumber || room.room_number,
           type: room.type,

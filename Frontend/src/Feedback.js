@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import './Feedback.css';
 import './PatientDashboard.css';
+import { apiCall } from './utils/api';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
@@ -98,16 +99,16 @@ const Feedback = () => {
   const fetchDoctorsAndBranches = async () => {
     try {
       console.log('Fetching doctors and branches...');
-      const [doctorsRes, branchesRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/api/doctors`),
-        axios.get(`${API_BASE_URL}/api/branches`)
+      const [doctorsData, branchesData] = await Promise.all([
+        apiCall('/doctors'),
+        apiCall('/branches')
       ]);
 
-      console.log('Raw doctors response:', doctorsRes.data);
-      console.log('Raw branches response:', branchesRes.data);
+      console.log('Raw doctors response:', doctorsData);
+      console.log('Raw branches response:', branchesData);
 
       // Transform doctors data - handle both camelCase and uppercase field names
-      const doctorsData = doctorsRes.data
+      const transformedDoctors = doctorsData
         .map(d => ({
           doctorId: d.doctorId || d.DOCTORID,
           doctorName: d.doctorName || d.DOCTORNAME,
@@ -119,10 +120,10 @@ const Feedback = () => {
           doctor.doctorName.trim() !== ''
         );
 
-      console.log('Loaded doctors:', doctorsData);
+      console.log('Loaded doctors:', transformedDoctors);
 
-      setDoctors(doctorsData);
-      setBranches(branchesRes.data);
+      setDoctors(transformedDoctors);
+      setBranches(branchesData);
     } catch (error) {
       console.error('Failed to fetch doctors/branches:', error);
       // Set empty arrays on error instead of leaving undefined
@@ -233,7 +234,7 @@ const Feedback = () => {
         comments: formData.comments
       };
 
-      await axios.post(`${API_BASE_URL}/api/feedback`, feedbackData);
+      await apiCall('/feedback', 'POST', feedbackData);
 
       setMessage('Thank you for your valuable feedback! We appreciate your input.');
       setMessageType('success');

@@ -95,18 +95,7 @@ const Bills = ({ currentUser }) => {
       }
 
       try {
-        const response = await fetch(`http://localhost:8080/api/bills?userId=${user.id}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json',
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch bills.');
-        }
-
-        const data = await response.json();
+        const data = await apiCall(`/bills?userId=${user.id}`);
         setBills(data);
         setError(null);
       } catch (err) {

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import './MedicalHistory.css';
 import './PatientDashboard.css';
+import { apiCall } from './utils/api';
 
 const MedicalHistory = () => {
   const navigate = useNavigate();
@@ -59,18 +60,7 @@ const MedicalHistory = () => {
       try {
         if (!user?.id) throw new Error("User not logged in");
 
-        const response = await fetch(`http://localhost:8080/api/medical-records/user/${user.id}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status} ${response.statusText}`);
-        }
-
-        const data = await response.json();
+        const data = await apiCall(`/medical-records/user/${user.id}`);
         setMedicalRecords(data);
       } catch (err) {
         setError(err.message);

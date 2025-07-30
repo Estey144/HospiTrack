@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Home } from "lucide-react";
 import "./DoctorDashboard.css";
-import { axiosCompatible } from './utils/api';
+import { axiosCompatible, apiCall } from './utils/api';
 
 const DoctorDashboard = () => {
   const navigate = useNavigate();
@@ -20,6 +20,7 @@ const DoctorDashboard = () => {
     appointmentId: "",
     patientId: "",
     notes: "",
+    medications: "",
   });
   const [newTest, setNewTest] = useState({
     patientId: "",
@@ -159,6 +160,7 @@ const DoctorDashboard = () => {
     if (!newPrescription.appointmentId) errors.appointmentId = "Please select an appointment";
     if (!newPrescription.patientId) errors.patientId = "Please select a patient";
     if (!newPrescription.notes.trim()) errors.notes = "Please enter prescription notes";
+    if (!newPrescription.medications.trim()) errors.medications = "Please enter medications";
     
     if (Object.keys(errors).length > 0) {
       setFormErrors(prev => ({ ...prev, prescription: errors }));
@@ -176,10 +178,10 @@ const DoctorDashboard = () => {
         doctorId: doctorId || user.id // Use the stored doctorId, fallback to user.id
       };
       
-      const response = await axios.post("http://localhost:8080/api/prescriptions", prescriptionData);
-      console.log("Prescription response:", response.data);
+      const response = await apiCall("/prescriptions", "POST", prescriptionData);
+      console.log("Prescription response:", response);
       
-      setNewPrescription({ appointmentId: "", patientId: "", notes: "" });
+      setNewPrescription({ appointmentId: "", patientId: "", notes: "", medications: "" });
       setError("");
       setFormErrors(prev => ({ ...prev, prescription: {} }));
       
@@ -252,8 +254,8 @@ const DoctorDashboard = () => {
         doctorId: doctorId || user.id, // Use the stored doctorId, fallback to user.id
       };
       console.log("Submitting lab test:", testData);
-      const response = await axios.post("http://localhost:8080/api/labtests", testData);
-      console.log("Lab test response:", response.data);
+      const response = await apiCall("/labtests", "POST", testData);
+      console.log("Lab test response:", response);
       
       setNewTest({ patientId: "", testType: "" });
       setError("");
@@ -274,8 +276,8 @@ const DoctorDashboard = () => {
       
       // Refresh lab reports data
       try {
-        const labRes = await axios.get(`http://localhost:8080/api/doctors/${doctorId || user.id}/labreports`);
-        setLabReports(labRes.data);
+        const labReports = await apiCall(`/doctors/${doctorId || user.id}/labreports`);
+        setLabReports(labReports);
       } catch (refreshErr) {
         console.warn("Could not refresh lab reports:", refreshErr);
       }
@@ -307,10 +309,10 @@ const DoctorDashboard = () => {
     try {
       setLoading(true);
       console.log("Updating available hours for doctor:", doctorId || user.id, "to:", availableHours);
-      const response = await axios.put(`http://localhost:8080/api/doctors/${doctorId || user.id}/availablehours`, {
+      const response = await apiCall(`/doctors/${doctorId || user.id}/availablehours`, "PUT", {
         availableHours,
       });
-      console.log("Update hours response:", response.data);
+      console.log("Update hours response:", response);
       setError("");
       setFormErrors(prev => ({ ...prev, hours: {} }));
       
@@ -345,8 +347,8 @@ const DoctorDashboard = () => {
     try {
       setLoading(true);
       console.log("Approving appointment:", appointmentId);
-      const response = await axios.put(`http://localhost:8080/api/appointments/${appointmentId}/approve`);
-      console.log("Approve appointment response:", response.data);
+      const response = await apiCall(`/appointments/${appointmentId}/approve`, "PUT");
+      console.log("Approve appointment response:", response);
       
       // Update the local state to reflect the change
       setAppointments(prevAppointments => 
@@ -387,11 +389,11 @@ const DoctorDashboard = () => {
     try {
       setLoading(true);
       console.log("Fetching history for patient:", patientId);
-      const res = await axios.get(`http://localhost:8080/api/patients/${patientId}/history`);
-      console.log("Patient history response:", res.data);
+      const data = await apiCall(`/patients/${patientId}/history`);
+      console.log("Patient history response:", data);
       setSelectedHistory((prev) => ({
         ...prev,
-        [patientId]: res.data,
+        [patientId]: data,
       }));
     } catch (err) {
       console.error("Patient history error:", err);
@@ -743,6 +745,18 @@ const DoctorDashboard = () => {
                                     {selectedHistory[p.id].prescriptions.map((pres, i) => (
                                       <li key={i}>
                                         <strong>{new Date(pres.dateIssued).toLocaleDateString()}</strong>: {pres.notes}
+                                        {pres.medications && (
+                                          <div className="history-medications">
+                                            <strong>Medications:</strong>
+                                            <div className="medications-list">
+                                              {pres.medications.split('\n').map((med, medIndex) => (
+                                                <div key={medIndex} className="medication-item">
+                                                  {med.trim()}
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )}
                                       </li>
                                     ))}
                                   </ul>
@@ -844,6 +858,7 @@ const DoctorDashboard = () => {
                     <th>Patient</th>
                     <th>Appointment Date</th>
                     <th>Prescription Notes</th>
+                    <th>Medications</th>
                     <th>Status</th>
                   </tr>
                 </thead>
@@ -854,6 +869,19 @@ const DoctorDashboard = () => {
                       <td className="patient-name">{prescription.patientName}</td>
                       <td>{prescription.appointmentDate ? new Date(prescription.appointmentDate).toLocaleDateString() : 'N/A'}</td>
                       <td className="prescription-notes">{prescription.notes}</td>
+                      <td className="prescription-medications">
+                        {prescription.medications ? (
+                          <div className="medications-list">
+                            {prescription.medications.split('\n').map((med, index) => (
+                              <div key={index} className="medication-item">
+                                {med.trim()}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="no-medications">No medications specified</span>
+                        )}
+                      </td>
                       <td>
                         <span className="status-badge" style={{ backgroundColor: '#28a745' }}>
                           Issued
@@ -926,14 +954,32 @@ const DoctorDashboard = () => {
                     name="notes"
                     value={newPrescription.notes}
                     onChange={handlePrescriptionChange}
-                    placeholder="Enter prescription details..."
-                    rows="4"
+                    placeholder="Enter prescription details, instructions, and dosage..."
+                    rows="3"
                     className={formErrors.prescription.notes ? 'error' : ''}
                     required
                   />
                   {formErrors.prescription.notes && (
                     <div className="error-message">
                       ⚠️ {formErrors.prescription.notes}
+                    </div>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label>Medications</label>
+                  <textarea
+                    name="medications"
+                    value={newPrescription.medications}
+                    onChange={handlePrescriptionChange}
+                    placeholder="Enter medications with dosage and frequency&#10;Example:&#10;- Amoxicillin 500mg - Take 1 tablet twice daily for 7 days&#10;- Paracetamol 650mg - Take 1 tablet every 6 hours as needed for pain"
+                    rows="4"
+                    className={formErrors.prescription.medications ? 'error' : ''}
+                    required
+                  />
+                  {formErrors.prescription.medications && (
+                    <div className="error-message">
+                      ⚠️ {formErrors.prescription.medications}
                     </div>
                   )}
                 </div>

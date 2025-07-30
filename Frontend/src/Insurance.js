@@ -36,6 +36,7 @@ import {
 } from 'lucide-react';
 import './Insurance.css';
 import './PatientDashboard.css';
+import { apiCall } from './utils/api';
 
 const Insurance = ({ currentUser }) => {
   const navigate = useNavigate();
@@ -115,10 +116,6 @@ const Insurance = ({ currentUser }) => {
       console.log('Starting to fetch insurance data for user:', user);
       console.log('API Base URL:', API_BASE_URL);
       
-      // Test basic connectivity first
-      const testResponse = await fetch(`${API_BASE_URL}/insurance/providers`);
-      console.log('Providers endpoint test status:', testResponse.status);
-      
       await Promise.all([
         fetchInsuranceProviders(),
         fetchPatientInsurance(),
@@ -136,20 +133,8 @@ const Insurance = ({ currentUser }) => {
   const fetchInsuranceProviders = async () => {
     try {
       console.log('Fetching insurance providers...');
-      const response = await fetch(`${API_BASE_URL}/insurance/providers`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-          // Remove Authorization header if not using JWT authentication
-        }
-      });
+      const data = await apiCall('/insurance/providers');
       
-      if (!response.ok) {
-        console.error('Failed to fetch insurance providers:', response.status, response.statusText);
-        throw new Error(`Failed to fetch insurance providers: ${response.status}`);
-      }
-      
-      const data = await response.json();
       console.log('Insurance providers data received:', data);
       setInsuranceProviders(data);
     } catch (error) {
@@ -163,20 +148,8 @@ const Insurance = ({ currentUser }) => {
   const fetchPatientInsurance = async () => {
     try {
       console.log('Fetching patient insurance for user ID:', user.id);
-      const response = await fetch(`${API_BASE_URL}/insurance/plans?patientId=${user.id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-          // Remove Authorization header if not using JWT authentication
-        }
-      });
+      const data = await apiCall(`/insurance/plans?patientId=${user.id}`);
       
-      if (!response.ok) {
-        console.error('Failed to fetch patient insurance:', response.status, response.statusText);
-        throw new Error(`Failed to fetch patient insurance: ${response.status}`);
-      }
-      
-      const data = await response.json();
       console.log('Patient insurance data received:', data);
       setPatientInsurance(data);
     } catch (error) {
@@ -190,20 +163,8 @@ const Insurance = ({ currentUser }) => {
   const fetchRecentClaims = async () => {
     try {
       console.log('Fetching claims for user ID:', user.id);
-      const response = await fetch(`${API_BASE_URL}/insurance/claims?patientId=${user.id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-          // Remove Authorization header if not using JWT authentication
-        }
-      });
+      const data = await apiCall(`/insurance/claims?patientId=${user.id}`);
       
-      if (!response.ok) {
-        console.error('Failed to fetch claims:', response.status, response.statusText);
-        throw new Error(`Failed to fetch claims: ${response.status}`);
-      }
-      
-      const data = await response.json();
       console.log('Claims data received:', data);
       setRecentClaims(data);
     } catch (error) {
@@ -217,20 +178,8 @@ const Insurance = ({ currentUser }) => {
   const fetchBenefitsData = async () => {
     try {
       console.log('Fetching benefits for user ID:', user.id);
-      const response = await fetch(`${API_BASE_URL}/benefits/${user.id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-          // Remove Authorization header if not using JWT authentication
-        }
-      });
+      const data = await apiCall(`/benefits/${user.id}`);
       
-      if (!response.ok) {
-        console.error('Failed to fetch benefits:', response.status, response.statusText);
-        throw new Error(`Failed to fetch benefits: ${response.status}`);
-      }
-      
-      const data = await response.json();
       console.log('Benefits data received:', data);
       setBenefits(data);
     } catch (error) {
@@ -272,26 +221,13 @@ const Insurance = ({ currentUser }) => {
   const addNewInsurance = async (insuranceData) => {
     try {
       console.log('Adding insurance with data:', insuranceData);
-      const response = await fetch(`${API_BASE_URL}/patient-insurance`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-          // Remove Authorization header if not using JWT authentication
-        },
-        body: JSON.stringify({
-          patientId: user.id, // Fixed: use patientId instead of patient_id to match backend DTO
-          providerId: insuranceData.providerId, // Fixed: use providerId instead of provider_id
-          policyNumber: insuranceData.policyNumber, // Fixed: use policyNumber instead of policy_number
-          coverageDetails: insuranceData.coverageDetails // This should be a JSON string
-        })
+      const newInsurance = await apiCall('/patient-insurance', 'POST', {
+        patientId: user.id, // Fixed: use patientId instead of patient_id to match backend DTO
+        providerId: insuranceData.providerId, // Fixed: use providerId instead of provider_id
+        policyNumber: insuranceData.policyNumber, // Fixed: use policyNumber instead of policy_number
+        coverageDetails: insuranceData.coverageDetails // This should be a JSON string
       });
       
-      if (!response.ok) {
-        console.error('Failed to add insurance:', response.status, response.statusText);
-        throw new Error(`Failed to add insurance: ${response.status}`);
-      }
-      
-      const newInsurance = await response.json();
       console.log('Insurance added successfully:', newInsurance);
       setPatientInsurance(prev => [...prev, newInsurance]);
       setShowAddInsurance(false);

@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import './LabTests.css';
 import './PatientDashboard.css';
+import { apiCall } from './utils/api';
 
 const LabTests = ({ currentUser }) => {
   const navigate = useNavigate();
@@ -123,14 +124,7 @@ const LabTests = ({ currentUser }) => {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch(`http://localhost:8080/api/lab-tests/user/${userId}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        if (!response.ok) throw new Error('Failed to fetch lab tests');
-        const data = await response.json();
+        const data = await apiCall(`/lab-tests/user/${userId}`);
         setLabTests(data);
       } catch (err) {
         setError(err.message);

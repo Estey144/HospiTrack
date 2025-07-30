@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './Doctors.css';
+import { apiCall } from './utils/api';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
@@ -19,9 +20,9 @@ const Doctors = ({ user }) => {
   const [showDoctorModal, setShowDoctorModal] = useState(false);
 
   useEffect(() => {
-    axios.get(`${API_BASE_URL}/api/doctors`)
-      .then(res => {
-        const normalized = res.data.map(doc => ({
+    apiCall('/doctors')
+      .then(data => {
+        const normalized = data.map(doc => ({
           id: doc.DOCTORID,
           name: doc.DOCTORNAME,
           specialization: doc.DEPARTMENTNAME || doc.SPECIALIZATION, // Use DEPARTMENTNAME from API
