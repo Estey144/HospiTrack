@@ -3,7 +3,6 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Home } from "lucide-react";
 import "./DoctorDashboard.css";
-import { axiosCompatible, apiCall } from './utils/api';
 
 const DoctorDashboard = () => {
   const navigate = useNavigate();
@@ -20,7 +19,6 @@ const DoctorDashboard = () => {
     appointmentId: "",
     patientId: "",
     notes: "",
-    medications: "",
   });
   const [newTest, setNewTest] = useState({
     patientId: "",
@@ -38,28 +36,98 @@ const DoctorDashboard = () => {
     hours: {}
   });
 
-  // All useEffect hooks must be declared before any conditional logic
+  const goTo = (path) => navigate(path);
+
+  // Helper function to create axios config with JWT token
+  const getAuthConfig = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    return {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    };
+  };
+
+  // Helper function to get doctor ID from user ID
+  const getDoctorId = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      console.log("Getting doctor ID for user:", user.id);
+      
+      const doctorRes = await axios.get(
+        `http://localhost:8080/api/users/${user.id}/doctor`, 
+        getAuthConfig()
+      );
+      
+      if (doctorRes.data.error) {
+        throw new Error(doctorRes.data.error);
+      }
+      
+      console.log("Doctor mapping response:", doctorRes.data);
+      return doctorRes.data.doctorId;
+    } catch (error) {
+      console.error("Error getting doctor ID:", error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
-    if (!user?.id) return;
+    
+    // Early validation
+    if (!user) {
+      console.error("No user found in localStorage");
+      navigate('/login');
+      return;
+    }
+    
+    if (!user.id) {
+      console.error("User object missing ID:", user);
+      alert("Invalid user session. Please login again.");
+      navigate('/login');
+      return;
+    }
+    
+    if (user.role !== 'doctor') {
+      console.warn("User is not a doctor:", user.role);
+      alert("Access denied. This dashboard is for doctors only.");
+      navigate('/');
+      return;
+    }
+
+    // Check if JWT token exists
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error("No authentication token found");
+      alert("Authentication required. Please login again.");
+      navigate('/login');
+      return;
+    }
 
     const fetchData = async () => {
       try {
         setLoading(true);
+        setError("");
         console.log("Fetching data for user:", user.id);
         
         // First, get the doctor ID from the user ID
-        const fetchedDoctorId = await getDoctorId(user);
+        const fetchedDoctorId = await getDoctorId();
         setDoctorId(fetchedDoctorId);
         
         console.log("Found doctor ID:", fetchedDoctorId, "for user ID:", user.id);
         
-        // Now fetch all doctor data using the correct doctor ID
+        // Now fetch all doctor data using the correct doctor ID with JWT headers
+        const authConfig = getAuthConfig();
+        
         const [appRes, patRes, labRes, prescRes] = await Promise.all([
-          axiosCompatible.get(`http://localhost:8080/api/doctors/${fetchedDoctorId}/appointments`),
-          axiosCompatible.get(`http://localhost:8080/api/doctors/${fetchedDoctorId}/patients`),
-          axiosCompatible.get(`http://localhost:8080/api/doctors/${fetchedDoctorId}/labreports`),
-          axiosCompatible.get(`http://localhost:8080/api/doctors/${fetchedDoctorId}/prescriptions`),
+          axios.get(`http://localhost:8080/api/doctors/${fetchedDoctorId}/appointments`, authConfig),
+          axios.get(`http://localhost:8080/api/doctors/${fetchedDoctorId}/patients`, authConfig),
+          axios.get(`http://localhost:8080/api/doctors/${fetchedDoctorId}/labreports`, authConfig),
+          axios.get(`http://localhost:8080/api/doctors/${fetchedDoctorId}/prescriptions`, authConfig),
         ]);
         
         console.log("Appointments response:", appRes.data);
@@ -78,7 +146,15 @@ const DoctorDashboard = () => {
         console.error("Error response:", err.response?.data);
         console.error("Error status:", err.response?.status);
         
-        if (err.response?.status === 404) {
+        if (err.response?.status === 401) {
+          setError("Authentication failed. Please login again.");
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          navigate('/login');
+          return;
+        } else if (err.response?.status === 403) {
+          setError("Access denied. Please check your permissions.");
+        } else if (err.response?.status === 404) {
           setError("Doctor not found or dashboard endpoints not available. Please contact support.");
         } else if (err.response?.status === 500) {
           setError("Server error occurred. Please try again later.");
@@ -96,8 +172,9 @@ const DoctorDashboard = () => {
         setLoading(false);
       }
     };
+    
     fetchData();
-  }, []);
+  }, [navigate]);
 
   // Get user from localStorage after hooks
   const user = JSON.parse(localStorage.getItem("user"));
@@ -107,40 +184,8 @@ const DoctorDashboard = () => {
   
   // Early returns should happen after all hooks are declared
   if (!user) {
-    console.error("No user found in localStorage");
-    navigate('/login');
-    return null;
+    return null; // Already handled in useEffect
   }
-  
-  if (!user.id) {
-    console.error("User object missing ID:", user);
-    alert("Invalid user session. Please login again.");
-    navigate('/login');
-    return null;
-  }
-  
-  if (user.role !== 'doctor') {
-    console.warn("User is not a doctor:", user.role);
-    alert("Access denied. This dashboard is for doctors only.");
-    navigate('/');
-    return null;
-  }
-
-  const goTo = (path) => navigate(path);
-
-  // Helper function to get doctor ID from user ID
-  const getDoctorId = async (userObj) => {
-    try {
-      const doctorRes = await axiosCompatible.get(`http://localhost:8080/api/users/${userObj.id}/doctor`);
-      if (doctorRes.data.error) {
-        throw new Error(doctorRes.data.error);
-      }
-      return doctorRes.data.doctorId;
-    } catch (error) {
-      console.error("Error getting doctor ID:", error);
-      throw error;
-    }
-  };
 
   const handlePrescriptionChange = (e) => {
     setNewPrescription({
@@ -160,7 +205,6 @@ const DoctorDashboard = () => {
     if (!newPrescription.appointmentId) errors.appointmentId = "Please select an appointment";
     if (!newPrescription.patientId) errors.patientId = "Please select a patient";
     if (!newPrescription.notes.trim()) errors.notes = "Please enter prescription notes";
-    if (!newPrescription.medications.trim()) errors.medications = "Please enter medications";
     
     if (Object.keys(errors).length > 0) {
       setFormErrors(prev => ({ ...prev, prescription: errors }));
@@ -178,29 +222,25 @@ const DoctorDashboard = () => {
         doctorId: doctorId || user.id // Use the stored doctorId, fallback to user.id
       };
       
-      const response = await apiCall("/prescriptions", "POST", prescriptionData);
-      console.log("Prescription response:", response);
+      const response = await axios.post(
+        "http://localhost:8080/api/prescriptions", 
+        prescriptionData,
+        getAuthConfig()
+      );
+      console.log("Prescription response:", response.data);
       
-      setNewPrescription({ appointmentId: "", patientId: "", notes: "", medications: "" });
+      setNewPrescription({ appointmentId: "", patientId: "", notes: "" });
       setError("");
       setFormErrors(prev => ({ ...prev, prescription: {} }));
       
-      // Show success message with animation
-      const submitBtn = e.target.querySelector('.submit-button');
-      if (submitBtn) {
-        submitBtn.classList.add('success');
-        submitBtn.textContent = 'Success!';
-        setTimeout(() => {
-          submitBtn.classList.remove('success');
-          submitBtn.textContent = 'Submit Prescription';
-        }, 2000);
-      }
-      
       alert("Prescription submitted successfully!");
       
-      // Refresh prescriptions list
+      // Refresh prescriptions data to show the new prescription
       try {
-        const prescRes = await axiosCompatible.get(`http://localhost:8080/api/doctors/${doctorId || user.id}/prescriptions`);
+        const prescRes = await axios.get(
+          `http://localhost:8080/api/doctors/${doctorId || user.id}/prescriptions`,
+          getAuthConfig()
+        );
         setPrescriptions(prescRes.data);
         console.log("Prescriptions refreshed:", prescRes.data);
       } catch (refreshErr) {
@@ -209,7 +249,10 @@ const DoctorDashboard = () => {
     } catch (err) {
       console.error("Prescription error:", err);
       console.error("Error response:", err.response?.data);
-      if (err.response?.status === 404) {
+      if (err.response?.status === 401) {
+        setError("Authentication failed. Please login again.");
+        navigate('/login');
+      } else if (err.response?.status === 404) {
         setError("Prescription API endpoint not found");
       } else if (err.response?.status === 500) {
         setError("Server error while submitting prescription");
@@ -254,37 +297,37 @@ const DoctorDashboard = () => {
         doctorId: doctorId || user.id, // Use the stored doctorId, fallback to user.id
       };
       console.log("Submitting lab test:", testData);
-      const response = await apiCall("/labtests", "POST", testData);
-      console.log("Lab test response:", response);
+      
+      const response = await axios.post(
+        "http://localhost:8080/api/labtests", 
+        testData,
+        getAuthConfig()
+      );
+      console.log("Lab test response:", response.data);
       
       setNewTest({ patientId: "", testType: "" });
       setError("");
       setFormErrors(prev => ({ ...prev, labTest: {} }));
       
-      // Show success message with animation
-      const submitBtn = e.target.querySelector('.submit-button');
-      if (submitBtn) {
-        submitBtn.classList.add('success');
-        submitBtn.textContent = 'Success!';
-        setTimeout(() => {
-          submitBtn.classList.remove('success');
-          submitBtn.textContent = 'Add Lab Test';
-        }, 2000);
-      }
-      
       alert("Lab test added successfully!");
       
       // Refresh lab reports data
       try {
-        const labReports = await apiCall(`/doctors/${doctorId || user.id}/labreports`);
-        setLabReports(labReports);
+        const labRes = await axios.get(
+          `http://localhost:8080/api/doctors/${doctorId || user.id}/labreports`,
+          getAuthConfig()
+        );
+        setLabReports(labRes.data);
       } catch (refreshErr) {
         console.warn("Could not refresh lab reports:", refreshErr);
       }
     } catch (err) {
       console.error("Lab test error:", err);
       console.error("Error response:", err.response?.data);
-      if (err.response?.status === 404) {
+      if (err.response?.status === 401) {
+        setError("Authentication failed. Please login again.");
+        navigate('/login');
+      } else if (err.response?.status === 404) {
         setError("Lab test API endpoint not found");
       } else if (err.response?.status === 500) {
         setError("Server error while adding lab test");
@@ -309,29 +352,24 @@ const DoctorDashboard = () => {
     try {
       setLoading(true);
       console.log("Updating available hours for doctor:", doctorId || user.id, "to:", availableHours);
-      const response = await apiCall(`/doctors/${doctorId || user.id}/availablehours`, "PUT", {
-        availableHours,
-      });
-      console.log("Update hours response:", response);
+      
+      const response = await axios.put(
+        `http://localhost:8080/api/doctors/${doctorId || user.id}/availablehours`,
+        { availableHours },
+        getAuthConfig()
+      );
+      console.log("Update hours response:", response.data);
       setError("");
       setFormErrors(prev => ({ ...prev, hours: {} }));
-      
-      // Show success message with animation
-      const submitBtn = document.querySelector('.action-card:last-child .submit-button');
-      if (submitBtn) {
-        submitBtn.classList.add('success');
-        submitBtn.textContent = 'Success!';
-        setTimeout(() => {
-          submitBtn.classList.remove('success');
-          submitBtn.textContent = 'Update Hours';
-        }, 2000);
-      }
       
       alert("Available hours updated successfully!");
     } catch (err) {
       console.error("Update hours error:", err);
       console.error("Error response:", err.response?.data);
-      if (err.response?.status === 404) {
+      if (err.response?.status === 401) {
+        setError("Authentication failed. Please login again.");
+        navigate('/login');
+      } else if (err.response?.status === 404) {
         setError("Update hours API endpoint not found");
       } else if (err.response?.status === 500) {
         setError("Server error while updating hours");
@@ -347,8 +385,13 @@ const DoctorDashboard = () => {
     try {
       setLoading(true);
       console.log("Approving appointment:", appointmentId);
-      const response = await apiCall(`/appointments/${appointmentId}/approve`, "PUT");
-      console.log("Approve appointment response:", response);
+      
+      const response = await axios.put(
+        `http://localhost:8080/api/appointments/${appointmentId}/approve`,
+        {},
+        getAuthConfig()
+      );
+      console.log("Approve appointment response:", response.data);
       
       // Update the local state to reflect the change
       setAppointments(prevAppointments => 
@@ -364,7 +407,10 @@ const DoctorDashboard = () => {
     } catch (err) {
       console.error("Approve appointment error:", err);
       console.error("Error response:", err.response?.data);
-      if (err.response?.status === 404) {
+      if (err.response?.status === 401) {
+        setError("Authentication failed. Please login again.");
+        navigate('/login');
+      } else if (err.response?.status === 404) {
         setError("Appointment not found or approval endpoint not available");
       } else if (err.response?.status === 500) {
         setError("Server error while approving appointment");
@@ -389,18 +435,25 @@ const DoctorDashboard = () => {
     try {
       setLoading(true);
       console.log("Fetching history for patient:", patientId);
-      const data = await apiCall(`/patients/${patientId}/history`);
-      console.log("Patient history response:", data);
+      
+      const res = await axios.get(
+        `http://localhost:8080/api/patients/${patientId}/history`,
+        getAuthConfig()
+      );
+      console.log("Patient history response:", res.data);
       setSelectedHistory((prev) => ({
         ...prev,
-        [patientId]: data,
+        [patientId]: res.data,
       }));
     } catch (err) {
       console.error("Patient history error:", err);
       console.error("Error response:", err.response?.data);
       console.error("Error status:", err.response?.status);
       
-      if (err.response?.status === 404) {
+      if (err.response?.status === 401) {
+        alert("Authentication failed. Please login again.");
+        navigate('/login');
+      } else if (err.response?.status === 404) {
         alert("Patient history not found for this patient.");
       } else if (err.response?.status === 500) {
         alert("Server error while fetching patient history. Please try again.");
@@ -447,9 +500,11 @@ const DoctorDashboard = () => {
 
   // Console logging for development (can be removed in production)
   console.log("Doctor Dashboard - Current user:", user);
+  console.log("Doctor ID:", doctorId);
   console.log("Appointments count:", appointments.length);
   console.log("Patients count:", patients.length);
   console.log("Lab reports count:", labReports.length);
+  console.log("Prescriptions count:", prescriptions.length);
 
   return (
     <div className="doctor-dashboard">
@@ -745,18 +800,6 @@ const DoctorDashboard = () => {
                                     {selectedHistory[p.id].prescriptions.map((pres, i) => (
                                       <li key={i}>
                                         <strong>{new Date(pres.dateIssued).toLocaleDateString()}</strong>: {pres.notes}
-                                        {pres.medications && (
-                                          <div className="history-medications">
-                                            <strong>Medications:</strong>
-                                            <div className="medications-list">
-                                              {pres.medications.split('\n').map((med, medIndex) => (
-                                                <div key={medIndex} className="medication-item">
-                                                  {med.trim()}
-                                                </div>
-                                              ))}
-                                            </div>
-                                          </div>
-                                        )}
                                       </li>
                                     ))}
                                   </ul>
@@ -858,7 +901,6 @@ const DoctorDashboard = () => {
                     <th>Patient</th>
                     <th>Appointment Date</th>
                     <th>Prescription Notes</th>
-                    <th>Medications</th>
                     <th>Status</th>
                   </tr>
                 </thead>
@@ -869,19 +911,6 @@ const DoctorDashboard = () => {
                       <td className="patient-name">{prescription.patientName}</td>
                       <td>{prescription.appointmentDate ? new Date(prescription.appointmentDate).toLocaleDateString() : 'N/A'}</td>
                       <td className="prescription-notes">{prescription.notes}</td>
-                      <td className="prescription-medications">
-                        {prescription.medications ? (
-                          <div className="medications-list">
-                            {prescription.medications.split('\n').map((med, index) => (
-                              <div key={index} className="medication-item">
-                                {med.trim()}
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="no-medications">No medications specified</span>
-                        )}
-                      </td>
                       <td>
                         <span className="status-badge" style={{ backgroundColor: '#28a745' }}>
                           Issued
@@ -954,32 +983,14 @@ const DoctorDashboard = () => {
                     name="notes"
                     value={newPrescription.notes}
                     onChange={handlePrescriptionChange}
-                    placeholder="Enter prescription details, instructions, and dosage..."
-                    rows="3"
+                    placeholder="Enter prescription details..."
+                    rows="4"
                     className={formErrors.prescription.notes ? 'error' : ''}
                     required
                   />
                   {formErrors.prescription.notes && (
                     <div className="error-message">
                       ⚠️ {formErrors.prescription.notes}
-                    </div>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label>Medications</label>
-                  <textarea
-                    name="medications"
-                    value={newPrescription.medications}
-                    onChange={handlePrescriptionChange}
-                    placeholder="Enter medications with dosage and frequency&#10;Example:&#10;- Amoxicillin 500mg - Take 1 tablet twice daily for 7 days&#10;- Paracetamol 650mg - Take 1 tablet every 6 hours as needed for pain"
-                    rows="4"
-                    className={formErrors.prescription.medications ? 'error' : ''}
-                    required
-                  />
-                  {formErrors.prescription.medications && (
-                    <div className="error-message">
-                      ⚠️ {formErrors.prescription.medications}
                     </div>
                   )}
                 </div>

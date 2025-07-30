@@ -15,16 +15,18 @@ const getUser = () => {
 };
 
 // API call helper with automatic token inclusion
-export const apiCall = async (endpoint, options = {}) => {
+export const apiCall = async (endpoint, method = 'GET', data = null, options = {}) => {
   const token = getToken();
+  console.log(`API Call: ${method} ${endpoint}`);
   console.log(`Token available: ${!!token}`);
   
   const config = {
-    ...options,
+    method,
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
     },
+    ...options,
   };
 
   // Add Authorization header if token exists
@@ -33,6 +35,11 @@ export const apiCall = async (endpoint, options = {}) => {
     console.log(`Authorization header added`);
   } else {
     console.warn(`No token found in localStorage`);
+  }
+
+  // Add body for POST/PUT requests
+  if (data && (method === 'POST' || method === 'PUT')) {
+    config.body = JSON.stringify(data);
   }
 
   // Add credentials for CORS
@@ -81,27 +88,19 @@ export const apiCall = async (endpoint, options = {}) => {
 export const axiosCompatible = {
   get: (url, config = {}) => {
     const endpoint = url.replace('http://localhost:8080/api', '').replace('http://localhost:8080', '');
-    return apiCall(endpoint, { method: 'GET', ...config }).then(data => ({ data }));
+    return apiCall(endpoint, 'GET', null, config).then(data => ({ data }));
   },
   post: (url, data, config = {}) => {
     const endpoint = url.replace('http://localhost:8080/api', '').replace('http://localhost:8080', '');
-    return apiCall(endpoint, { 
-      method: 'POST', 
-      body: JSON.stringify(data),
-      ...config 
-    }).then(responseData => ({ data: responseData }));
+    return apiCall(endpoint, 'POST', data, config).then(responseData => ({ data: responseData }));
   },
   put: (url, data, config = {}) => {
     const endpoint = url.replace('http://localhost:8080/api', '').replace('http://localhost:8080', '');
-    return apiCall(endpoint, { 
-      method: 'PUT', 
-      body: JSON.stringify(data),
-      ...config 
-    }).then(responseData => ({ data: responseData }));
+    return apiCall(endpoint, 'PUT', data, config).then(responseData => ({ data: responseData }));
   },
   delete: (url, config = {}) => {
     const endpoint = url.replace('http://localhost:8080/api', '').replace('http://localhost:8080', '');
-    return apiCall(endpoint, { method: 'DELETE', ...config }).then(data => ({ data }));
+    return apiCall(endpoint, 'DELETE', null, config).then(data => ({ data }));
   }
 };
 
