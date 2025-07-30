@@ -24,7 +24,6 @@ import Rooms from './Rooms';
 import Doctors from './Doctors';
 import Feedback from './Feedback';
 import Symptoms from './SymptomChecker';
-import TestDoctorMapping from './TestDoctorMapping';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -48,8 +47,6 @@ function App() {
         <Route path="/staff" element={<StaffDirectory />} />
         <Route path="/rooms" element={<Rooms />} />
         <Route path="/feedback" element={<Feedback />} />
-        <Route path="/test-doctor" element={<TestDoctorMapping />} />
-        
 
         {/* Dashboards */}
         <Route path="/admin-dashboard" element={<AdminDashboard user={user} />} />
