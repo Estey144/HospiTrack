@@ -17,6 +17,7 @@ const getUser = () => {
 // API call helper with automatic token inclusion
 export const apiCall = async (endpoint, options = {}) => {
   const token = getToken();
+  console.log(`Token available: ${!!token}`);
   
   const config = {
     ...options,
@@ -29,13 +30,27 @@ export const apiCall = async (endpoint, options = {}) => {
   // Add Authorization header if token exists
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    console.log(`Authorization header added`);
+  } else {
+    console.warn(`No token found in localStorage`);
   }
 
   // Add credentials for CORS
   config.credentials = 'include';
 
+  // Determine the full URL - handle endpoints that already include the full path
+  let fullUrl;
+  if (endpoint.startsWith('/api/') || endpoint.startsWith('/patients') || endpoint.startsWith('/users') || endpoint.startsWith('/reports') || endpoint.startsWith('/audit-logs')) {
+    // Endpoint already has the correct prefix, just add base server URL
+    fullUrl = `http://localhost:8080${endpoint}`;
+  } else {
+    // Use API_BASE_URL for regular API endpoints
+    fullUrl = `${API_BASE_URL}${endpoint}`;
+  }
+
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    console.log(`API call to: ${fullUrl}`);
+    const response = await fetch(fullUrl, config);
     
     // Handle 401 (unauthorized) - token might be expired
     if (response.status === 401) {

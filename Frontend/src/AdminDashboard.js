@@ -243,10 +243,8 @@ const AdminDashboard = () => {
   // Helper function to fetch users data for patient names
   const fetchUsersData = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/users`);
-      if (res.ok) {
-        return await res.json();
-      }
+      const data = await apiCall('/users');
+      return data;
     } catch (err) {
       console.error('Error fetching users:', err);
     }
@@ -394,11 +392,14 @@ const AdminDashboard = () => {
   };
 
   const fetchData = async (entity) => {
+    console.log(`Fetching data for: ${entity}`);
     setLoading(true);
     setError(null);
     try {
       const endpoint = getApiEndpoint(entity);
+      console.log(`API endpoint: ${endpoint}`);
       const data = await apiCall(endpoint);
+      console.log(`Data received for ${entity}:`, data);
       
       if (!data) {
         console.warn(`API call failed for ${entity}, using sample data`);
@@ -426,9 +427,11 @@ const AdminDashboard = () => {
         // Transform and set data based on entity type
         switch (entity) {
           case 'doctors': 
+            console.log(`Setting doctors data, count: ${Array.isArray(data) ? data.length : 'not array'}`);
             setDoctors(transformDoctorData(data)); 
             break;
           case 'patients': 
+            console.log(`Setting patients data, count: ${Array.isArray(data) ? data.length : 'not array'}`);
             // First check if patients endpoint exists, otherwise use sample data
             if (Array.isArray(data)) {
               setPatients(transformPatientData(data));
@@ -438,6 +441,7 @@ const AdminDashboard = () => {
             break;
           case 'staff': setStaff(Array.isArray(data) ? data : getSampleData('staff')); break;
           case 'users': 
+            console.log(`Setting users data, count: ${Array.isArray(data) ? data.length : 'not array'}`);
             if (Array.isArray(data)) {
               setUsers(transformUserData(data));
             } else {
@@ -522,15 +526,14 @@ const AdminDashboard = () => {
       }
     }
     setLoading(false);
+    console.log(`Completed fetchData for ${entity}`);
   };
 
   const fetchReports = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/reports`);
-      if (!res.ok) throw new Error('Failed to fetch reports');
-      const data = await res.json();
+      const data = await apiCall('/reports');
       setReportsData(data);
     } catch (err) {
       setError(err.message);
@@ -579,10 +582,11 @@ const AdminDashboard = () => {
     setLoading(true);
     setError(null);
     try {
-      console.log('Fetching audit logs from:', `${API_BASE}/api/audit-logs`);
-      const res = await fetch(`${API_BASE}/api/audit-logs`);
-      console.log('Audit logs response status:', res.status);
-      if (!res.ok) {
+      console.log('Fetching audit logs...');
+      const data = await apiCall('/audit-logs');
+      console.log('Audit logs response:', data);
+      
+      if (!data || !Array.isArray(data)) {
         console.warn('API call failed for audit logs, using sample data');
         // Fallback to sample data if API fails
         const logs = [
@@ -613,7 +617,6 @@ const AdminDashboard = () => {
         ];
         setAuditLogs(logs);
       } else {
-        const data = await res.json();
         console.log('Audit logs data received:', data);
         setAuditLogs(Array.isArray(data) ? data : []);
       }
@@ -625,6 +628,7 @@ const AdminDashboard = () => {
   };
 
   useEffect(() => {
+    console.log(`Tab changed to: ${activeTab}`);
     setSearchTerm('');
     setPage(1);
     if (activeTab === 'reports') {
@@ -635,8 +639,11 @@ const AdminDashboard = () => {
       fetchAuditLogs();
     } else if (activeTab === 'settings' || activeTab === 'backup') {
       // These tabs don't need data fetching
-    } else if (['doctors', 'patients', 'staff', 'users', 'rooms', 'branches', 'ambulances', 'departments', 'equipment'].includes(activeTab)) {
+    } else if (['doctors', 'patients', 'staff', 'users', 'rooms', 'branches', 'ambulances', 'departments', 'equipment', 'ambulance-requests', 'prescriptions', 'test-reports', 'appointments', 'bills'].includes(activeTab)) {
+      console.log(`Fetching data for management page: ${activeTab}`);
       fetchData(activeTab);
+    } else {
+      console.log(`No data fetching configured for tab: ${activeTab}`);
     }
   }, [activeTab]);
 
