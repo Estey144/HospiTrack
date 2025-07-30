@@ -1,4 +1,6 @@
 // Frontend/src/utils/api.js
+import React from 'react';
+
 const API_BASE_URL = 'http://localhost:8080/api';
 
 // Get token from localStorage

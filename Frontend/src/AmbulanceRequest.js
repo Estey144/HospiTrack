@@ -26,7 +26,7 @@ import {
 
 import './AmbulanceRequest.css';
 import './PatientDashboard.css';
-import { axiosCompatible } from './utils/api';
+import { apiCall } from './utils/api';
 
 const AmbulanceRequest = ({ currentUser }) => {
   const navigate = useNavigate();
@@ -84,9 +84,11 @@ const AmbulanceRequest = ({ currentUser }) => {
   // Fetch hospital branches
   const fetchHospitalBranches = async () => {
     try {
-      const response = await axiosCompatible.get('http://localhost:8080/api/branches');
+      console.log('Fetching hospital branches...');
+      const data = await apiCall('/branches');
+      console.log('Hospital branches response:', data);
 
-      const normalizedBranches = response.data.map((branch) => ({
+      const normalizedBranches = data.map((branch) => ({
         id: branch.id ?? branch.BRANCHID ?? branch.branch_id,
         name: branch.name ?? branch.BRANCHNAME ?? branch.branch_name,
         location: branch.location ?? branch.LOCATION,
@@ -111,6 +113,34 @@ const AmbulanceRequest = ({ currentUser }) => {
 
   // Load hospital branches on component mount
   useEffect(() => {
+    // Check authentication status
+    const token = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+    
+    console.log('AmbulanceRequest - Authentication check:');
+    console.log('Token exists:', !!token);
+    console.log('User data:', user);
+    console.log('Stored user:', storedUser);
+    
+    if (!token) {
+      setError('No authentication token found. Please login again.');
+      return;
+    }
+    
+    if (!user?.id) {
+      setError('User data not available. Please login again.');
+      return;
+    }
+    
+    // Test API call to see if JWT is working
+    console.log('Testing API endpoint construction...');
+    const testEndpoint1 = '/api/branches';
+    const testEndpoint2 = 'http://localhost:8080/api/branches';
+    console.log('Endpoint 1 (relative):', testEndpoint1);
+    console.log('Endpoint 2 (full URL):', testEndpoint2);
+    console.log('axiosCompatible processing endpoint 1:', testEndpoint1.replace('http://localhost:8080/api', '').replace('http://localhost:8080', ''));
+    console.log('axiosCompatible processing endpoint 2:', testEndpoint2.replace('http://localhost:8080/api', '').replace('http://localhost:8080', ''));
+    
     fetchHospitalBranches();
   }, []);
 
@@ -127,34 +157,49 @@ const AmbulanceRequest = ({ currentUser }) => {
     setLoading(true);
     setError(null);
 
+    if (!user?.id) {
+      setError('User not authenticated. Please login again.');
+      setLoading(false);
+      return;
+    }
+
     try {
       // Extract just the hospital name from the selected value
       const destinationName = formData.destination.split(' - ')[0];
       
-      const response = await axiosCompatible.post('/api/ambulance-requests', {
+      const requestData = {
         userId: user?.id,
         pickupLocation: formData.pickupLocation,
         dropLocation: destinationName,
         requestedTime: formData.requestedTime || null,
+      };
+      
+      console.log('Submitting ambulance request:', requestData);
+      const response = await apiCall('/ambulance-requests', {
+        method: 'POST',
+        body: JSON.stringify(requestData)
       });
+      console.log('Ambulance request response:', response);
 
-      if (response.status === 201 || response.status === 200) {
-        setSuccess(true);
-        setFormData({
-          pickupLocation: '',
-          destination: '',
-          requestedTime: ''
-        });
-        setTimeout(() => setSuccess(false), 5000);
-      } else {
-        setError('Failed to submit ambulance request.');
-      }
+      // apiCall returns data directly, not wrapped in response object
+      setSuccess(true);
+      setFormData({
+        pickupLocation: '',
+        destination: '',
+        requestedTime: ''
+      });
+      setTimeout(() => setSuccess(false), 5000);
     } catch (err) {
       console.error('Error submitting ambulance request:', err);
-      if (err.response?.status === 503) {
+      // apiCall throws errors directly, not wrapped in response
+      if (err.message?.includes('401') || err.message?.includes('Unauthorized')) {
+        setError("Authentication failed. Please login again.");
+      } else if (err.message?.includes('503')) {
         setError("All ambulances are currently busy. Please try again later.");
+      } else if (err.message?.includes('403') || err.message?.includes('Forbidden')) {
+        setError("Access denied. You don't have permission to make this request.");
       } else {
-        setError("Something went wrong. Please try again.");
+        setError(err.message || "Something went wrong. Please try again.");
       }
     }
 
@@ -162,11 +207,18 @@ const AmbulanceRequest = ({ currentUser }) => {
   };
 
   const fetchMyRequests = async () => {
+    if (!user?.id) {
+      setError('User not authenticated. Please login again.');
+      return;
+    }
+    
     try {
-      const response = await axiosCompatible.get(`/api/ambulance-requests/user/${user.id}`);
+      console.log('Fetching ambulance requests for user:', user.id);
+      const data = await apiCall(`/ambulance-requests/user/${user.id}`);
+      console.log('Ambulance requests response:', data);
 
       // Map backend keys (uppercase) to frontend camelCase keys
-      const mappedRequests = response.data.map(req => ({
+      const mappedRequests = data.map(req => ({
         id: req.ID,
         patientId: req.PATIENT_ID,
         ambulanceId: req.AMBULANCE_ID,
@@ -182,7 +234,13 @@ const AmbulanceRequest = ({ currentUser }) => {
       setShowMyRequestsModal(true);
     } catch (error) {
       console.error('Failed to fetch your ambulance requests:', error);
-      setError('Failed to fetch your ambulance requests.');
+      if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+        setError('Authentication failed. Please login again.');
+      } else if (error.message?.includes('403') || error.message?.includes('Forbidden')) {
+        setError('Access denied. You cannot view these requests.');
+      } else {
+        setError(error.message || 'Failed to fetch your ambulance requests.');
+      }
     }
   };
 
