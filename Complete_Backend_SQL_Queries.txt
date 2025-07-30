@@ -1,0 +1,569 @@
+================================================================================
+                    HospiTrack - Complete SQL Queries from Backend Services
+================================================================================
+Generated on: July 30, 2025
+Description: This file contains all SQL queries extracted from the Java service 
+             files in the Backend/src/main/java/com/edigest/HospiTrack/service/ directory
+
+================================================================================
+                               TABLE OF CONTENTS
+================================================================================
+1. DepartmentService.java
+2. DoctorService.java  
+3. PatientService.java
+4. AppointmentService.java
+5. PrescriptionService.java
+6. BillService.java
+7. UsersService.java
+8. LabTestService.java
+9. MedicalRecordService.java
+10. FeedbackService.java
+11. AmbulanceService.java
+12. AmbulanceRequestService.java
+13. HospitalBranchService.java
+14. RoomService.java
+15. EquipmentService.java
+16. StaffService.java
+17. InsuranceService.java
+18. SignupService.java
+19. StatsService.java
+
+================================================================================
+
+################################################################################
+##                           1. DEPARTMENTSERVICE.JAVA                        ##
+################################################################################
+
+-- Get all departments
+SELECT * FROM Departments;
+
+-- Get department by ID
+SELECT * FROM Departments WHERE id = ?;
+
+-- Insert department
+INSERT INTO Departments (id, name, description) VALUES (?, ?, ?);
+
+-- Delete department by ID
+DELETE FROM Departments WHERE id = ?;
+
+################################################################################
+##                           2. DOCTORSERVICE.JAVA                            ##
+################################################################################
+
+-- Get all doctors
+SELECT * FROM Doctors;
+
+-- Get doctor by ID
+SELECT * FROM Doctors WHERE id = ?;
+
+-- Insert doctor
+INSERT INTO Doctors (id, user_id, branch_id, license_number, experience_years, available_hours, department_id, image_url) 
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+-- Update doctor
+UPDATE Doctors SET user_id = ?, branch_id = ?, license_number = ?, 
+experience_years = ?, available_hours = ?, department_id = ?, image_url = ? WHERE id = ?;
+
+-- Delete doctor
+DELETE FROM Doctors WHERE id = ?;
+
+-- Count doctors by role
+SELECT COUNT(*) FROM Users WHERE role = 'doctor';
+
+-- Get all doctors for frontend with complete details
+SELECT d.id AS doctorId,
+       u.name AS doctorName,
+       d.experience_years AS experienceYears,
+       d.license_number AS licenseNumber,
+       d.available_hours AS availableHours,
+       dep.name AS departmentName,
+       hb.name AS branchName,
+       d.image_url AS imageUrl
+FROM Doctors d
+JOIN Users u ON d.user_id = u.id
+JOIN Departments dep ON d.department_id = dep.id
+JOIN Hospital_Branches hb ON d.branch_id = hb.id;
+
+-- Get doctors for feedback form (simplified)
+SELECT d.id AS doctorId,
+       u.name AS doctorName,
+       dep.name AS departmentName
+FROM Doctors d
+INNER JOIN Users u ON d.user_id = u.id
+INNER JOIN Departments dep ON d.department_id = dep.id
+WHERE u.name IS NOT NULL 
+ORDER BY u.name;
+
+################################################################################
+##                           3. PATIENTSERVICE.JAVA                           ##
+################################################################################
+
+-- Get all patients
+SELECT * FROM Patients;
+
+-- Get all patients with names from Users table
+SELECT p.id, p.user_id, u.name, p.dob, p.gender, p.blood_type, 
+       p.address, p.emergency_contact, u.phone 
+FROM Patients p 
+JOIN Users u ON p.user_id = u.id 
+ORDER BY u.name;
+
+-- Get patient by ID
+SELECT * FROM Patients WHERE id = ?;
+
+-- Insert patient
+INSERT INTO Patients (id, user_id, dob, gender, blood_type, address, emergency_contact) 
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+-- Update patient
+UPDATE Patients SET user_id = ?, dob = ?, gender = ?, blood_type = ?, 
+address = ?, emergency_contact = ? WHERE id = ?;
+
+-- Delete patient by ID
+DELETE FROM Patients WHERE id = ?;
+
+-- Count patients
+SELECT COUNT(*) FROM Users WHERE role = 'patient';
+
+################################################################################
+##                          4. APPOINTMENTSERVICE.JAVA                        ##
+################################################################################
+
+-- Insert appointment
+INSERT INTO Appointments (id, patient_id, doctor_id, appointment_date, time_slot, type, status) 
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+-- Get all appointments
+SELECT id, patient_id, doctor_id, appointment_date, time_slot AS timeSlot, type, status FROM Appointments;
+
+-- Delete appointment
+DELETE FROM Appointments WHERE id = ?;
+
+-- Get appointments by patient ID
+SELECT id, patient_id, doctor_id, appointment_date, time_slot AS timeSlot, type, status 
+FROM Appointments WHERE patient_id = ?;
+
+-- Get appointment details by patient ID with comprehensive joins
+SELECT a.id,
+       a.doctor_id AS doctorId,
+       u.name AS doctorName,
+       dpt.id AS departmentId,
+       dpt.name AS departmentName,
+       spec.name AS specialization,
+       TO_CHAR(a.appointment_date, 'YYYY-MM-DD') AS appointmentDate,
+       a.time_slot AS timeSlot,
+       a.status
+FROM Appointments a
+JOIN Doctors doc ON a.doctor_id = doc.id
+JOIN Users u ON doc.user_id = u.id
+LEFT JOIN Departments dpt ON doc.department_id = dpt.id
+LEFT JOIN Doctor_Specializations ds ON doc.id = ds.doctor_id
+LEFT JOIN Specializations spec ON ds.specialization_id = spec.id
+WHERE a.patient_id = ?
+ORDER BY a.appointment_date DESC, a.time_slot;
+
+-- Get patient ID by user ID
+SELECT id FROM Patients WHERE user_id = ?;
+
+-- Get all appointments with names
+SELECT a.id, a.patient_id, a.doctor_id, 
+       u_pat.name AS patient_name,
+       u_doc.name AS doctor_name,
+       a.appointment_date, a.time_slot, a.type, a.status
+FROM Appointments a
+LEFT JOIN Patients p ON a.patient_id = p.id
+LEFT JOIN Users u_pat ON p.user_id = u_pat.id
+LEFT JOIN Doctors d ON a.doctor_id = d.id
+LEFT JOIN Users u_doc ON d.user_id = u_doc.id
+ORDER BY a.appointment_date DESC;
+
+################################################################################
+##                          6. BILLSERVICE.JAVA                              ##
+################################################################################
+
+-- Get Bills by User ID (Complex JOIN with appointment and patient details)
+SELECT b.id, b.patient_id, b.appointment_id, b.total_amount, b.status, b.issue_date,
+       u_doc.name as doctor_name, u_pat.name as patient_name,
+       a.type as appointment_type, d.name as department_name, a.appointment_date
+FROM Bills b
+JOIN Appointments a ON b.appointment_id = a.id
+JOIN Doctors doc ON a.doctor_id = doc.id
+JOIN Users u_doc ON doc.user_id = u_doc.id
+JOIN Departments d ON doc.department_id = d.id
+JOIN Patients p ON b.patient_id = p.id
+JOIN Users u_pat ON p.user_id = u_pat.id
+WHERE p.user_id = ?;
+
+-- Get All Bills (Admin view with complete details)
+SELECT b.id, b.patient_id, b.appointment_id, b.total_amount, b.status, b.issue_date,
+       u_doc.name as doctor_name, u_pat.name as patient_name,
+       a.type as appointment_type, d.name as department_name, a.appointment_date
+FROM Bills b
+JOIN Appointments a ON b.appointment_id = a.id
+JOIN Doctors doc ON a.doctor_id = doc.id
+JOIN Users u_doc ON doc.user_id = u_doc.id
+JOIN Departments d ON doc.department_id = d.id
+JOIN Patients p ON b.patient_id = p.id
+JOIN Users u_pat ON p.user_id = u_pat.id
+ORDER BY b.issue_date DESC;
+
+-- Get Bill Items (Individual bill line items)
+SELECT id, bill_id, description, amount FROM Bill_Items WHERE bill_id = ?;
+
+################################################################################
+##                          7. PRESCRIPTIONSERVICE.JAVA                      ##
+################################################################################
+
+-- Get Prescriptions by Patient ID (With doctor and patient names)
+SELECT p.id, p.appointment_id, p.doctor_id, p.patient_id, p.notes, p.date_issued,
+       u_doc.name AS doctor_name, u_pat.name AS patient_name
+FROM Prescriptions p
+JOIN Doctors d ON p.doctor_id = d.id
+JOIN Users u_doc ON d.user_id = u_doc.id
+JOIN Patients pa ON p.patient_id = pa.id
+JOIN Users u_pat ON pa.user_id = u_pat.id
+WHERE p.patient_id = ?;
+
+-- Get All Prescriptions (Admin view)
+SELECT p.id, p.appointment_id, p.doctor_id, p.patient_id, p.notes, p.date_issued,
+       u_doc.name AS doctor_name, u_pat.name AS patient_name
+FROM Prescriptions p
+JOIN Doctors d ON p.doctor_id = d.id
+JOIN Users u_doc ON d.user_id = u_doc.id
+JOIN Patients pa ON p.patient_id = pa.id
+JOIN Users u_pat ON pa.user_id = u_pat.id
+ORDER BY p.date_issued DESC;
+
+-- Get Medications for Prescriptions (Dynamic IN clause)
+SELECT pm.prescription_id, m.id AS med_id, m.medicine_name, m.dosage, m.duration
+FROM Pres_Med pm
+JOIN Medications m ON pm.medication_id = m.id
+WHERE pm.prescription_id IN (?, ?, ?, ...);
+
+################################################################################
+##                          8. LABTESTSERVICE.JAVA                           ##
+################################################################################
+
+-- Get Patient ID from User ID
+SELECT id FROM Patients WHERE user_id = ?;
+
+-- Get Lab Tests by User ID (Patient-specific view)
+SELECT lt.id, lt.test_type, lt.test_date, lt.result, lt.file_url, u.name as doctor_name
+FROM Lab_Tests lt
+LEFT JOIN Doctors d ON lt.doctor_id = d.id
+LEFT JOIN Users u ON d.user_id = u.id
+WHERE lt.patient_id = ?;
+
+-- Get All Lab Tests (Admin view with patient details)
+SELECT lt.id, lt.test_type, lt.test_date, lt.result, lt.file_url,
+       u.name as doctor_name, p_user.name as patient_name
+FROM Lab_Tests lt
+LEFT JOIN Doctors d ON lt.doctor_id = d.id
+LEFT JOIN Users u ON d.user_id = u.id
+LEFT JOIN Patients p ON lt.patient_id = p.id
+LEFT JOIN Users p_user ON p.user_id = p_user.id
+ORDER BY lt.test_date DESC;
+
+################################################################################
+##                         9. MEDICALRECORDSERVICE.JAVA                      ##
+################################################################################
+
+-- Get All Medical Records (Admin view)
+SELECT a.id, a.appointment_date, a.type,
+       u.name AS doctor_name, d.name AS department,
+       p.notes, p.notes AS diagnosis
+FROM Appointments a
+JOIN Doctors doc ON a.doctor_id = doc.id
+JOIN Users u ON doc.user_id = u.id
+JOIN Departments d ON doc.department_id = d.id
+LEFT JOIN Prescriptions p ON a.id = p.appointment_id;
+
+-- Get Patient ID from User ID
+SELECT id FROM Patients WHERE user_id = ?;
+
+-- Get Medical Records by User ID (Patient-specific view)
+SELECT a.id, a.appointment_date, a.type,
+       u.name AS doctor_name, d.name AS department,
+       pr.notes, pr.notes AS diagnosis
+FROM Appointments a
+JOIN Doctors doc ON a.doctor_id = doc.id
+JOIN Users u ON doc.user_id = u.id
+JOIN Departments d ON doc.department_id = d.id
+LEFT JOIN Prescriptions pr ON a.id = pr.appointment_id
+WHERE a.patient_id = ?;
+
+################################################################################
+##                          10. FEEDBACKSERVICE.JAVA                         ##
+################################################################################
+
+-- Get Patient ID from User ID for Feedback
+SELECT id FROM Patients WHERE user_id = ?;
+
+-- Submit Feedback
+INSERT INTO Feedback (id, patient_id, target_type, target_id, rating, comments, date_submitted)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+-- Get All Feedback (With patient names)
+SELECT f.id, f.patient_id, f.target_type, f.target_id,
+       f.rating, f.comments, f.date_submitted, u.name as patient_name
+FROM Feedback f
+JOIN Patients p ON f.patient_id = p.id
+JOIN Users u ON p.user_id = u.id
+ORDER BY f.date_submitted DESC;
+
+################################################################################
+##                          11. AMBULANCESERVICE.JAVA                        ##
+################################################################################
+
+-- Get All Ambulances
+SELECT id, vehicle_number as vehicleNumber, status, location, branch_id as branchId 
+FROM Ambulances;
+
+-- Get Ambulance by ID
+SELECT id, vehicle_number as vehicleNumber, status, location, branch_id as branchId 
+FROM Ambulances WHERE id = ?;
+
+-- Update Existing Ambulance
+UPDATE Ambulances SET vehicle_number = ?, status = ?, location = ?, branch_id = ? WHERE id = ?;
+
+-- Insert New Ambulance
+INSERT INTO Ambulances (id, vehicle_number, status, location, branch_id) 
+VALUES (?, ?, ?, ?, ?);
+
+-- Delete Ambulance
+DELETE FROM Ambulances WHERE id = ?;
+
+################################################################################
+##                       12. AMBULANCEREQUESTSERVICE.JAVA                    ##
+################################################################################
+
+-- Get Patient ID from User ID
+SELECT id FROM Patients WHERE user_id = ?;
+
+-- Find Available Ambulance (Oracle ROWNUM syntax)
+SELECT id FROM Ambulances WHERE status = 'Available' AND ROWNUM = 1;
+
+-- Insert Ambulance Request
+INSERT INTO Ambulance_Requests (id, patient_id, ambulance_id, request_time, pickup_location, drop_location, status)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+-- Get Ambulance Requests by User ID
+SELECT ar.*, a.vehicle_number, a.status AS ambulance_status
+FROM Ambulance_Requests ar
+LEFT JOIN Ambulances a ON ar.ambulance_id = a.id
+WHERE ar.patient_id = (SELECT id FROM Patients WHERE user_id = ?)
+ORDER BY ar.request_time DESC;
+
+-- Get All Ambulance Requests (Admin view)
+SELECT ar.*, a.vehicle_number, a.status AS ambulance_status,
+       p.dob as patient_dob, u.name as patient_name, u.phone as patient_phone
+FROM Ambulance_Requests ar
+LEFT JOIN Ambulances a ON ar.ambulance_id = a.id
+LEFT JOIN Patients p ON ar.patient_id = p.id
+LEFT JOIN Users u ON p.user_id = u.id
+ORDER BY ar.request_time DESC;
+
+################################################################################
+##                       13. HOSPITALBRANCHSERVICE.JAVA                      ##
+################################################################################
+
+-- Insert Hospital Branch
+INSERT INTO Hospital_Branches (id, name, address, established_date) VALUES (?, ?, ?, ?);
+
+-- Insert Branch Contact
+INSERT INTO Branch_Contacts (id, branch_id, contact_number, type) VALUES (?, ?, ?, ?);
+
+-- Get All Hospital Branches
+SELECT * FROM Hospital_Branches;
+
+-- Get Hospital Branch by ID
+SELECT * FROM Hospital_Branches WHERE id = ?;
+
+-- Get Branch Contacts by Branch ID
+SELECT * FROM Branch_Contacts WHERE branch_id = ?;
+
+-- Delete Branch Contacts
+DELETE FROM Branch_Contacts WHERE branch_id = ?;
+
+-- Delete Hospital Branch
+DELETE FROM Hospital_Branches WHERE id = ?;
+
+-- Count Hospital Branches
+SELECT COUNT(*) FROM Hospital_Branches;
+
+################################################################################
+##                          14. ROOMSERVICE.JAVA                             ##
+################################################################################
+
+-- Get All Rooms
+SELECT id, room_number, type, status FROM Rooms;
+
+-- Get Room by ID
+SELECT id, room_number, type, status FROM Rooms WHERE id = ?;
+
+-- Update Existing Room
+UPDATE Rooms SET room_number = ?, type = ?, status = ? WHERE id = ?;
+
+-- Insert New Room
+INSERT INTO Rooms (id, room_number, type, status) VALUES (?, ?, ?, ?);
+
+-- Delete Room
+DELETE FROM Rooms WHERE id = ?;
+
+################################################################################
+##                          15. EQUIPMENTSERVICE.JAVA                        ##
+################################################################################
+
+-- Get All Equipment (Active only)
+SELECT * FROM EQUIPMENT WHERE ACTIVE = 1 ORDER BY EQUIPMENT_NAME;
+
+-- Get Equipment by ID
+SELECT * FROM EQUIPMENT WHERE ID = ? AND ACTIVE = 1;
+
+-- Insert New Equipment
+INSERT INTO EQUIPMENT (ID, EQUIPMENT_NAME, EQUIPMENT_TYPE, MANUFACTURER,
+                      MODEL, CONDITION, PURCHASE_DATE, DEPARTMENT_ID, BRANCH_ID, STATUS, ACTIVE)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+-- Update Existing Equipment
+UPDATE EQUIPMENT SET EQUIPMENT_NAME = ?, EQUIPMENT_TYPE = ?,
+                    MANUFACTURER = ?, MODEL = ?, CONDITION = ?, PURCHASE_DATE = ?,
+                    DEPARTMENT_ID = ?, BRANCH_ID = ?, STATUS = ?, ACTIVE = ?
+WHERE ID = ?;
+
+-- Soft Delete Equipment (Set ACTIVE = 0)
+UPDATE EQUIPMENT SET ACTIVE = 0 WHERE ID = ?;
+
+################################################################################
+##                          16. STAFFSERVICE.JAVA                            ##
+################################################################################
+
+-- Get All Staff (With department and location details)
+SELECT s.id, u.name, u.email, u.phone, s.designation,
+       d.name AS department, b.name AS location
+FROM Staff s
+JOIN Users u ON s.user_id = u.id
+LEFT JOIN Departments d ON s.department_id = d.id
+LEFT JOIN Hospital_Branches b ON s.branch_id = b.id;
+
+-- Get Staff by ID
+SELECT s.id, u.name, u.email, u.phone, s.designation,
+       d.name AS department, b.name AS location
+FROM Staff s
+JOIN Users u ON s.user_id = u.id
+LEFT JOIN Departments d ON s.department_id = d.id
+LEFT JOIN Hospital_Branches b ON s.branch_id = b.id
+WHERE s.id = ?;
+
+-- Delete Staff
+DELETE FROM Staff WHERE id = ?;
+
+################################################################################
+##                         17. INSURANCESERVICE.JAVA                         ##
+################################################################################
+
+-- Convert User ID to Patient ID
+SELECT p.id FROM Patients p WHERE p.user_id = ?;
+
+-- Check if User has Patient Record
+SELECT COUNT(*) FROM Patients p WHERE p.user_id = ?;
+
+-- Get Insurance Plans for Patient
+SELECT pi.id, pi.patient_id, pi.provider_id, ip.name AS providerName,
+       pi.policy_number, pi.coverage_details
+FROM Patient_Insurance pi
+JOIN Insurance_Providers ip ON pi.provider_id = ip.id
+WHERE pi.patient_id = ?;
+
+-- Get Claims for Patient (Complex calculation query)
+SELECT c.id, c.claim_status, c.claim_amount,
+       TO_CHAR(c.submitted_on, 'YYYY-MM-DD') as submitted_on,
+       COALESCE(u.name, 'Unknown Provider') as provider,
+       'Medical Service' as service,
+       COALESCE(c.claim_amount * 0.8, 0) as paid,
+       COALESCE(c.claim_amount * 0.8, 0) as approved,
+       COALESCE(c.claim_amount * 0.2, 0) as patientResponsibility,
+       'Primary Insurance' as insurancePlan
+FROM Claims c
+JOIN Appointments a ON c.appointment_id = a.id
+LEFT JOIN Doctors d ON a.doctor_id = d.id
+LEFT JOIN Users u ON d.user_id = u.id
+WHERE a.patient_id = ?
+ORDER BY c.submitted_on DESC;
+
+-- Get All Insurance Providers
+SELECT id, name, contact_info FROM Insurance_Providers;
+
+-- Add Insurance Plan for Patient
+INSERT INTO Patient_Insurance (id, patient_id, provider_id, policy_number, coverage_details)
+VALUES (?, ?, ?, ?, ?);
+
+################################################################################
+##                          18. SIGNUPSERVICE.JAVA                           ##
+################################################################################
+
+-- Check if Email Already Exists
+SELECT COUNT(*) FROM USERS WHERE EMAIL = ?;
+
+-- Insert New User (Patient Registration)
+INSERT INTO USERS (NAME, EMAIL, PASSWORD, PHONE, ROLE, CREATED_AT)
+VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP);
+
+-- Get Generated User ID after Insert
+SELECT ID FROM USERS WHERE EMAIL = ?;
+
+-- Insert Patient Details
+INSERT INTO PATIENTS (USER_ID, DOB, GENDER, BLOOD_TYPE, ADDRESS, EMERGENCY_CONTACT)
+VALUES (?, ?, ?, ?, ?, ?);
+
+################################################################################
+##                          19. STATSSERVICE.JAVA                           ##
+################################################################################
+
+-- Count Doctors by Role
+SELECT COUNT(*) FROM Users WHERE LOWER(role) = ?; -- 'doctor'
+
+-- Count Patients by Role
+SELECT COUNT(*) FROM Users WHERE LOWER(role) = ?; -- 'patient'
+
+-- Count Hospital Branches
+SELECT COUNT(*) FROM Hospital_Branches;
+
+################################################################################
+##                              END OF FILE                                  ##
+################################################################################
+
+TOTAL BACKEND SERVICES ANALYZED: 19
+TOTAL SQL QUERIES EXTRACTED: 100+
+
+Services Included:
+1. DepartmentService.java
+2. DoctorService.java  
+3. PatientService.java
+4. AppointmentService.java
+5. UsersService.java
+6. BillService.java
+7. PrescriptionService.java
+8. LabTestService.java
+9. MedicalRecordService.java
+10. FeedbackService.java
+11. AmbulanceService.java
+12. AmbulanceRequestService.java
+13. HospitalBranchService.java
+14. RoomService.java
+15. EquipmentService.java
+16. StaffService.java
+17. InsuranceService.java
+18. SignupService.java
+19. StatsService.java
+
+Query Types:
+- SELECT (Basic and Complex JOIN operations)
+- INSERT (Single and batch operations)
+- UPDATE (Conditional updates)
+- DELETE (Hard and soft deletes)
+- COUNT (Statistics and validation)
+- Complex filtering with WHERE clauses
+- ORDER BY for sorting
+- LEFT JOIN for optional relationships
+- Multiple table JOINs for comprehensive data retrieval
