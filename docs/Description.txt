@@ -1,0 +1,92 @@
+HospiTrack - Comprehensive Hospital Management System
+
+REPOSITORY INFORMATION:
+GitHub Repository: https://github.com/adibbiniqbal/HospiTrack
+Developed by: Adib Bin Iqbal (@adibbiniqbal) and kaisarul Estey (@Estey144)
+Course: BUET CSE 216 Database Sessional
+Institution: Bangladesh University of Engineering and Technology (BUET)
+
+PROJECT OVERVIEW:
+HospiTrack is a full-stack hospital management system designed to streamline healthcare operations and improve patient care delivery. The system provides a comprehensive digital platform for managing all aspects of hospital operations, from patient registration to medical records, billing, and resource management.
+
+TECHNOLOGY STACK:
+Backend: Spring Boot 3.3.13 with Java 17, Spring Security, Spring Data JPA
+Frontend: React 19.1.0 with React Router, Axios for API communication
+Database: Oracle Database with robust schema design
+Build Tools: Maven (Backend), npm (Frontend)
+Security: JWT-based authentication and role-based access control
+
+KEY FEATURES:
+
+1. MULTI-ROLE USER MANAGEMENT:
+   - Patient Portal: Personal dashboard, appointment booking, medical records access
+   - Doctor Dashboard: Patient management, appointment scheduling, prescription management
+   - Admin Panel: Complete system administration and resource management
+
+2. APPOINTMENT MANAGEMENT SYSTEM:
+   - Online appointment booking with real-time availability
+   - Doctor-specific scheduling with time slot management
+   - Appointment status tracking (pending, confirmed, completed, cancelled)
+   - Multi-branch support with department-wise categorization
+
+3. MEDICAL RECORDS & PRESCRIPTIONS:
+   - Digital prescription management with medication tracking
+   - Lab test ordering and result management
+   - Medical history maintenance with chronological tracking
+   - PDF export capabilities for prescriptions and reports
+
+4. BILLING & INSURANCE:
+   - Automated bill generation for appointments and services
+   - Insurance provider integration with coverage tracking
+   - Payment status monitoring and overdue alerts
+   - Comprehensive billing reports with PDF export
+
+5. ADVANCED HEALTHCARE FEATURES:
+   - AI-powered Symptom Checker for preliminary diagnosis
+   - Video consultation sessions for telemedicine (video call services not implemented)
+   - Emergency ambulance request system with real-time tracking
+   - Medical device integration for patient monitoring
+
+6. FACILITY MANAGEMENT:
+   - Multi-branch hospital network support
+   - Room and cabin management with availability tracking
+   - Medical equipment inventory management
+   - Department and specialization management
+
+7. COMMUNICATION & FEEDBACK:
+   - Feedback and rating system for services
+   - Real-time notifications and alerts
+   - Emergency contact management
+
+8. REPORTING & ANALYTICS:
+   - Comprehensive audit logging for all system activities
+   - Statistical dashboards for administrators
+   - Performance metrics for doctors and departments
+   - Patient flow and resource utilization reports
+
+SECURITY FEATURES:
+- Role-based access control (Patient, Doctor, Admin)
+- Secure authentication with password encryption
+- Audit trail for all critical operations
+- Data validation and SQL injection prevention
+
+SCALABILITY & PERFORMANCE:
+- Microservices-ready architecture with clear separation of concerns
+- RESTful API design for easy integration
+- Responsive frontend design for mobile and desktop
+- Database optimization with proper indexing and foreign key relationships
+
+TARGET USERS:
+- Patients seeking convenient healthcare access
+- Healthcare providers requiring efficient practice management
+- Hospital administrators needing comprehensive oversight
+- Healthcare staff requiring streamlined workflows
+
+BUSINESS VALUE:
+- Reduces administrative overhead through automation
+- Improves patient satisfaction with digital convenience
+- Enhances medical care quality through better record keeping
+- Provides data-driven insights for operational improvements
+- Supports regulatory compliance with comprehensive audit trails
+
+The system serves as a complete digital transformation solution for healthcare facilities, enabling efficient management of patient care, resource allocation, and administrative operations while maintaining the highest standards of data security and regulatory compliance.
