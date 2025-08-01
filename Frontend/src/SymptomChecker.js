@@ -29,7 +29,8 @@ import {
   DollarSign,
   Video,
   TestTube,
-  MessageSquare
+  MessageSquare,
+  Settings
 } from 'lucide-react';
 import './SymptomChecker.css';
 import './PatientDashboard.css';
@@ -57,6 +58,9 @@ const SymptomChecker = () => {
   const [chatStarted, setChatStarted] = useState(false);
   const [assessment, setAssessment] = useState(null);
   const [appointmentSuggested, setAppointmentSuggested] = useState(false);
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [userApiKey, setUserApiKey] = useState('');
+  const [apiKeySource, setApiKeySource] = useState('env'); // 'env' or 'user'
 
   // Navigation items for sidebar
   const navigationItems = [
@@ -137,7 +141,17 @@ const SymptomChecker = () => {
   // OpenRouter API Configuration for HospiTrack AI - Using environment variables
   const OPENROUTER_API_URL = process.env.REACT_APP_OPENROUTER_API_URL || 'https://openrouter.ai/api/v1/chat/completions';
   const DEEPSEEK_MODEL = process.env.REACT_APP_DEEPSEEK_MODEL || 'deepseek/deepseek-chat';
-  const API_KEY = process.env.REACT_APP_OPENROUTER_API_KEY || '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';
+  const ENV_API_KEY = process.env.REACT_APP_OPENROUTER_API_KEY;
+  
+  // Get API key from environment or user input
+  const getApiKey = () => {
+    if (apiKeySource === 'user' && userApiKey) {
+      return userApiKey;
+    }
+    return ENV_API_KEY;
+  };
+  
+  const API_KEY = getApiKey();
 
   // Common symptoms for quick selection
   const quickSymptoms = [
@@ -157,6 +171,22 @@ const SymptomChecker = () => {
 
   // HospiTrack AI API call function (using DeepSeek model)
   const callDeepSeekAPI = async (userInput, conversationHistory = []) => {
+    // Check if API key is available
+    if (!API_KEY) {
+      console.error('OpenRouter API key not found. Please check your environment variables.');
+      console.error('Environment variables check:', {
+        hasReactAppKey: !!process.env.REACT_APP_OPENROUTER_API_KEY,
+        allEnvKeys: Object.keys(process.env).filter(key => key.includes('OPENROUTER'))
+      });
+      throw new Error('API_KEY_MISSING');
+    }
+
+    console.log('Making API call to OpenRouter...', {
+      url: OPENROUTER_API_URL,
+      model: DEEPSEEK_MODEL,
+      hasValidKey: API_KEY.startsWith('sk-or-v1-')
+    });
+
     const systemPrompt = `You are HospiTrack AI Chatbot, a professional medical AI assistant for symptom assessment. Your role is to:
 
 1. Provide preliminary symptom assessment and general health guidance
@@ -196,6 +226,7 @@ Do NOT include any text before or after the JSON. Do NOT use markdown formatting
     ];
 
     try {
+      console.log('Sending request to OpenRouter API...');
       const response = await fetch(OPENROUTER_API_URL, {
         method: 'POST',
         headers: {
@@ -216,11 +247,16 @@ Do NOT include any text before or after the JSON. Do NOT use markdown formatting
         })
       });
 
+      console.log('API Response status:', response.status, response.statusText);
+
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.statusText}`);
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        throw new Error(`API request failed: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('API Response data:', data);
       const aiResponse = data.choices[0].message.content;
 
       // Try to parse as JSON, fallback to text response if parsing fails
@@ -303,6 +339,18 @@ Do NOT include any text before or after the JSON. Do NOT use markdown formatting
     } catch (error) {
       console.error('API call failed, using fallback response:', error);
 
+      // Special handling for missing API key
+      if (error.message === 'API_KEY_MISSING') {
+        return {
+          text: "🔑 I need an API key to provide AI-powered responses. Please click the 'Setup API' button in the top right to configure your OpenRouter API key, or the system administrator needs to set up the environment API key.",
+          followUp: ['Setup API Key', 'Use Basic Mode', 'Contact Support'],
+          condition: 'API Configuration Required',
+          severity: 'monitoring',
+          recommendations: ['Click Setup API button', 'Get free API key from openrouter.ai', 'Contact system administrator'],
+          requiresApiSetup: true
+        };
+      }
+
       // Fallback mock responses for when API is not available
       const generalResponses = [
         {
@@ -351,6 +399,15 @@ Do NOT include any text before or after the JSON. Do NOT use markdown formatting
     const userData = getUserFromParams();
     setUser(userData);
     
+    // Load saved user API key from localStorage
+    const savedApiKey = localStorage.getItem('userOpenRouterApiKey');
+    const savedApiKeySource = localStorage.getItem('apiKeySource');
+    
+    if (savedApiKey) {
+      setUserApiKey(savedApiKey);
+      setApiKeySource(savedApiKeySource || 'user');
+    }
+    
     scrollToBottom();
   }, [messages, location.state, searchParams]);
 
@@ -359,12 +416,15 @@ Do NOT include any text before or after the JSON. Do NOT use markdown formatting
     const welcomeMessage = {
       id: 1,
       type: 'bot',
-      text: "Hello! I'm HospiTrack AI Chatbot, your intelligent health assistant. I can help assess your symptoms and provide general health guidance. Please note that this is not a substitute for professional medical advice.",
+      text: API_KEY 
+        ? "Hello! I'm HospiTrack AI Chatbot, your intelligent health assistant. I can help assess your symptoms and provide general health guidance. Please note that this is not a substitute for professional medical advice."
+        : "Hello! I'm HospiTrack AI Chatbot. To provide AI-powered symptom assessment, I need an API key. Please click the 'Setup API' button in the top right corner to configure your OpenRouter API key, or contact your system administrator.",
       timestamp: new Date(),
-      isWelcome: true
+      isWelcome: true,
+      followUp: !API_KEY ? ['Setup API Key', 'Learn More'] : undefined
     };
     setMessages([welcomeMessage]);
-  }, []);
+  }, [API_KEY]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -446,6 +506,10 @@ Do NOT include any text before or after the JSON. Do NOT use markdown formatting
   };
 
   const handleFollowUpClick = (followUp) => {
+    if (followUp === 'Setup API Key') {
+      setShowApiKeyModal(true);
+      return;
+    }
     setInputMessage(followUp);
   };
 
@@ -495,6 +559,40 @@ Do NOT include any text before or after the JSON. Do NOT use markdown formatting
       // Show success message
       alert('Assessment saved successfully! You can view it in your medical history.');
     }
+  };
+
+  // API Key Management Functions
+  const handleApiKeySubmit = () => {
+    if (userApiKey && userApiKey.startsWith('sk-or-v1-')) {
+      localStorage.setItem('userOpenRouterApiKey', userApiKey);
+      localStorage.setItem('apiKeySource', 'user');
+      setApiKeySource('user');
+      setShowApiKeyModal(false);
+      alert('API key saved successfully! You can now use the AI features.');
+    } else {
+      alert('Please enter a valid OpenRouter API key (should start with sk-or-v1-)');
+    }
+  };
+
+  const handleUseEnvKey = () => {
+    if (ENV_API_KEY) {
+      localStorage.removeItem('userOpenRouterApiKey');
+      localStorage.setItem('apiKeySource', 'env');
+      setApiKeySource('env');
+      setUserApiKey('');
+      setShowApiKeyModal(false);
+      alert('Now using environment API key.');
+    } else {
+      alert('No environment API key found. Please enter your own API key.');
+    }
+  };
+
+  const handleRemoveUserKey = () => {
+    localStorage.removeItem('userOpenRouterApiKey');
+    localStorage.removeItem('apiKeySource');
+    setUserApiKey('');
+    setApiKeySource('env');
+    setShowApiKeyModal(false);
   };
 
   return (
@@ -621,10 +719,32 @@ Do NOT include any text before or after the JSON. Do NOT use markdown formatting
               </div>
             </div>
             <div className="symptom-checker-header-right">
+              <button 
+                className="api-key-settings-btn"
+                onClick={() => setShowApiKeyModal(true)}
+                style={{
+                  background: API_KEY ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                  color: 'white',
+                  border: 'none',
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  marginRight: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+                title={API_KEY ? 'API Key Configured' : 'API Key Required'}
+              >
+                <Bot size={14} />
+                {API_KEY ? 'API Ready' : 'Setup API'}
+              </button>
               <div className="ai-status">
                 <div className="ai-indicator">
                   <Bot size={20} />
-                  <span>HospiTrack AI Online</span>
+                  <span>HospiTrack AI {API_KEY ? 'Online' : 'Offline'}</span>
                 </div>
               </div>
             </div>
@@ -747,12 +867,30 @@ Do NOT include any text before or after the JSON. Do NOT use markdown formatting
           {showQuickSymptoms && !chatStarted && (
             <div className="quick-symptoms">
               <h4>Common Symptoms - Click to start assessment:</h4>
+              {!API_KEY && (
+                <div style={{
+                  padding: '12px',
+                  backgroundColor: '#fef3c7',
+                  borderRadius: '8px',
+                  marginBottom: '16px',
+                  fontSize: '14px',
+                  color: '#92400e',
+                  border: '1px solid #fbbf24'
+                }}>
+                  <strong>⚠️ Note:</strong> AI features require an API key. Click "Setup API" in the top right to configure.
+                </div>
+              )}
               <div className="symptoms-grid">
                 {quickSymptoms.map((symptom, index) => (
                   <button 
                     key={index}
                     className="quick-symptom-button"
                     onClick={() => handleQuickSymptom(symptom)}
+                    disabled={!API_KEY}
+                    style={{ 
+                      opacity: API_KEY ? 1 : 0.6,
+                      cursor: API_KEY ? 'pointer' : 'not-allowed'
+                    }}
                   >
                     <span className="symptom-icon">{symptom.icon}</span>
                     <span className="symptom-name">{symptom.name}</span>
@@ -916,6 +1054,160 @@ Do NOT include any text before or after the JSON. Do NOT use markdown formatting
       </div>
         </div>
       </div>
+
+      {/* API Key Configuration Modal */}
+      {showApiKeyModal && (
+        <div className="api-key-modal-overlay" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div className="api-key-modal" style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '24px',
+            width: '90%',
+            maxWidth: '500px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ margin: 0, color: '#1f2937' }}>
+                <Bot size={20} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+                AI Configuration
+              </h3>
+              <button 
+                onClick={() => setShowApiKeyModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                  color: '#6b7280'
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ 
+                padding: '12px', 
+                backgroundColor: '#f3f4f6', 
+                borderRadius: '8px', 
+                marginBottom: '16px',
+                fontSize: '14px',
+                color: '#374151'
+              }}>
+                <strong>Current Status:</strong><br />
+                Environment API Key: {ENV_API_KEY ? '✅ Available' : '❌ Not Found'}<br />
+                User API Key: {userApiKey ? '✅ Configured' : '❌ Not Set'}<br />
+                Active Source: {apiKeySource === 'env' ? 'Environment' : 'User Input'}
+              </div>
+              
+              <h4 style={{ color: '#374151', marginBottom: '12px' }}>Option 1: Use Your Own API Key</h4>
+              <input
+                type="password"
+                value={userApiKey}
+                onChange={(e) => setUserApiKey(e.target.value)}
+                placeholder="Enter your OpenRouter API key (sk-or-v1-...)"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  marginBottom: '12px',
+                  fontFamily: 'monospace'
+                }}
+              />
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                <button 
+                  onClick={handleApiKeySubmit}
+                  disabled={!userApiKey}
+                  style={{
+                    background: userApiKey ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' : '#d1d5db',
+                    color: 'white',
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    cursor: userApiKey ? 'pointer' : 'not-allowed',
+                    fontSize: '14px',
+                    fontWeight: '600'
+                  }}
+                >
+                  Save API Key
+                </button>
+                {userApiKey && (
+                  <button 
+                    onClick={handleRemoveUserKey}
+                    style={{
+                      background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                      color: 'white',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+              
+              {ENV_API_KEY && (
+                <>
+                  <h4 style={{ color: '#374151', marginBottom: '12px' }}>Option 2: Use Environment API Key</h4>
+                  <button 
+                    onClick={handleUseEnvKey}
+                    style={{
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                      color: 'white',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      marginBottom: '16px'
+                    }}
+                  >
+                    Use Environment Key
+                  </button>
+                </>
+              )}
+              
+              <div style={{ 
+                padding: '12px', 
+                backgroundColor: '#fef3c7', 
+                borderRadius: '8px', 
+                fontSize: '12px',
+                color: '#92400e',
+                border: '1px solid #fbbf24'
+              }}>
+                <strong>📝 Note:</strong> Get your free API key from{' '}
+                <a 
+                  href="https://openrouter.ai/keys" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ color: '#1d4ed8', textDecoration: 'underline' }}
+                >
+                  openrouter.ai/keys
+                </a>
+                . Your API key is stored locally and never shared.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

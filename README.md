@@ -57,13 +57,33 @@ HospiTrack is a comprehensive digital solution designed to streamline healthcare
    # Configure database connection in src/main/resources/application.properties
    ./mvnw spring-boot:run
    ```
-4. **Frontend Setup**
+4. **Frontend Setup & AI Configuration**
 
    ```bash
    cd Frontend
+
+   # Copy environment template
+   cp .env.example .env
+
+   # Edit .env file and add your OpenRouter API key
+   # REACT_APP_OPENROUTER_API_KEY=your_api_key_here
+
    npm install
    npm start
    ```
+
+   **⚠️ Important**: The AI symptom checker requires an OpenRouter API key:
+
+   - **Option 1**: Add to `.env` file (recommended for developers)
+   - **Option 2**: Configure via the web interface (click "Setup API" button)
+   - Get your API key from: https://openrouter.ai/keys
+   - Never commit API keys to version control
+
+   **🔧 AI Configuration Options:**
+
+   - **Environment Setup**: Add `REACT_APP_OPENROUTER_API_KEY` to `.env` file
+   - **User Interface**: Click "Setup API" button in the symptom checker for runtime configuration
+   - **Flexible**: Switch between environment and user-provided API keys
 5. **🚀 Quick Start with VS Code (Recommended)**
 
    For developers using VS Code, we've configured build tasks for easy development:
@@ -188,6 +208,9 @@ graph TB
 - **Ambulance Services**: Real-time request and tracking system
 - **Telemedicine**: Video consultation platform
 - **AI Symptom Checker Chatbot**: Interactive intelligent diagnosis assistant with conversational interface
+  - **Flexible API Configuration**: Environment variables or user-provided API keys
+  - **Runtime Setup**: Configure API keys directly through the web interface
+  - **Secure Storage**: API keys stored locally, never transmitted to servers
 - **Real-time Corona Tracker**: Live COVID-19 statistics and monitoring dashboard
 - **IoT Integration**: Medical device monitoring
 - **Emergency Alerts**: Critical patient notifications
@@ -402,7 +425,7 @@ We've configured VS Code tasks to streamline the development workflow. The follo
 }
 ```
 
-## 🀽� API Documentation
+## 🀽 API Documentation
 
 ### Core Endpoints
 
